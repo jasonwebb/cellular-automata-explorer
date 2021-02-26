@@ -1,5 +1,8 @@
-export let containerSize = {
-  width: window.innerWidth/3,
-  height: window.innerHeight/3,
-  isMaximized: false
-};
+import * as THREE from 'three';
+
+export default {
+  isPaused: false,
+  pingPongSteps: 60,
+  currentRenderTargetIndex: 0,
+  clock: new THREE.Clock()
+}

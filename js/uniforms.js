@@ -5,42 +5,56 @@
 //==============================================================
 
 import * as THREE from 'three';
-import { containerSize } from './globals';
+import variables from './variables';
 
 export let simulationUniforms = {
-  previousIterationTexture: {
-    type: "t",
-    value: undefined
-  },
   resolution: {
-    type: "v2",
-    value: new THREE.Vector2(containerSize.width, containerSize.height)
+    type: 'v2',
+    value: new THREE.Vector2(
+      variables.canvas.width.value * variables.scale.value,
+      variables.canvas.height.value * variables.scale.value
+    )
   },
   mousePosition: {
-    type: "v2",
+    type: 'v2',
     value: new THREE.Vector2(-1,-1)
+  },
+  previousGenerationStates: {
+    type: 't',
+    value: null
+  },
+  birthAndSurvivalCounts: {
+    type: 't',
+    value: null
+  },
+  birthCountsLength: {
+    type: 'i',
+    value: 1
+  },
+  survivalCountsLength: {
+    type: 'i',
+    value: 2
   }
 };
 
 export let displayUniforms = {
-  textureToDisplay: {
-    value: null
-  },
-  previousIterationTexture: {
+  previousGenerationStates: {
+    type: 't',
     value: null
   },
   time: {
-    type: "f",
+    type: 'f',
     value: 0
   },
   renderingStyle: {
-    type: "i",
+    type: 'i',
     value: 0
   }
 };
 
 export let passthroughUniforms = {
   textureToDisplay: {
+    type: 't',
     value: null
   }
 };
