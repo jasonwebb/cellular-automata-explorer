@@ -15,5 +15,14 @@ export default {
     min: .01,
     max: 5,
     value: 1
+  },
+  patterns: {
+    circle: {
+      radius: {
+        min: 0.1,
+        max: 5,
+        value: 100
+      }
+    }
   }
 }

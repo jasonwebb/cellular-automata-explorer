@@ -10,22 +10,24 @@
 import * as THREE from 'three';
 import variables from './variables';
 
+export let renderTargets;
+
 export function setupRenderTargets() {
-  global.renderTargets = [];
+  renderTargets = [];
 
   // Create two render targets so we can "ping pong" between them and run multiple iterations per frame
   for(let i=0; i<2; i++) {
-    let nextRenderTarget = new THREE.WebGLRenderTarget(
-      variables.canvas.width.value * variables.scale.value,
-      variables.canvas.height.value * variables.scale.value,
-      {
-        minFilter: THREE.LinearFilter,
-        magFilter: THREE.LinearFilter,
-        format: THREE.RGBAFormat,
-        type: THREE.FloatType
-      }
+    renderTargets.push(
+      new THREE.WebGLRenderTarget(
+        variables.canvas.width.value,
+        variables.canvas.height.value,
+        {
+          minFilter: THREE.NearestFilter,
+          magFilter: THREE.NearestFilter,
+          format: THREE.RGBAFormat,
+          type: THREE.FloatType
+        }
+      )
     );
-
-    renderTargets.push(nextRenderTarget);
   }
 }

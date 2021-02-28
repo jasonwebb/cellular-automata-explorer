@@ -3,12 +3,15 @@ import * as THREE from 'three';
 import globals from './globals';
 import variables from './variables';
 
-import { setupRenderTargets } from './renderTargets';
+import { setupRenderTargets, renderTargets } from './renderTargets';
 
 import { simulationUniforms, displayUniforms } from './uniforms';
 import { simulationMaterial, displayMaterial } from './materials';
+import { drawPattern } from './patterns';
 
-let canvas, bufferCanvas, renderer, camera, scene, mesh;
+export let scene, camera, renderer, mesh;
+
+let canvas, bufferCanvas;
 
 setup();
 update();
@@ -51,7 +54,28 @@ function setup() {
   resetTextureSizes();
 
   // Set up and render the first frame
-  // drawFirstFrame();
+  drawPattern();
+
+  // Create birth and survival rules as a texture
+  let data = new Uint8Array(2 * 1 * 4);
+  data[0] = 3;  // birth ([0,0].r)
+  data[1] = 2;  // survive ([0,0].g)
+  data[5] = 3;  // survive ([1,0].g)
+
+  simulationUniforms.birthAndSurvivalCounts = new THREE.DataTexture(
+    data,
+    2,
+    1,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType
+  );
+
+  // Start the simulation on Space for debugging
+  window.addEventListener('keyup', (e) => {
+    if(e.key == ' ') {
+      globals.isPaused = false;
+    }
+  });
 }
 
   export function resetTextureSizes() {
@@ -63,8 +87,8 @@ function setup() {
 
     // Reset the resolution in the simulation code to match new container size
     simulationUniforms.resolution.value = new THREE.Vector2(
-      variables.canvas.width.value * variables.scale.value,
-      variables.canvas.height.value * variables.scale.value
+      variables.canvas.width.value,
+      variables.canvas.height.value
     );
 
     // Resize the buffer canvas
@@ -87,22 +111,23 @@ function update() {
     for(let i=0; i<globals.pingPongSteps; i++) {
       let nextRenderTargetIndex = globals.currentRenderTargetIndex === 0 ? 1 : 0;
 
-      simulationUniforms.previousGenerationStates.value = renderTargets[globals.currentRenderTargetIndex].texture;  // grab the result of the last iteration
-      renderer.setRenderTarget(renderTargets[nextRenderTargetIndex]);                                               // prepare to render into the next render target
-      renderer.render(scene, camera);                                                                               // run the simulation shader on that texture
-      simulationUniforms.previousGenerationStates.value = renderTargets[nextRenderTargetIndex].texture;             // save the result of this simulation step for use in the next step
-      displayUniforms.previousGenerationStates.value = renderTargets[nextRenderTargetIndex].texture;                // pass this result to the display material too
+      simulationUniforms.states.value = renderTargets[globals.currentRenderTargetIndex].texture;  // grab the result of the last iteration
+      renderer.setRenderTarget(renderTargets[nextRenderTargetIndex]);                             // prepare to render into the next render target
+      renderer.render(scene, camera);                                                             // run the simulation shader on that texture
 
       globals.currentRenderTargetIndex = nextRenderTargetIndex;
     }
 
     // Activate the display shaders
     displayUniforms.time.value = globals.clock.getElapsedTime();
+    displayUniforms.textureToDisplay.value = renderTargets[globals.currentRenderTargetIndex].texture;  // pass this result to the display material too
     mesh.material = displayMaterial;
 
     // Render the latest iteration to the screen
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
+
+    // globals.isPaused = true;
   }
 
   // Run again when the next frame starts

@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
 export default {
-  isPaused: false,
-  pingPongSteps: 60,
+  isPaused: true,
+  pingPongSteps: 1,
   currentRenderTargetIndex: 0,
   clock: new THREE.Clock()
 }

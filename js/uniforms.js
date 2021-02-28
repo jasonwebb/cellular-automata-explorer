@@ -19,7 +19,7 @@ export let simulationUniforms = {
     type: 'v2',
     value: new THREE.Vector2(-1,-1)
   },
-  previousGenerationStates: {
+  states: {
     type: 't',
     value: null
   },
@@ -28,17 +28,17 @@ export let simulationUniforms = {
     value: null
   },
   birthCountsLength: {
-    type: 'i',
-    value: 1
+    type: 'f',
+    value: 1.
   },
   survivalCountsLength: {
-    type: 'i',
-    value: 2
+    type: 'f',
+    value: 2.
   }
 };
 
 export let displayUniforms = {
-  previousGenerationStates: {
+  textureToDisplay: {
     type: 't',
     value: null
   },
