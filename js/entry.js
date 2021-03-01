@@ -57,18 +57,12 @@ function setup() {
   drawPattern();
 
   // Create birth and survival rules as a texture
-  let data = new Uint8Array(2 * 1 * 4);
-  data[0] = 3;  // birth ([0,0].r)
-  data[1] = 2;  // survive ([0,0].g)
-  data[5] = 3;  // survive ([1,0].g)
+  let data = new Float32Array(2 * 1 * 4);
+  data[0] = 3 / 255;  // birth ([0,0].r)
+  data[1] = 2 / 255;  // survive ([0,0].g)
+  data[5] = 3 / 255;  // survive ([1,0].g)
 
-  simulationUniforms.birthAndSurvivalCounts = new THREE.DataTexture(
-    data,
-    2,
-    1,
-    THREE.RGBAFormat,
-    THREE.UnsignedByteType
-  );
+  simulationUniforms.birthAndSurvivalCounts.value = new THREE.DataTexture(data, 2, 1, THREE.RGBAFormat, THREE.FloatType);
 
   // Start the simulation on Space for debugging
   window.addEventListener('keyup', (e) => {
