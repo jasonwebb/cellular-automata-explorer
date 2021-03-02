@@ -16,14 +16,14 @@ let bufferImage, bufferCanvas, bufferCanvasCtx;
 
 export const InitialPatternTypes = {
   CIRCLE: 0,
-  SQUARE: 1,
+  RECTANGLE: 1,
   TEXT: 2,
   IMAGE: 3,
-  EMPTY: 4,
-  RANDOM: 5
+  RANDOM: 4,
+  EMPTY: 5,
 };
 
-export function drawPattern(type = InitialPatternTypes.RANDOM) {
+export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
   // Grab the invisible canvas context that we can draw initial image data into
   bufferCanvas = document.querySelector('#buffer-canvas');
   bufferCanvasCtx = bufferCanvas.getContext('2d');
@@ -48,18 +48,18 @@ export function drawPattern(type = InitialPatternTypes.RANDOM) {
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
 
-    case InitialPatternTypes.SQUARE:
+    case InitialPatternTypes.RECTANGLE:
       bufferCanvasCtx.fillStyle = '#fff';
 
-      bufferCanvasCtx.translate(variables.canvas.width/2, variables.canvas.height/2);
-      bufferCanvasCtx.rotate(variables.patterns.square.rotation * Math.PI / 180);
-      bufferCanvasCtx.translate(-variables.canvas.width/2, -variables.canvas.height/2);
+      bufferCanvasCtx.translate(variables.canvas.width.value/2, variables.canvas.height.value/2);
+      bufferCanvasCtx.rotate(variables.patterns.rectangle.rotation.value * Math.PI / 180);
+      bufferCanvasCtx.translate(-variables.canvas.width.value/2, -variables.canvas.height.value/2);
 
       bufferCanvasCtx.fillRect(
-        centerX - variables.patterns.square.width/2,
-        centerY - variables.patterns.square.height/2,
-        variables.patterns.square.width,
-        variables.patterns.square.height
+        centerX - variables.patterns.rectangle.width.value/2,
+        centerY - variables.patterns.rectangle.height.value/2,
+        variables.patterns.rectangle.width.value,
+        variables.patterns.rectangle.height.value
       );
 
       bufferCanvasCtx.resetTransform();
@@ -68,12 +68,12 @@ export function drawPattern(type = InitialPatternTypes.RANDOM) {
 
     case InitialPatternTypes.TEXT:
       bufferCanvasCtx.fillStyle = '#fff';
-      bufferCanvasCtx.font = '900 ' + variables.patterns.text.size + 'px Arial';
+      bufferCanvasCtx.font = '900 ' + variables.patterns.text.size.value + 'px Arial';
       bufferCanvasCtx.textAlign = 'center';
 
-      bufferCanvasCtx.translate(variables.canvas.width/2, variables.canvas.height/2);
-      bufferCanvasCtx.rotate(variables.patterns.text.rotation * Math.PI / 180);
-      bufferCanvasCtx.translate(-variables.canvas.width/2, -variables.canvas.height/2);
+      bufferCanvasCtx.translate(variables.canvas.width.value/2, variables.canvas.height.value/2);
+      bufferCanvasCtx.rotate(variables.patterns.text.rotation.value * Math.PI / 180);
+      bufferCanvasCtx.translate(-variables.canvas.width.value/2, -variables.canvas.height.value/2);
 
       bufferCanvasCtx.fillText(
         variables.patterns.text.value,
@@ -96,11 +96,6 @@ export function drawPattern(type = InitialPatternTypes.RANDOM) {
       }
       break;
 
-    case InitialPatternTypes.EMPTY:
-      bufferCanvasCtx.clearRect(0, 0, variables.canvas.width, variables.canvas.height);
-      renderInitialDataToRenderTargets( convertPixelsToTextureData() );
-      break;
-
     case InitialPatternTypes.RANDOM:
       let pixels = bufferCanvasCtx.getImageData(0, 0, variables.canvas.width.value, variables.canvas.height.value);
 
@@ -109,6 +104,11 @@ export function drawPattern(type = InitialPatternTypes.RANDOM) {
       }
 
       bufferCanvasCtx.putImageData(pixels, 0, 0);
+      renderInitialDataToRenderTargets( convertPixelsToTextureData() );
+      break;
+
+    case InitialPatternTypes.EMPTY:
+      bufferCanvasCtx.clearRect(0, 0, variables.canvas.width.value, variables.canvas.height.value);
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
   }
