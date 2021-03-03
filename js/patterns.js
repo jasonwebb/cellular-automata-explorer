@@ -51,15 +51,15 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
     case InitialPatternTypes.RECTANGLE:
       bufferCanvasCtx.fillStyle = '#fff';
 
-      bufferCanvasCtx.translate(variables.canvas.width.value/2, variables.canvas.height.value/2);
+      bufferCanvasCtx.translate(centerX, centerY);
       bufferCanvasCtx.rotate(variables.patterns.rectangle.rotation.value * Math.PI / 180);
-      bufferCanvasCtx.translate(-variables.canvas.width.value/2, -variables.canvas.height.value/2);
+      bufferCanvasCtx.translate(-centerX, -centerY);
 
       bufferCanvasCtx.fillRect(
-        centerX - variables.patterns.rectangle.width.value/2,
-        centerY - variables.patterns.rectangle.height.value/2,
-        variables.patterns.rectangle.width.value,
-        variables.patterns.rectangle.height.value
+        centerX - variables.patterns.rectangle.width.value/2 * variables.scale.value,
+        centerY - variables.patterns.rectangle.height.value/2 * variables.scale.value,
+        variables.patterns.rectangle.width.value * variables.scale.value,
+        variables.patterns.rectangle.height.value * variables.scale.value
       );
 
       bufferCanvasCtx.resetTransform();
@@ -68,12 +68,12 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
 
     case InitialPatternTypes.TEXT:
       bufferCanvasCtx.fillStyle = '#fff';
-      bufferCanvasCtx.font = '900 ' + variables.patterns.text.size.value + 'px Arial';
+      bufferCanvasCtx.font = '900 ' + variables.patterns.text.size.value * variables.scale.value + 'px Arial';
       bufferCanvasCtx.textAlign = 'center';
 
-      bufferCanvasCtx.translate(variables.canvas.width.value/2, variables.canvas.height.value/2);
+      bufferCanvasCtx.translate(centerX, centerY);
       bufferCanvasCtx.rotate(variables.patterns.text.rotation.value * Math.PI / 180);
-      bufferCanvasCtx.translate(-variables.canvas.width.value/2, -variables.canvas.height.value/2);
+      bufferCanvasCtx.translate(-centerY, -centerY);
 
       bufferCanvasCtx.fillText(
         variables.patterns.text.value,
@@ -97,7 +97,7 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
       break;
 
     case InitialPatternTypes.RANDOM:
-      let pixels = bufferCanvasCtx.getImageData(0, 0, variables.canvas.width.value, variables.canvas.height.value);
+      let pixels = bufferCanvasCtx.getImageData(0, 0, variables.canvas.width.value * variables.scale.value, variables.canvas.height.value * variables.scale.value);
 
       for(let i=0; i<pixels.data.length; i+=4) {
         pixels.data[i] = Math.floor(Math.random() * 256);
@@ -108,7 +108,7 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
       break;
 
     case InitialPatternTypes.EMPTY:
-      bufferCanvasCtx.clearRect(0, 0, variables.canvas.width.value, variables.canvas.height.value);
+      bufferCanvasCtx.clearRect(0, 0, variables.canvas.width.value * variables.scale.value, variables.canvas.height.value * variables.scale.value);
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
   }
@@ -116,7 +116,13 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
 
   function renderInitialDataToRenderTargets(initialData) {
     // Put the initial data into a texture format that ThreeJS can pass into the render targets
-    let texture = new THREE.DataTexture(initialData, variables.canvas.width.value, variables.canvas.height.value, THREE.RGBAFormat, THREE.FloatType);
+    let texture = new THREE.DataTexture(
+      initialData,
+      variables.canvas.width.value * variables.scale.value,
+      variables.canvas.height.value * variables.scale.value,
+      THREE.RGBAFormat,
+      THREE.FloatType
+    );
     texture.flipY = true;  // DataTexture coordinates are vertically inverted compared to canvas coordinates
     texture.needsUpdate = true;
 
@@ -198,8 +204,8 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
   function convertPixelsToTextureData() {
     let pixels = bufferCanvasCtx.getImageData(
       0, 0,
-      variables.canvas.width.value,
-      variables.canvas.height.value
+      variables.canvas.width.value * variables.scale.value,
+      variables.canvas.height.value * variables.scale.value
     ).data;
 
     let data = new Float32Array(pixels.length);
