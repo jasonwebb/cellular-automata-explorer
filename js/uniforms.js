@@ -29,11 +29,11 @@ export let simulationUniforms = {
   },
   birthCountsLength: {
     type: 'i',
-    value: 1.
+    value: null
   },
   survivalCountsLength: {
     type: 'i',
-    value: 2.
+    value: null
   }
 };
 

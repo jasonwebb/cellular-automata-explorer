@@ -8,6 +8,7 @@ import { setupRenderTargets, renderTargets } from './renderTargets';
 import { simulationUniforms, displayUniforms } from './uniforms';
 import { simulationMaterial, displayMaterial } from './materials';
 import { drawPattern } from './patterns';
+import { setRule } from './rules';
 
 export let scene, camera, renderer, mesh;
 
@@ -52,16 +53,12 @@ function setup() {
   window.addEventListener('resize', resetTextureSizes, false);
   resetTextureSizes();
 
+  // Set the rule that the shader should run
+  setRule('S23/B3');
+
   // Set up and render the first frame
   drawPattern();
 
-  // Create birth and survival rules as a texture
-  let data = new Float32Array(2 * 1 * 4);
-  data[0] = 3 / 255;  // birth ([0,0].r)
-  data[1] = 2 / 255;  // survive ([0,0].g)
-  data[5] = 3 / 255;  // survive ([1,0].g)
-
-  simulationUniforms.birthAndSurvivalCounts.value = new THREE.DataTexture(data, 2, 1, THREE.RGBAFormat, THREE.FloatType);
 
   // Start the simulation on Space for debugging
   window.addEventListener('keyup', (e) => {

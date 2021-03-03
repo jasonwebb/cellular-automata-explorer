@@ -5,6 +5,7 @@
   "main": "webpack.config.js",
   "dependencies": {},
   "devDependencies": {
+    "cellular-automata-rule-parser": "^3.0.1",
     "glsl-shader-loader": "^0.1.6",
     "path": "^0.12.7",
     "stats.js": "^0.17.0",
