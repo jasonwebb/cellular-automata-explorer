@@ -5,7 +5,7 @@
    neighbourhoodRange: int,
    neighbourhoodType: string ('moore' | ),
    process: function(),
-   rulesFormat: string,
+   ruleFormat: string,
    ruleString: string,
    stateCount: int,
    survival: array
@@ -22,10 +22,25 @@ export function setRule(ruleString) {
   if(rule != null) {
     // 1. [DONE] Convert rule.birth and rule.survival arrays into a single DataTexture, pass into simulationUniforms.birthAndSurvivalCounts.value
     // 2. [DONE] Pass rule.birth.length and rule.survival into simulationUniforms
-    // 3. Pass rule.rulesFormat ...
+    // 3. [DONE] Pass rule.ruleFormat ...
     // 4. Pass rule.neighbourhoodType ...
     // 5. Pass rule.neighbourhoodRange ...
     // 6. Pass rule.stateCount ...
+
+    // Convert the rule format to a number and pass to the shader
+    let ruleFormatNumber = 0;
+
+    switch(rule.ruleFormat) {
+      case 'life':
+        ruleFormatNumber = 0;
+        break;
+
+      case 'extended-life':
+        ruleFormatNumber = 1;
+        break;
+    }
+
+    simulationUniforms.ruleFormat.value = ruleFormatNumber;
 
     // Pass the number birth and survival counts to the shader
     simulationUniforms.birthCountsLength.value = rule.birth.length;

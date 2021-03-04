@@ -4,10 +4,15 @@ uniform vec2 resolution;
 uniform vec2 mousePosition;
 
 uniform sampler2D states;
+uniform int ruleFormat;
 
 uniform sampler2D birthAndSurvivalCounts;
 uniform int birthCountsLength;
 uniform int survivalCountsLength;
+
+// Rule formats
+#define LIFE 0
+#define EXTENDED_LIFE 1
 
 int getPreviousCellState(vec2 uv) {
   return int(texture2D(states, uv)[0]);
@@ -33,14 +38,7 @@ void main() {
   int nextState = 0;
   int liveNeighbors = getLiveNeighborCount();
 
-  // if(liveNeighbors == 3) {
-  //   nextState = 1;
-  // } else if(liveNeighbors == 2) {
-  //   nextState = currentState;
-  // } else {
-  //   nextState = 0;
-  // }
-
+  if(ruleFormat == LIFE || ruleFormat == EXTENDED_LIFE) {
   // Birth
   if(currentState == 0) {
     for(int i=0; i<9999; i++) {
@@ -52,10 +50,9 @@ void main() {
         break;
       }
     }
-  }
 
-  // Survive
-  if(currentState == 1) {
+    // Survival
+    } else if(currentState == 1) {
     for(int i=0; i<9999; i++) {
       if(i < survivalCountsLength) {
         if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(.5 * float(i), 0)).g * 255.)) {
@@ -65,6 +62,7 @@ void main() {
         break;
       }
     }
+  }
   }
 
   gl_FragColor = vec4(nextState, 0., 0., 1.);

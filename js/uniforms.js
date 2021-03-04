@@ -23,6 +23,10 @@ export let simulationUniforms = {
     type: 't',
     value: null
   },
+  ruleFormat: {  // int matching constants in the frag shader, used to activate different rule logic
+    type: 'i',
+    value: 0
+  },
   birthAndSurvivalCounts: {
     type: 't',
     value: null
