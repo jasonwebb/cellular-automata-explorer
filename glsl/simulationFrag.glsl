@@ -43,7 +43,7 @@ void main() {
   if(currentState == 0) {
     for(int i=0; i<9999; i++) {
       if(i < birthCountsLength) {
-        if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(.5 * float(i), 0)).r * 255.)) {
+        if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(1./float(birthCountsLength) * float(i), 0)).r * 255.)) {
           nextState = 1;
         }
       } else {
@@ -55,7 +55,7 @@ void main() {
     } else if(currentState == 1) {
     for(int i=0; i<9999; i++) {
       if(i < survivalCountsLength) {
-        if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(.5 * float(i), 0)).g * 255.)) {
+        if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(1./float(survivalCountsLength) * float(i), 0)).g * 255.)) {
           nextState = currentState;
         }
       } else {
