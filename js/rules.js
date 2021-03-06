@@ -25,7 +25,7 @@ export function setRule(ruleString) {
     // 3. [DONE] Pass rule.ruleFormat ...
     // 4. Pass rule.neighbourhoodType ...
     // 5. Pass rule.neighbourhoodRange ...
-    // 6. Pass rule.stateCount ...
+    // 6. [DONE] Pass rule.stateCount ...
 
     // Convert the rule format to a number and pass to the shader
     let ruleFormatNumber = 0;
@@ -33,14 +33,21 @@ export function setRule(ruleString) {
     switch(rule.ruleFormat) {
       case 'life':
         ruleFormatNumber = 0;
+        rule.stateCount = 2;
         break;
 
       case 'extended-life':
         ruleFormatNumber = 1;
+        rule.stateCount = 2;
+        break;
+
+      case 'generations':
+        ruleFormatNumber = 2;
         break;
     }
 
     simulationUniforms.ruleFormat.value = ruleFormatNumber;
+    simulationUniforms.stateCount.value = rule.stateCount;
 
     // Pass the number birth and survival counts to the shader
     simulationUniforms.birthCountsLength.value = rule.birth.length;
@@ -58,6 +65,6 @@ export function setRule(ruleString) {
     simulationUniforms.birthAndSurvivalCounts.value = new THREE.DataTexture(data, longestLength, 1, THREE.RGBAFormat, THREE.FloatType);
 
   } else {
-    console.log('Could parse: ' + ruleString);
+    console.log("Couldn't parse: " + ruleString);
   }
 }

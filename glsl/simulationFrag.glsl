@@ -5,17 +5,22 @@ uniform vec2 mousePosition;
 
 uniform sampler2D states;
 uniform int ruleFormat;
+uniform int stateCount;
 
 uniform sampler2D birthAndSurvivalCounts;
 uniform int birthCountsLength;
 uniform int survivalCountsLength;
 
-// Rule formats
-#define LIFE 0
-#define EXTENDED_LIFE 1
+vec2 texelStepSize;
+float stateStepSize;
 
-int getPreviousCellState(vec2 uv) {
-  return int(texture2D(states, uv)[0]);
+// Rule formats
+const int LIFE = 0;
+const int EXTENDED_LIFE = 1;
+const int GENERATIONS = 2;
+
+float getPreviousCellState(vec2 uv) {
+  return texture2D(states, uv)[0];
 }
 
 int getLiveNeighborCount() {
@@ -25,7 +30,7 @@ int getLiveNeighborCount() {
   for(float row = -1.; row <= 1.; row++) {
     for(float col = -1.; col <= 1.; col++) {
       if(row == 0. && col == 0.)  continue;
-      total += getPreviousCellState(v_uv + vec2(1. / resolution.x * row, 1. / resolution.y * col));
+      total += getPreviousCellState(v_uv + vec2(1. / resolution.x * row, 1. / resolution.y * col)) >= stateStepSize ? 1 : 0;
     }
   }
 
@@ -33,36 +38,73 @@ int getLiveNeighborCount() {
 }
 
 void main() {
-  vec2 stepSize = 1. / resolution;
-  int currentState = getPreviousCellState(v_uv);
-  int nextState = 0;
+  texelStepSize = 1./resolution;
+  stateStepSize = 1./float(stateCount - 1);
+
+  float currentState = getPreviousCellState(v_uv);
+  float nextState = 0.;
   int liveNeighbors = getLiveNeighborCount();
 
+  // Life
   if(ruleFormat == LIFE || ruleFormat == EXTENDED_LIFE) {
-  // Birth
-  if(currentState == 0) {
-    for(int i=0; i<9999; i++) {
-      if(i < birthCountsLength) {
-        if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(1./float(birthCountsLength) * float(i), 0)).r * 255.)) {
-          nextState = 1;
+    // Birth
+    if(currentState == 0.) {
+      for(int i=0; i<9999; i++) {
+        if(i < birthCountsLength) {
+          if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(1./float(birthCountsLength) * float(i), 0)).r * 255.)) {
+            nextState = 1.;
+          }
+        } else {
+          break;
         }
-      } else {
-        break;
+      }
+
+    // Survival
+    } else if(currentState == 1.) {
+      for(int i=0; i<9999; i++) {
+        if(i < survivalCountsLength) {
+          if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(1./float(survivalCountsLength) * float(i), 0)).g * 255.)) {
+            nextState = currentState;
+          }
+        } else {
+          break;
+        }
       }
     }
 
-    // Survival
-    } else if(currentState == 1) {
-    for(int i=0; i<9999; i++) {
-      if(i < survivalCountsLength) {
-        if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(1./float(survivalCountsLength) * float(i), 0)).g * 255.)) {
-          nextState = currentState;
+  // Generations
+  } else if(ruleFormat == GENERATIONS) {
+    // Birth
+    if(currentState == 0.) {
+      for(int i=0; i<9999; i++) {
+        if(i < birthCountsLength) {
+          if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(1./float(birthCountsLength) * float(i), 0)).r * 255.)) {
+            nextState = stateStepSize;
+          }
+        } else {
+          break;
         }
-      } else {
-        break;
+      }
+
+    // Survival
+    } else if(currentState >= stateStepSize) {
+      bool willSurvive = false;
+
+      for(int i=0; i<9999; i++) {
+        if(i < survivalCountsLength) {
+          if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(1./float(survivalCountsLength) * float(i), 0)).g * 255.)) {
+            nextState = stateStepSize;
+            willSurvive = true;
+          }
+        } else {
+          break;
+        }
+      }
+
+      if(!willSurvive) {
+        nextState = mod(currentState + stateStepSize, 1.);
       }
     }
-  }
   }
 
   gl_FragColor = vec4(nextState, 0., 0., 1.);

@@ -4,7 +4,6 @@ import globals from './globals';
 import variables from './variables';
 
 import { setupRenderTargets, renderTargets } from './renderTargets';
-
 import { simulationUniforms, displayUniforms } from './uniforms';
 import { simulationMaterial, displayMaterial } from './materials';
 import { drawPattern } from './patterns';
@@ -54,11 +53,11 @@ function setup() {
   resetTextureSizes();
 
   // Set the rule that the shader should run
-  setRule('S23/B3');
+  // setRule('23/3');  // Conway's Life
+  setRule('345/2/50');  // Generations - Burst
 
   // Set up and render the first frame
   drawPattern();
-
 
   // Start the simulation on Space for debugging
   window.addEventListener('keyup', (e) => {

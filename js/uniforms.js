@@ -27,6 +27,10 @@ export let simulationUniforms = {
     type: 'i',
     value: 0
   },
+  stateCount: {  // number of states
+    type: 'i',
+    value: 2
+  },
   birthAndSurvivalCounts: {
     type: 't',
     value: null
