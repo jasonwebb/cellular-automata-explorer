@@ -19,8 +19,9 @@ export const InitialPatternTypes = {
   RECTANGLE: 1,
   TEXT: 2,
   IMAGE: 3,
-  RANDOM: 4,
-  EMPTY: 5,
+  SPARSE: 4,
+  RANDOM: 5,
+  EMPTY: 6,
 };
 
 export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
@@ -94,6 +95,20 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
       } else {
         alert('Upload an image using the button first!');
       }
+      break;
+
+    case InitialPatternTypes.SPARSE:
+      let pixels2 = bufferCanvasCtx.getImageData(0, 0, variables.canvas.width.value * variables.scale.value, variables.canvas.height.value * variables.scale.value);
+      const numPixels = pixels2.data.length / 4;
+      const numPoints = 5;
+
+      for(let i=0; i<numPoints; i++) {
+        const pixelIndex = Math.floor(Math.random() * Math.floor(numPixels));
+        pixels2.data[pixelIndex * 4] = 255;
+      }
+
+      bufferCanvasCtx.putImageData(pixels2, 0, 0);
+      renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
 
     case InitialPatternTypes.RANDOM:
@@ -211,7 +226,7 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
     let data = new Float32Array(pixels.length);
 
     for(let i=0; i<data.length; i+=4) {
-      data[i] = pixels[i] > 200 ? 1.0 : 0.0;
+      data[i] = pixels[i] / 255;
       data[i+1] = 0.0;
       data[i+2] = 0.0;
       data[i+3] = 0.0;
