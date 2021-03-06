@@ -8,12 +8,14 @@ import { simulationUniforms, displayUniforms } from './uniforms';
 import { simulationMaterial, displayMaterial } from './materials';
 import { drawPattern } from './patterns';
 import { setRule } from './rules';
+import { setupKeyboard } from './keyboard';
 
 export let scene, camera, renderer, mesh;
 
 let canvas, bufferCanvas;
 
 setup();
+setupKeyboard();
 update();
 
 //==============================================================
@@ -58,13 +60,6 @@ function setup() {
 
   // Set up and render the first frame
   drawPattern();
-
-  // Start the simulation on Space for debugging
-  window.addEventListener('keyup', (e) => {
-    if(e.key == ' ') {
-      globals.isPaused = !globals.isPaused;
-    }
-  });
 }
 
   export function resetTextureSizes() {
