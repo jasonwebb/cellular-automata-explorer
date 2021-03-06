@@ -27,6 +27,10 @@ export let simulationUniforms = {
     type: 'i',
     value: 0
   },
+  includeMiddle: {
+    type: 'b',
+    value: false
+  },
   stateCount: {  // number of states
     type: 'i',
     value: 2

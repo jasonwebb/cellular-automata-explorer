@@ -6,6 +6,7 @@ uniform vec2 mousePosition;
 uniform sampler2D states;
 uniform int ruleFormat;
 uniform int stateCount;
+uniform bool includeMiddle;
 
 uniform sampler2D birthAndSurvivalCounts;
 uniform int birthCountsLength;
@@ -29,7 +30,7 @@ int getLiveNeighborCount() {
   // von Neumann neighborhood
   for(float row = -1.; row <= 1.; row++) {
     for(float col = -1.; col <= 1.; col++) {
-      if(row == 0. && col == 0.)  continue;
+      if(!includeMiddle && row == 0. && col == 0.)  continue;
       total += getPreviousCellState(v_uv + vec2(1. / resolution.x * row, 1. / resolution.y * col)) >= stateStepSize ? 1 : 0;
     }
   }
