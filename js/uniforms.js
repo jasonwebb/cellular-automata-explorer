@@ -35,6 +35,10 @@ export let simulationUniforms = {
     type: 'i',
     value: 2
   },
+  wrapping: {
+    type: 'v2',
+    value: new THREE.Vector2(1,1)
+  },
   birthAndSurvivalCounts: {
     type: 't',
     value: null

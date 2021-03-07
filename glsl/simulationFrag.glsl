@@ -7,6 +7,7 @@ uniform sampler2D states;
 uniform int ruleFormat;
 uniform int stateCount;
 uniform bool includeMiddle;
+uniform vec2 wrapping;
 
 uniform sampler2D birthAndSurvivalCounts;
 uniform int birthCountsLength;
@@ -21,6 +22,11 @@ const int EXTENDED_LIFE = 1;
 const int GENERATIONS = 2;
 
 float getPreviousCellState(vec2 uv) {
+  uv = vec2(
+    bool(wrapping.x) ? mod(uv.x, 1.) : uv.x,
+    bool(wrapping.y) ? mod(uv.y, 1.) : uv.y
+  );
+
   return texture2D(states, uv)[0];
 }
 
