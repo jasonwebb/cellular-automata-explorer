@@ -9,6 +9,7 @@ import { simulationMaterial, displayMaterial } from './materials';
 import { drawPattern } from './patterns';
 import { setRule } from './rules';
 import { setupKeyboard } from './keyboard';
+import { setColors } from './colors';
 
 export let scene, camera, renderer, mesh;
 
@@ -53,6 +54,9 @@ function setup() {
   // Update the renderer dimensions whenever the browser is resized
   window.addEventListener('resize', resetTextureSizes, false);
   resetTextureSizes();
+
+  // Set the color palette
+  setColors();
 
   // Set the rule that the shader should run
   // setRule('23/3');  // Conway's Life

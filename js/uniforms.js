@@ -65,6 +65,10 @@ export let displayUniforms = {
   renderingStyle: {
     type: 'i',
     value: 0
+  },
+  colors: {
+    type: 't',
+    value: null
   }
 };
 
