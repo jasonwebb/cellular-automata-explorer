@@ -9,14 +9,17 @@ import { simulationMaterial, displayMaterial } from './materials';
 import { drawPattern } from './patterns';
 import { setRule } from './rules';
 import { setupKeyboard } from './keyboard';
+import { setupMouse } from './mouse';
 import { setColors } from './colors';
 
-export let scene, camera, renderer, mesh;
 
-let canvas, bufferCanvas;
+export let scene, camera, renderer, mesh;
+export let canvas;
+let bufferCanvas;
 
 setup();
 setupKeyboard();
+setupMouse();
 update();
 
 //==============================================================

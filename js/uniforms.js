@@ -19,6 +19,10 @@ export let simulationUniforms = {
     type: 'v2',
     value: new THREE.Vector2(-1,-1)
   },
+  brushRadius: {
+    type: "f",
+    value: 10.0
+  },
   states: {
     type: 't',
     value: null
