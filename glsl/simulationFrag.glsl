@@ -53,34 +53,7 @@ void main() {
   int liveNeighbors = getLiveNeighborCount();
 
   // Life
-  if(ruleFormat == LIFE || ruleFormat == EXTENDED_LIFE) {
-    // Birth
-    if(currentState == 0.) {
-      for(int i=0; i<9999; i++) {
-        if(i < birthCountsLength) {
-          if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(1./float(birthCountsLength) * float(i), 0)).r * 255.)) {
-            nextState = 1.;
-          }
-        } else {
-          break;
-        }
-      }
-
-    // Survival
-    } else if(currentState == 1.) {
-      for(int i=0; i<9999; i++) {
-        if(i < survivalCountsLength) {
-          if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(1./float(survivalCountsLength) * float(i), 0)).g * 255.)) {
-            nextState = currentState;
-          }
-        } else {
-          break;
-        }
-      }
-    }
-
-  // Generations
-  } else if(ruleFormat == GENERATIONS) {
+  if(ruleFormat == LIFE || ruleFormat == EXTENDED_LIFE || ruleFormat == GENERATIONS) {
     // Birth
     if(currentState == 0.) {
       for(int i=0; i<9999; i++) {
@@ -100,7 +73,7 @@ void main() {
       for(int i=0; i<9999; i++) {
         if(i < survivalCountsLength) {
           if(liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2(1./float(survivalCountsLength) * float(i), 0)).g * 255.)) {
-            nextState = stateStepSize;
+            nextState = currentState;
             willSurvive = true;
           }
         } else {
@@ -108,7 +81,7 @@ void main() {
         }
       }
 
-      if(!willSurvive) {
+      if(ruleFormat == GENERATIONS && !willSurvive) {
         nextState = mod(currentState + stateStepSize, 1.);
       }
     }
