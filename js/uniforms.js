@@ -35,6 +35,10 @@ export let simulationUniforms = {
     type: 'b',
     value: false
   },
+  range: {
+    type: 'i',
+    value: 1
+  },
   stateCount: {  // number of states
     type: 'i',
     value: 2

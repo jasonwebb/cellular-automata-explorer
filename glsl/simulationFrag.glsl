@@ -6,8 +6,9 @@ uniform float brushRadius;
 
 uniform sampler2D states;
 uniform int ruleFormat;
-uniform int stateCount;
 uniform bool includeMiddle;
+uniform int range;
+uniform int stateCount;
 uniform vec2 wrapping;
 
 uniform sampler2D birthAndSurvivalCounts;
@@ -35,10 +36,10 @@ int getLiveNeighborCount() {
   int total = 0;
 
   // von Neumann neighborhood
-  for(float row = -1.; row <= 1.; row++) {
-    for(float col = -1.; col <= 1.; col++) {
-      if(!includeMiddle && row == 0. && col == 0.)  continue;
-      total += getPreviousCellState(v_uv + vec2(1. / resolution.x * row, 1. / resolution.y * col)) >= stateStepSize ? 1 : 0;
+  for(int row = -range; row <= range; row++) {
+    for(int col = -range; col <= range; col++) {
+      if(!includeMiddle && row == 0 && col == 0) continue;
+      total += getPreviousCellState(v_uv + vec2(1. / resolution.x * float(row), 1. / resolution.y * float(col))) >= stateStepSize ? 1 : 0;
     }
   }
 
