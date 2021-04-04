@@ -93,7 +93,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "varying vec2 v_uv;\nuniform sampler2D textureToDisplay;\nvoid main() {\n\tfloat state = texture2D(textureToDisplay, v_uv).r;\n\tgl_FragColor = vec4(state, state, state, 1.);\n}\n"
+module.exports = "varying vec2 v_uv;\nuniform sampler2D textureToDisplay;\nuniform sampler2D colors;\nvoid main() {\n\tfloat state = texture2D(textureToDisplay, v_uv).r;\n\tvec3 startColor = vec3(0., 0., 0.);\n\tvec3 endColor = vec3(1., 1., 1.);\n\tvec3 mixedColor = state < .1 ? vec3(0., 0., 0.) : mix(startColor, endColor, 1. - state);\n\tgl_FragColor = vec4(mixedColor, 1.);\n}\n"
 
 /***/ }),
 
@@ -137,7 +137,7 @@ module.exports = "varying vec2 v_uv;\nvoid main() {\n\tv_uv = uv;\n\tgl_Position
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "varying vec2 v_uv;\nuniform vec2 resolution;\nuniform vec2 mousePosition;\nuniform sampler2D states;\nuniform int ruleFormat;\nuniform int stateCount;\nuniform sampler2D birthAndSurvivalCounts;\nuniform int birthCountsLength;\nuniform int survivalCountsLength;\nvec2 texelStepSize;\nfloat stateStepSize;\nconst int LIFE = 0;\nconst int EXTENDED_LIFE = 1;\nconst int GENERATIONS = 2;\nfloat getPreviousCellState(vec2 uv) {\n\treturn texture2D(states, uv)[0];\n}\nint getLiveNeighborCount() {\n\tint total = 0;\n\tfor (float row = -1.; row <= 1.; row++) {\n\t\tfor (float col = -1.; col <= 1.; col++) {\n\t\t\tif ((row == 0.) && (col == 0.))\n\t\t\t\tcontinue;\n\t\t\ttotal += (getPreviousCellState(v_uv + vec2((1. / resolution.x) * row, (1. / resolution.y) * col)) >= stateStepSize ? 1 : 0);\n\t\t}\n\t}\n\treturn total;\n}\nvoid main() {\n\ttexelStepSize = 1. / resolution;\n\tstateStepSize = 1. / float(stateCount - 1);\n\tfloat currentState = getPreviousCellState(v_uv);\n\tfloat nextState = 0.;\n\tint liveNeighbors = getLiveNeighborCount();\n\tif ((ruleFormat == LIFE) || (ruleFormat == EXTENDED_LIFE)) {\n\t\tif (currentState == 0.) {\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < birthCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(birthCountsLength)) * float(i), 0)).r * 255.)) {\n\t\t\t\t\t\tnextState = 1.;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse if (currentState == 1.) {\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < survivalCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(survivalCountsLength)) * float(i), 0)).g * 255.)) {\n\t\t\t\t\t\tnextState = currentState;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n\telse if (ruleFormat == GENERATIONS) {\n\t\tif (currentState == 0.) {\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < birthCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(birthCountsLength)) * float(i), 0)).r * 255.)) {\n\t\t\t\t\t\tnextState = stateStepSize;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse if (currentState >= stateStepSize) {\n\t\t\tbool willSurvive = false;\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < survivalCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(survivalCountsLength)) * float(i), 0)).g * 255.)) {\n\t\t\t\t\t\tnextState = stateStepSize;\n\t\t\t\t\t\twillSurvive = true;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t\tif (!willSurvive) {\n\t\t\t\tnextState = mod(currentState + stateStepSize, 1.);\n\t\t\t}\n\t\t}\n\t}\n\tgl_FragColor = vec4(nextState, 0., 0., 1.);\n}\n"
+module.exports = "varying vec2 v_uv;\nuniform vec2 resolution;\nuniform vec2 mousePosition;\nuniform float brushRadius;\nuniform sampler2D states;\nuniform int ruleFormat;\nuniform bool includeMiddle;\nuniform int range;\nuniform int stateCount;\nuniform vec2 wrapping;\nuniform sampler2D birthAndSurvivalCounts;\nuniform int birthCountsLength;\nuniform int survivalCountsLength;\nvec2 texelStepSize;\nfloat stateStepSize;\nconst int LIFE = 0;\nconst int EXTENDED_LIFE = 1;\nconst int GENERATIONS = 2;\nfloat getPreviousCellState(vec2 uv) {\n\tuv = vec2(bool(wrapping.x) ? mod(uv.x, 1.) : uv.x, bool(wrapping.y) ? mod(uv.y, 1.) : uv.y);\n\treturn texture2D(states, uv)[0];\n}\nint getLiveNeighborCount() {\n\tint total = 0;\n\tfor (int row = -range; row <= range; row++) {\n\t\tfor (int col = -range; col <= range; col++) {\n\t\t\tif ((!includeMiddle && (row == 0)) && (col == 0))\n\t\t\t\tcontinue;\n\t\t\ttotal += (getPreviousCellState(v_uv + vec2((1. / resolution.x) * float(row), (1. / resolution.y) * float(col))) >= stateStepSize ? 1 : 0);\n\t\t}\n\t}\n\treturn total;\n}\nvoid main() {\n\ttexelStepSize = 1. / resolution;\n\tstateStepSize = 1. / float(stateCount - 1);\n\tfloat currentState = getPreviousCellState(v_uv);\n\tfloat nextState = 0.;\n\tint liveNeighbors = getLiveNeighborCount();\n\tif (((ruleFormat == LIFE) || (ruleFormat == EXTENDED_LIFE)) || (ruleFormat == GENERATIONS)) {\n\t\tif (currentState == 0.) {\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < birthCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(birthCountsLength)) * float(i), 0)).r * 255.)) {\n\t\t\t\t\t\tnextState = stateStepSize;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse if (currentState >= stateStepSize) {\n\t\t\tbool willSurvive = false;\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < survivalCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(survivalCountsLength)) * float(i), 0)).g * 255.)) {\n\t\t\t\t\t\tnextState = currentState;\n\t\t\t\t\t\twillSurvive = true;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t\tif ((ruleFormat == GENERATIONS) && !willSurvive) {\n\t\t\t\tnextState = mod(currentState + stateStepSize, 1.);\n\t\t\t}\n\t\t}\n\t}\n\tif ((mousePosition.x > 0.0) && (mousePosition.y > 0.0)) {\n\t\tfloat distToMouse = distance(mousePosition * resolution, v_uv * resolution);\n\t\tif (distToMouse < brushRadius) {\n\t\t\tnextState = 1.;\n\t\t\treturn ;\n\t\t}\n\t}\n\tgl_FragColor = vec4(nextState, 0., 0., 1.);\n}\n"
 
 /***/ }),
 
@@ -152,11 +152,48 @@ module.exports = "varying vec2 v_uv;\nvoid main() {\n\tv_uv = uv;\n\tgl_Position
 
 /***/ }),
 
+/***/ "./js/colors.js":
+/*!**********************!*\
+  !*** ./js/colors.js ***!
+  \**********************/
+/*! exports provided: setColors */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setColors", function() { return setColors; });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
+
+
+
+
+function setColors() {
+  const numColors = 2;
+  let data = new Float32Array(numColors * 4);  // RGBA = 4 channels
+
+  // State 0 color
+  data[0] = 0;
+  data[1] = .3;
+  data[2] = .2;
+  data[3] = 1;
+
+  // Sate 1 color
+  data[4] = 1;
+  data[5] = .8;
+  data[6] = .4;
+  data[7] = 1;
+
+  _uniforms__WEBPACK_IMPORTED_MODULE_1__["displayUniforms"].colors.value = new three__WEBPACK_IMPORTED_MODULE_0__["DataTexture"](data, numColors, 1, three__WEBPACK_IMPORTED_MODULE_0__["RGBAFormat"], three__WEBPACK_IMPORTED_MODULE_0__["FloatType"]);
+}
+
+/***/ }),
+
 /***/ "./js/entry.js":
 /*!*********************!*\
   !*** ./js/entry.js ***!
   \*********************/
-/*! exports provided: scene, camera, renderer, mesh, resetTextureSizes */
+/*! exports provided: scene, camera, renderer, mesh, canvas, resetTextureSizes */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -165,6 +202,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "camera", function() { return camera; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderer", function() { return renderer; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mesh", function() { return mesh; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "canvas", function() { return canvas; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resetTextureSizes", function() { return resetTextureSizes; });
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
 /* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./globals */ "./js/globals.js");
@@ -174,6 +212,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _materials__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./materials */ "./js/materials.js");
 /* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
 /* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./rules */ "./js/rules.js");
+/* harmony import */ var _keyboard__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./keyboard */ "./js/keyboard.js");
+/* harmony import */ var _mouse__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./mouse */ "./js/mouse.js");
+/* harmony import */ var _colors__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./colors */ "./js/colors.js");
+
+
+
+
 
 
 
@@ -186,10 +231,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 let scene, camera, renderer, mesh;
-
-let canvas, bufferCanvas;
+let canvas;
+let bufferCanvas;
 
 setup();
+Object(_keyboard__WEBPACK_IMPORTED_MODULE_8__["setupKeyboard"])();
+Object(_mouse__WEBPACK_IMPORTED_MODULE_9__["setupMouse"])();
 update();
 
 //==============================================================
@@ -215,7 +262,6 @@ function setup() {
   // Set up the renderer (a WebGL context inside a <canvas>)
   renderer = new three__WEBPACK_IMPORTED_MODULE_0__["WebGLRenderer"]({ preserveDrawingBuffer: true });
   renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-  renderer.setSize(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value);
 
   // Uncomment this line to see how many shader varyings your GPU supports.
   // console.log(renderer.capabilities.maxVaryings);
@@ -228,22 +274,31 @@ function setup() {
   window.addEventListener('resize', resetTextureSizes, false);
   resetTextureSizes();
 
+  // Set the color palette
+  Object(_colors__WEBPACK_IMPORTED_MODULE_10__["setColors"])();
+
   // Set the rule that the shader should run
   // setRule('23/3');  // Conway's Life
   Object(_rules__WEBPACK_IMPORTED_MODULE_7__["setRule"])('345/2/50');  // Generations - Burst
 
   // Set up and render the first frame
   Object(_patterns__WEBPACK_IMPORTED_MODULE_6__["drawPattern"])();
-
-  // Start the simulation on Space for debugging
-  window.addEventListener('keyup', (e) => {
-    if(e.key == ' ') {
-      _globals__WEBPACK_IMPORTED_MODULE_1__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_1__["default"].isPaused;
-    }
-  });
 }
 
   function resetTextureSizes() {
+    // Only resize the canvas and textures if they haven't been set yet or the canvas needs to always been maximized
+    if(
+      !_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.maximized &&
+      canvas.clientWidth == _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value &&
+      canvas.clientHeight == _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value
+    ) return;
+
+    // Resize the canvas
+    renderer.setSize(
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.maximized ? window.innerWidth : _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value,
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.maximized ? window.innerHeight : _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value
+    );
+
     _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value = canvas.clientWidth;
     _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value = canvas.clientHeight;
 
@@ -312,11 +367,50 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-  isPaused: true,
+  isPaused: false,
   pingPongSteps: 1,
   currentRenderTargetIndex: 0,
   clock: new three__WEBPACK_IMPORTED_MODULE_0__["Clock"]()
 });
+
+/***/ }),
+
+/***/ "./js/keyboard.js":
+/*!************************!*\
+  !*** ./js/keyboard.js ***!
+  \************************/
+/*! exports provided: setupKeyboard */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupKeyboard", function() { return setupKeyboard; });
+/* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./globals */ "./js/globals.js");
+/* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
+/* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
+//==============================================================
+//  KEYBOARD CONTROLS
+//==============================================================
+
+
+
+
+
+function setupKeyboard() {
+  window.addEventListener('keyup', function(e) {
+    switch(e.key) {
+      case ' ':
+        e.preventDefault();
+        _globals__WEBPACK_IMPORTED_MODULE_0__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_0__["default"].isPaused;
+        break;
+
+      case 'r':
+        Object(_renderTargets__WEBPACK_IMPORTED_MODULE_2__["setupRenderTargets"])();
+        Object(_patterns__WEBPACK_IMPORTED_MODULE_1__["drawPattern"])();
+        break;
+    }
+  });
+}
 
 /***/ }),
 
@@ -405,6 +499,106 @@ const passthroughMaterial = new three__WEBPACK_IMPORTED_MODULE_0__["ShaderMateri
   fragmentShader: _glsl_passthroughFrag_glsl__WEBPACK_IMPORTED_MODULE_6___default.a,
 });
 passthroughMaterial.blending = three__WEBPACK_IMPORTED_MODULE_0__["NoBlending"];
+
+/***/ }),
+
+/***/ "./js/mouse.js":
+/*!*********************!*\
+  !*** ./js/mouse.js ***!
+  \*********************/
+/*! exports provided: setupMouse */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupMouse", function() { return setupMouse; });
+/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
+/* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entry */ "./js/entry.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
+//==============================================================
+//  MOUSE CONTROLS
+//==============================================================
+
+
+
+
+
+function setupMouse() {
+  let mouseDown = false
+
+  // Create a floating circle that follows the mouse cursor to indicate the current size of the brush
+  let mouseFollower = document.createElement('div');
+  mouseFollower.classList.add('mouse-follower');
+  mouseFollower.style.content = '';
+  mouseFollower.style.width = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2) + 'px';
+  mouseFollower.style.height = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2) + 'px';
+  mouseFollower.style.position = 'absolute';
+  mouseFollower.style.border = '1px solid white';
+  mouseFollower.style.borderRadius = '1000px';
+  mouseFollower.style.pointerEvents = 'none';
+  document.body.append(mouseFollower);
+
+  // Begin drag, fill indicator circle white
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mousedown', (e) => {
+    mouseDown = true;
+    mouseFollower.style.backgroundColor = 'rgba(255,255,255,.2)';
+  });
+
+  // End drag, make indicator circle transparent
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mouseup', (e) => {
+    mouseDown = false;
+    mouseFollower.style.backgroundColor = 'rgba(255,255,255,0)';
+  });
+
+  // If dragging, pass the mouse coordinates into the shader.
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mousemove', (e) => {
+    if(mouseDown) {
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = e.offsetX / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].scale.value;
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = 1 - e.offsetY / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].scale.value;
+      console.log(e.offsetX / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].scale.value);
+    } else {
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = -1;
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = -1;
+    }
+  });
+
+  // Adjust brush radius using the mouse wheel
+  window.addEventListener('wheel', (e) => {
+    const wheelStep = e.deltaY/100;
+
+    // Only change the brush radius if it's within these hardcoded limits
+    if(_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value + wheelStep > 5 && _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value + wheelStep < 100) {
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value += wheelStep;
+
+      // Resize the brush indicator circle
+      mouseFollower.style.width = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2) + 'px';
+      mouseFollower.style.height = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2) + 'px';
+
+      // Realign the brush indicator circle with the mouse cursor
+      mouseFollower.style.top = (e.clientY - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) + 'px';
+      mouseFollower.style.left = (e.clientX - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) + 'px';
+    }
+  });
+
+  // Keep the indicator circle aligned with the mouse. Putting the listener on the canvas element caused flickering, but this method is nice and smooth.
+  window.addEventListener('mousemove', (e) => {
+    const newX = e.clientX,
+          newY = e.clientY,
+          leftSide = window.innerWidth/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
+          rightSide = window.innerWidth/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
+          topSide = window.innerHeight/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2,
+          bottomSide = window.innerHeight/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2;
+
+    // Only align the indicator circle with the mouse inside the <canvas> element
+    if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
+      mouseFollower.style.display = 'block';
+      mouseFollower.style.top = (e.clientY - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) + 'px';
+      mouseFollower.style.left = (e.clientX - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) + 'px';
+    } else {
+      mouseFollower.style.display = 'none';
+    }
+  })
+}
 
 /***/ }),
 
@@ -653,7 +847,7 @@ function drawPattern(type = InitialPatternTypes.RECTANGLE) {
     let data = new Float32Array(pixels.length);
 
     for(let i=0; i<data.length; i+=4) {
-      data[i] = pixels[i] / 255;
+      data[i] = pixels[i] === 255 ? pixels[i] / 255 : 0.0;
       data[i+1] = 0.0;
       data[i+2] = 0.0;
       data[i+3] = 0.0;
@@ -835,6 +1029,10 @@ let simulationUniforms = {
     type: 'v2',
     value: new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](-1,-1)
   },
+  brushRadius: {
+    type: "f",
+    value: 10.0
+  },
   states: {
     type: 't',
     value: null
@@ -843,9 +1041,21 @@ let simulationUniforms = {
     type: 'i',
     value: 0
   },
+  includeMiddle: {
+    type: 'b',
+    value: false
+  },
+  range: {
+    type: 'i',
+    value: 1
+  },
   stateCount: {  // number of states
     type: 'i',
     value: 2
+  },
+  wrapping: {
+    type: 'v2',
+    value: new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](1,1)
   },
   birthAndSurvivalCounts: {
     type: 't',
@@ -873,6 +1083,10 @@ let displayUniforms = {
   renderingStyle: {
     type: 'i',
     value: 0
+  },
+  colors: {
+    type: 't',
+    value: null
   }
 };
 
@@ -905,7 +1119,8 @@ __webpack_require__.r(__webpack_exports__);
       min: 1,
       max: window.innerHeight,
       value: 900
-    }
+    },
+    maximized: true
   },
   scale: {
     min: .01,
@@ -13161,7 +13376,7 @@ function checkBufferGeometryIntersection( object, material, raycaster, ray, posi
 
 		const face = {
 			a: a,
-			b: a,
+			b: b,
 			c: c,
 			normal: new Vector3(),
 			materialIndex: 0
