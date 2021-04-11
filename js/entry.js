@@ -11,6 +11,7 @@ import { setRule } from './rules';
 import { setupKeyboard } from './keyboard';
 import { setupMouse } from './mouse';
 import { setColors } from './colors';
+import { setupUI } from './ui';
 
 
 export let scene, camera, renderer, mesh;
@@ -18,6 +19,7 @@ export let canvas;
 let bufferCanvas;
 
 setup();
+setupUI();
 setupKeyboard();
 setupMouse();
 update();
