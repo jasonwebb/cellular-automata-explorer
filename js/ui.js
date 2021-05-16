@@ -1,6 +1,14 @@
-import { createPanel, createDropdown } from './ui/components';
+import { setupStatesPanel } from './ui/states';
+import { setupBirthPanel } from './ui/birth';
+import { setupControlsPanel } from './ui/controls';
+import { setupRulesPanel } from './ui/rules';
+import { setupNeighborhoodPanel } from './ui/neighborhood';
+import { setupColorsPanel } from './ui/colors';
+import { setupSurvivalPanel } from './ui/survival';
+import { setupPatternPanel } from './ui/pattern';
 
-let drawerWrapper, drawer, panelsWrapper;
+let drawerWrapper, drawer;
+export let panelsWrapper;
 
 export function setupUI() {
   drawerWrapper = document.createElement('div');
@@ -22,7 +30,7 @@ export function setupUI() {
   setupRulesPanel();
   setupSurvivalPanel();
   setupBirthPanel();
-  setupStates();
+  setupStatesPanel();
   setupNeighborhoodPanel();
   setupPatternPanel();
   setupColorsPanel();
@@ -45,64 +53,4 @@ export function setupUI() {
       <span class="fas fa-caret-up" aria-hidden="true"></span>
     `;
     drawer.appendChild(toggleButton);
-  }
-
-  function setupControlsPanel() {
-    let panel = createPanel('Controls');
-    panelsWrapper.appendChild(panel);
-
-    // Play/pause button
-    // Speed slider
-    // Restart button
-  }
-
-  function setupRulesPanel() {
-    let panel = createPanel('Rules');
-    panelsWrapper.appendChild(panel);
-
-    // Dropdown for presets
-    panel.appendChild( createDropdown('Preset', ['hello'], () => {
-      console.log('changed');
-    }));
-
-    // If custom, show text input
-  }
-
-  function setupSurvivalPanel() {
-    let panel = createPanel('Survival');
-    panelsWrapper.appendChild(panel);
-  }
-
-  function setupBirthPanel() {
-    let panel = createPanel('Birth');
-    panelsWrapper.appendChild(panel);
-  }
-
-  function setupStates() {
-    let panel = createPanel('States');
-    panelsWrapper.appendChild(panel);
-
-    // Number of states
-    // Cyclic (checkbox)
-  }
-
-  function setupNeighborhoodPanel() {
-    let panel = createPanel('Neighborhood');
-    panelsWrapper.appendChild(panel);
-
-    // Type (Moore or von Neumann)
-    // Range (number)
-    // Edge wrapping (checkbox)
-  }
-
-  function setupPatternPanel() {
-    let panel = createPanel('Starting pattern');
-    panelsWrapper.appendChild(panel);
-
-    // Dropdown for patterns
-  }
-
-  function setupColorsPanel() {
-    let panel = createPanel('Colors');
-    panelsWrapper.appendChild(panel);
   }
