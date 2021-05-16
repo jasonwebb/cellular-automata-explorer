@@ -26,6 +26,9 @@ export function createGroup(name) {
   Dropdown
 *****************************/
 export function createDropdown(labelText, options, listener) {
+  let component = document.createElement('div');
+  component.classList.add('component');
+
   let label = document.createElement('label');
   label.innerText = labelText;
 
@@ -41,7 +44,9 @@ export function createDropdown(labelText, options, listener) {
 
   select.addEventListener('change', listener);
 
-  return label;
+  component.appendChild(label);
+
+  return component;
 }
 
 /****************************
@@ -60,6 +65,9 @@ export function createButton(buttonText, listener) {
   Slider
 *****************************/
 export function createSlider(labelText, minValue, maxValue, stepSize, listener) {
+  let component = document.createElement('div');
+  component.classList.add('component');
+
   let label = document.createElement('label');
   label.innerText = labelText;
 
@@ -73,13 +81,18 @@ export function createSlider(labelText, minValue, maxValue, stepSize, listener) 
 
   slider.addEventListener('change', listener);
 
-  return label;
+  component.appendChild(label);
+
+  return component;
 }
 
 /****************************
   Checkbox
 *****************************/
 export function createCheckbox(labelText, initialValue, listener) {
+  let component = document.createElement('div');
+  component.classList.add('component');
+
   let label = document.createElement('label');
   label.innerText = labelText;
 
@@ -89,5 +102,7 @@ export function createCheckbox(labelText, initialValue, listener) {
   checkbox.addEventListener('change', listener);
   label.appendChild(checkbox);
 
-  return label;
+  component.appendChild(label);
+
+  return component;
 }
