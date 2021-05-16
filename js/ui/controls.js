@@ -1,28 +1,28 @@
-import { createPanel, createDropdown, createButton, createSlider, createCheckbox } from './components';
-import { panelsWrapper } from '../ui';
+import { createGroup, createDropdown, createButton, createSlider, createCheckbox } from './components';
 
-export function setupControlsPanel() {
-  let panel = createPanel('Controls');
-  panelsWrapper.appendChild(panel);
+export function createControlsGroup() {
+  let group = createGroup('Controls');
 
   // Play/pause button
-  panel.appendChild(
+  group.appendChild(
     createButton('Pause', () => {
       console.log('pressed');
     })
   );
 
   // Speed slider
-  panel.appendChild(
+  group.appendChild(
     createSlider('Speed', 0.1, 2.0, .1, () => {
       console.log('speed changed');
     })
   );
 
   // Restart button
-  panel.appendChild(
+  group.appendChild(
     createButton('Restart', () => {
       console.log('restart');
     })
   );
+
+  return group;
 }

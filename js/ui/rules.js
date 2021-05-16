@@ -1,16 +1,16 @@
-import { createPanel, createDropdown, createButton, createSlider, createCheckbox } from './components';
-import { panelsWrapper } from '../ui';
+import { createGroup, createDropdown, createButton, createSlider, createCheckbox } from './components';
 
-export function setupRulesPanel() {
-  let panel = createPanel('Rules');
-  panelsWrapper.appendChild(panel);
+export function createRulesGroup() {
+  let group = createGroup('Rules');
 
   // Dropdown for presets
-  panel.appendChild(
+  group.appendChild(
     createDropdown('Preset', ['hello'], () => {
       console.log('changed');
     })
   );
 
   // If custom, show text input
+
+  return group;
 }

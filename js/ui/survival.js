@@ -1,7 +1,6 @@
-import { createPanel, createDropdown, createButton, createSlider, createCheckbox } from './components';
-import { panelsWrapper } from '../ui';
+import { createGroup, createDropdown, createButton, createSlider, createCheckbox } from './components';
 
-export function setupSurvivalPanel() {
-  let panel = createPanel('Survival');
-  panelsWrapper.appendChild(panel);
+export function createSurvivalGroup() {
+  let group = createGroup('Survival');
+  return group;
 }

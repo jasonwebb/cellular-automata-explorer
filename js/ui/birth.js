@@ -1,7 +1,6 @@
-import { createPanel, createDropdown, createButton, createSlider, createCheckbox } from './components';
-import { panelsWrapper } from '../ui';
+import { createGroup, createDropdown, createButton, createSlider, createCheckbox } from './components';
 
-export function setupBirthPanel() {
-  let panel = createPanel('Birth');
-  panelsWrapper.appendChild(panel);
+export function createBirthGroup() {
+  let group = createGroup('Birth');
+  return group;
 }

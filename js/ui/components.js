@@ -1,16 +1,30 @@
-export function createPanel(headingText, backgroundColor) {
+/****************************
+  Panel
+*****************************/
+export function createPanel() {
   let panel = document.createElement('div');
   panel.classList.add('panel');
-  panel.style.backgroundColor = backgroundColor;
-
-  let heading = document.createElement('h2');
-  heading.classList.add('heading');
-  heading.innerText = headingText;
-  panel.appendChild(heading);
 
   return panel;
 }
 
+/****************************
+  Group
+*****************************/
+export function createGroup(name) {
+  let group = document.createElement('div');
+  group.classList.add('group');
+
+  let heading = document.createElement('h2');
+  heading.innerText = name;
+  group.appendChild(heading);
+
+  return group;
+}
+
+/****************************
+  Dropdown
+*****************************/
 export function createDropdown(labelText, options, listener) {
   let label = document.createElement('label');
   label.innerText = labelText;
@@ -30,6 +44,9 @@ export function createDropdown(labelText, options, listener) {
   return label;
 }
 
+/****************************
+  Button
+*****************************/
 export function createButton(buttonText, listener) {
   let button = document.createElement('button');
   button.innerText = buttonText;
@@ -39,6 +56,9 @@ export function createButton(buttonText, listener) {
   return button;
 }
 
+/****************************
+  Slider
+*****************************/
 export function createSlider(labelText, minValue, maxValue, stepSize, listener) {
   let label = document.createElement('label');
   label.innerText = labelText;
@@ -56,6 +76,9 @@ export function createSlider(labelText, minValue, maxValue, stepSize, listener) 
   return label;
 }
 
+/****************************
+  Checkbox
+*****************************/
 export function createCheckbox(labelText, initialValue, listener) {
   let label = document.createElement('label');
   label.innerText = labelText;

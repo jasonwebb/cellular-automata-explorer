@@ -1,28 +1,28 @@
-import { createPanel, createDropdown, createButton, createSlider, createCheckbox } from './components';
-import { panelsWrapper } from '../ui';
+import { createGroup, createDropdown, createButton, createSlider, createCheckbox } from './components';
 
-export function setupNeighborhoodPanel() {
-  let panel = createPanel('Neighborhood');
-  panelsWrapper.appendChild(panel);
+export function createNeighborhoodGroup() {
+  let group = createGroup('Neighborhood');
 
   // Type (Moore or von Neumann)
-  panel.appendChild(
+  group.appendChild(
     createDropdown('Type', ['von Neumann', 'Moore'], () => {
       console.log('changed neighborhood type');
     })
   );
 
   // Range (number)
-  panel.appendChild(
+  group.appendChild(
     createSlider('Range', 1, 10, 1, () => {
       console.log('range changed');
     })
   );
 
   // Edge wrapping (checkbox)
-  panel.appendChild(
+  group.appendChild(
     createCheckbox('Wrap edges', false, () => {
       console.log('wrap edge changed');
     })
   );
+
+  return group;
 }

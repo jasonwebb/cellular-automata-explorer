@@ -1,7 +1,7 @@
-import { createPanel, createDropdown, createButton, createSlider, createCheckbox } from './components';
-import { panelsWrapper } from '../ui';
+import { createGroup, createDropdown, createButton, createSlider, createCheckbox } from './components';
 
-export function setupColorsPanel() {
-  let panel = createPanel('Colors');
-  panelsWrapper.appendChild(panel);
+export function createColorsGroup() {
+  let group = createGroup('Colors');
+
+  return group;
 }

@@ -1,14 +1,14 @@
-import { createPanel, createDropdown, createButton, createSlider, createCheckbox } from './components';
-import { panelsWrapper } from '../ui';
+import { createGroup, createDropdown, createButton, createSlider, createCheckbox } from './components';
 
-export function setupPatternPanel() {
-  let panel = createPanel('Starting pattern');
-  panelsWrapper.appendChild(panel);
+export function createPatternGroup() {
+  let group = createGroup('Starting pattern');
 
   // Dropdown for patterns
-  panel.appendChild(
+  group.appendChild(
     createDropdown('Starting pattern', ['test'], () => {
       console.log('starting pattern changed');
     })
   );
+
+  return group
 }

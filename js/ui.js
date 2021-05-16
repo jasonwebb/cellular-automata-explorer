@@ -1,56 +1,41 @@
-import { setupStatesPanel } from './ui/states';
-import { setupBirthPanel } from './ui/birth';
-import { setupControlsPanel } from './ui/controls';
-import { setupRulesPanel } from './ui/rules';
-import { setupNeighborhoodPanel } from './ui/neighborhood';
-import { setupColorsPanel } from './ui/colors';
-import { setupSurvivalPanel } from './ui/survival';
-import { setupPatternPanel } from './ui/pattern';
+import { createPanel } from './ui/components';
 
-let drawerWrapper, drawer;
-export let panelsWrapper;
+import { createStatesGroup } from './ui/states';
+import { createBirthGroup } from './ui/birth';
+import { createControlsGroup } from './ui/controls';
+import { createRulesGroup } from './ui/rules';
+import { createNeighborhoodGroup } from './ui/neighborhood';
+import { createColorsGroup } from './ui/colors';
+import { createSurvivalGroup } from './ui/survival';
+import { createPatternGroup } from './ui/pattern';
+
+let leftPanel, rightPanel;
 
 export function setupUI() {
-  drawerWrapper = document.createElement('div');
-  drawerWrapper.classList.add('drawer');
-  document.body.appendChild(drawerWrapper);
-
-  drawer = document.createElement('div');
-  drawer.classList.add('drawer-inner-wrapper');
-  drawerWrapper.appendChild(drawer);
-
-  panelsWrapper = document.createElement('div');
-  panelsWrapper.classList.add('panels-wrapper');
-
-  setupDrawerControls();
-
-  drawer.appendChild(panelsWrapper);
-
-  setupControlsPanel();
-  setupRulesPanel();
-  setupSurvivalPanel();
-  setupBirthPanel();
-  setupStatesPanel();
-  setupNeighborhoodPanel();
-  setupPatternPanel();
-  setupColorsPanel();
+  setupLeftPanel();
+  setupRightPanel();
 }
 
-  function setupDrawerControls() {
-    const resizeBar = document.createElement('button');
-    resizeBar.classList.add('resize-button');
-    resizeBar.innerHTML = `
-      <span class="fas fa-bars" aria-hidden="true"></span>
-      <span class="sr-only">Resize drawer</span>
-    `;
-    drawer.appendChild(resizeBar);
+  function setupLeftPanel() {
+    leftPanel = createPanel();
+    leftPanel.style.left = '20px';
 
-    const toggleButton = document.createElement('button');
-    toggleButton.classList.add('toggle-button');
-    toggleButton.setAttribute('aria-expanded', true);
-    toggleButton.innerHTML = `
-      Controls
-      <span class="fas fa-caret-up" aria-hidden="true"></span>
-    `;
-    drawer.appendChild(toggleButton);
+    leftPanel.appendChild(createBirthGroup());
+    leftPanel.appendChild(createSurvivalGroup());
+    leftPanel.appendChild(createNeighborhoodGroup());
+    leftPanel.appendChild(createStatesGroup());
+
+    document.body.appendChild(leftPanel);
+  }
+
+  function setupRightPanel() {
+    rightPanel = createPanel();
+    rightPanel.style.right = '20px';
+
+    rightPanel.appendChild(createColorsGroup());
+    rightPanel.appendChild(createPatternGroup());
+    rightPanel.appendChild(createRulesGroup());
+    rightPanel.appendChild(createControlsGroup());
+
+    document.body.appendChild(rightPanel);
   }
