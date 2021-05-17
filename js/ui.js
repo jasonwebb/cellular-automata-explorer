@@ -8,6 +8,7 @@ import { createNeighborhoodGroup } from './ui/neighborhood';
 import { createColorsGroup } from './ui/colors';
 import { createSurvivalGroup } from './ui/survival';
 import { createPatternGroup } from './ui/pattern';
+import { createCanvasGroup } from './ui/canvas';
 
 let leftPanel, rightPanel;
 
@@ -20,6 +21,7 @@ export function setupUI() {
     leftPanel = createPanel();
     leftPanel.style.left = '20px';
 
+    leftPanel.appendChild(createRulesGroup());
     leftPanel.appendChild(createBirthGroup());
     leftPanel.appendChild(createSurvivalGroup());
     leftPanel.appendChild(createNeighborhoodGroup());
@@ -34,7 +36,7 @@ export function setupUI() {
 
     rightPanel.appendChild(createColorsGroup());
     rightPanel.appendChild(createPatternGroup());
-    rightPanel.appendChild(createRulesGroup());
+    rightPanel.appendChild(createCanvasGroup());
     rightPanel.appendChild(createControlsGroup());
 
     document.body.appendChild(rightPanel);
