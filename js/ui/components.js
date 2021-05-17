@@ -1,3 +1,5 @@
+let idCounter = 0;
+
 /****************************
   Panel
 *****************************/
@@ -16,6 +18,7 @@ export function createGroup(name) {
   group.classList.add('group');
 
   let heading = document.createElement('h2');
+  heading.classList.add('heading');
   heading.innerText = name;
   group.appendChild(heading);
 
@@ -27,13 +30,14 @@ export function createGroup(name) {
 *****************************/
 export function createDropdown(labelText, options, listener) {
   let component = document.createElement('div');
-  component.classList.add('component');
+  component.classList.add('component', 'dropdown');
 
   let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
   label.innerText = labelText;
 
   let select = document.createElement('select');
-  label.appendChild(select);
+  select.setAttribute('id', 'input-' + idCounter);
 
   options.forEach((option, index) => {
     let tag = document.createElement('option');
@@ -45,6 +49,9 @@ export function createDropdown(labelText, options, listener) {
   select.addEventListener('change', listener);
 
   component.appendChild(label);
+  component.appendChild(select);
+
+  idCounter++;
 
   return component;
 }
@@ -66,22 +73,26 @@ export function createButton(buttonText, listener) {
 *****************************/
 export function createSlider(labelText, minValue, maxValue, stepSize, listener) {
   let component = document.createElement('div');
-  component.classList.add('component');
+  component.classList.add('component', 'slider');
 
   let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
   label.innerText = labelText;
 
   let slider = document.createElement('input');
+  slider.setAttribute('id', 'input-' + idCounter);
   slider.setAttribute('type', 'range');
   slider.setAttribute('min', minValue);
   slider.setAttribute('max', maxValue);
   slider.setAttribute('step', stepSize);
   slider.setAttribute('value', 1.0);
-  label.appendChild(slider);
 
   slider.addEventListener('change', listener);
 
   component.appendChild(label);
+  component.appendChild(slider);
+
+  idCounter++;
 
   return component;
 }
@@ -91,18 +102,22 @@ export function createSlider(labelText, minValue, maxValue, stepSize, listener) 
 *****************************/
 export function createCheckbox(labelText, initialValue, listener) {
   let component = document.createElement('div');
-  component.classList.add('component');
+  component.classList.add('component', 'checkbox');
 
   let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
   label.innerText = labelText;
 
   let checkbox = document.createElement('input');
+  checkbox.setAttribute('id', 'input-' + idCounter);
   checkbox.setAttribute('type', 'checkbox');
   checkbox.setAttribute('checked', initialValue);
   checkbox.addEventListener('change', listener);
-  label.appendChild(checkbox);
 
   component.appendChild(label);
+  component.appendChild(checkbox);
+
+  idCounter++;
 
   return component;
 }
