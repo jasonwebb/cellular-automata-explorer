@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "webpack.config.js",
-  "dependencies": {},
   "devDependencies": {
     "cellular-automata-rule-parser": "^3.0.1",
     "glsl-shader-loader": "^0.1.6",

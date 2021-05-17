@@ -9,7 +9,8 @@ export default {
       min: 1,
       max: window.innerHeight,
       value: 900
-    }
+    },
+    maximized: true
   },
   scale: {
     min: .01,

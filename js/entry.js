@@ -47,7 +47,6 @@ function setup() {
   // Set up the renderer (a WebGL context inside a <canvas>)
   renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
   renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-  renderer.setSize(variables.canvas.width.value, variables.canvas.height.value);
 
   // Uncomment this line to see how many shader varyings your GPU supports.
   // console.log(renderer.capabilities.maxVaryings);
@@ -72,6 +71,19 @@ function setup() {
 }
 
   export function resetTextureSizes() {
+    // Only resize the canvas and textures if they haven't been set yet or the canvas needs to always been maximized
+    if(
+      !variables.canvas.maximized &&
+      canvas.clientWidth == variables.canvas.width.value &&
+      canvas.clientHeight == variables.canvas.height.value
+    ) return;
+
+    // Resize the canvas
+    renderer.setSize(
+      variables.canvas.maximized ? window.innerWidth : variables.canvas.width.value,
+      variables.canvas.maximized ? window.innerHeight : variables.canvas.height.value
+    );
+
     variables.canvas.width.value = canvas.clientWidth;
     variables.canvas.height.value = canvas.clientHeight;
 
