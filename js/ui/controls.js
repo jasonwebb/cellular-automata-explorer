@@ -12,7 +12,7 @@ export function createControlsGroup() {
 
   // Speed slider
   group.appendChild(
-    createSlider('Speed', 0.1, 2.0, .1, () => {
+    createSlider('Speed', 0.1, 2.0, .1, 1.0, () => {
       console.log('speed changed');
     })
   );

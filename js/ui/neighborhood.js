@@ -12,7 +12,7 @@ export function createNeighborhoodGroup() {
 
   // Range (number)
   group.appendChild(
-    createSlider('Range', 1, 10, 1, () => {
+    createSlider('Range', 1, 10, 1, 1, () => {
       console.log('range changed');
     })
   );

@@ -5,7 +5,7 @@ export function createStatesGroup() {
 
   // Number of states
   group.appendChild(
-    createSlider('Number of states', 2, 500, 1, () => {
+    createSlider('Number of states', 2, 500, 1, 2, () => {
       console.log('state number changed');
     })
   );

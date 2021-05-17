@@ -71,7 +71,7 @@ export function createButton(buttonText, listener) {
 /****************************
   Slider
 *****************************/
-export function createSlider(labelText, minValue, maxValue, stepSize, listener) {
+export function createSlider(labelText, minValue, maxValue, stepSize, initialValue, listener) {
   let component = document.createElement('div');
   component.classList.add('component', 'slider');
 
@@ -87,10 +87,20 @@ export function createSlider(labelText, minValue, maxValue, stepSize, listener) 
   slider.setAttribute('step', stepSize);
   slider.setAttribute('value', 1.0);
 
-  slider.addEventListener('change', listener);
+  let textField = document.createElement('input');
+  textField.setAttribute('type', 'text');
+  textField.setAttribute('aria-label', labelText + ' value');
+  textField.setAttribute('value', initialValue);
+  textField.classList.add('value');
+
+  slider.addEventListener('change', (e) => {
+    textField.value = e.target.value;
+    listener();
+  });
 
   component.appendChild(label);
   component.appendChild(slider);
+  component.appendChild(textField);
 
   idCounter++;
 
