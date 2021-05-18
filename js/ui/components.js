@@ -107,7 +107,7 @@ export function createSlider(labelText, minValue, maxValue, stepSize, initialVal
   textField.classList.add('value');
 
   // Update the live value in the text field and run the provided callback when the value changes
-  slider.addEventListener('change', (e) => {
+  slider.addEventListener('input', (e) => {
     textField.value = e.target.value;
     listener();
   });
