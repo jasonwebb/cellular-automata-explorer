@@ -138,7 +138,11 @@ export function createCheckbox(labelText, initialValue, listener) {
   let checkbox = document.createElement('input');
   checkbox.setAttribute('id', 'input-' + idCounter);
   checkbox.setAttribute('type', 'checkbox');
-  checkbox.setAttribute('checked', initialValue);
+
+  if(initialValue === true) {
+    checkbox.setAttribute('checked', 'checked');
+  }
+
   checkbox.addEventListener('change', listener);
 
   component.appendChild(label);
