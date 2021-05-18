@@ -8,6 +8,7 @@
 body {
   background: radial-gradient(circle, rgb(10,10,10) 20%, rgb(20,20,20) 100%);
   font-family: Verdana, Geneva, Tahoma, sans-serif;
+  overflow: hidden;
 }
 
 canvas {
@@ -17,17 +18,163 @@ canvas {
 /****************************
   UI
 *****************************/
+/** Panels are the highest-level wrapper. */
 .panel {
   position: absolute;
   top: 0;
+  width: 275px;
 
   color: white;
+  background-color: black;
+  padding: 5px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-top: 0;
+  box-shadow: 0 0 3px 0 rgba(0,0,0,.6);
 }
 
+  /** Groups are sets of components with a heading at the top. */
   .panel .group {
-
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 3px;
   }
 
+    .panel .group:last-of-type {
+      margin: 0;
+    }
+
+    .panel .group .heading {
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: rgba(255,255,255,1);
+    }
+
+  /** Components are individual controls (sliders, dropdowns, etc). */
   .panel .component {
     display: block;
+    font-size: 12px;
+    color: rgba(255,255,255,.7);
+    padding: 3px 0;
+    width: 100%;
+
+    display: flex;
+    align-items: flex-start;
   }
+
+    /** <label> tag */
+    .panel .component label {
+      flex: 0 0 35%;
+    }
+
+      .panel .component.dropdown label {
+        padding-top: 4px;
+      }
+
+    /** <select> dropdowns */
+    .panel .component select {
+      flex: 1 1 auto;
+      background-color: rgb(255,255,255,.1);
+      color: rgba(255,255,255,.7);
+      padding: 5px;
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+      .panel .component select option {
+        background-color: rgb(0,0,0,.8);
+        color: rgba(255,255,255,.7);
+      }
+
+    /** Sliders (<input type="range" ...>) */
+    .panel .component input[type="range"] {
+      flex: 1 1 auto;
+      width: 100%;
+      margin-top: 5px;
+      margin-right: 10px;
+      position: relative;
+      background-color: transparent;
+      -webkit-appearance: none;
+    }
+
+      .panel .component input[type="range"]:before {
+        position: absolute;
+        top: 4px;
+
+        content: '';
+        display: block;
+        width: 100%;
+        height: 1px;
+        background-color: rgba(255,255,255,.1);
+      }
+
+      .panel .component input[type=range]::-webkit-slider-runnable-track {
+        background: transparent;
+        border: 0;
+        width: 100%;
+      }
+
+      .panel .component input[type=range]::-webkit-slider-thumb {
+        width: 10px;
+        height: 10px;
+        background: #ffffff;
+        -webkit-appearance: none;
+      }
+
+      .panel .component input[type=range]::-moz-range-track {
+        background: transparent;
+        border: 0;
+        width: 100%;
+      }
+
+      .panel .component input[type=range]::-moz-range-thumb {
+        width: 10px;
+        height: 10px;
+        background: #ffffff;
+      }
+
+      .panel .component input[type=range]::-ms-track {
+        background: transparent;
+        border: 0;
+        width: 100%;
+      }
+
+      .panel .component input[type=range]::-ms-fill-lower {
+        background: transparent;
+        border: 0;
+      }
+
+      .panel .component input[type=range]::-ms-fill-upper {
+        background: transparent;
+        border: 0;
+      }
+
+      .panel .component input[type=range]::-ms-thumb {
+        width: 10px;
+        height: 10px;
+        background: #ffffff;
+        margin-top: 0px;
+        /*Needed to keep the Edge thumb centred*/
+      }
+
+    /** Text field with value of component. */
+    .panel .component .value {
+      flex: 1 0 15%;
+      width: 100%;
+      padding: 2px;
+      background-color: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.15);
+      color: rgba(255,255,255,.7);
+    }
+
+    /** Buttons */
+    .panel .component.button button {
+      padding: 6px 10px;
+      border-radius: 2px;
+      background-color: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.15);
+      color: rgba(255,255,255,.7);
+    }
