@@ -67,6 +67,10 @@ export function createDropdown(labelText, options, listener) {
   Button
 *****************************/
 export function createButton(buttonText, listener) {
+  // Wrapper
+  let component = document.createElement('div');
+  component.classList.add('component', 'button');
+
   // <button> tag
   let button = document.createElement('button');
   button.innerText = buttonText;
@@ -74,7 +78,9 @@ export function createButton(buttonText, listener) {
   // Run the provided callback when activated
   button.addEventListener('click', listener);
 
-  return button;
+  component.appendChild(button);
+
+  return component;
 }
 
 /****************************
