@@ -17,6 +17,10 @@ export default {
     max: 5,
     value: 1
   },
+  wrap: {
+    x: true,
+    y: true
+  },
   patterns: {
     circle: {
       radius: {
