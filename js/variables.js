@@ -10,7 +10,7 @@ export default {
       max: window.innerHeight,
       value: 900
     },
-    maximized: true
+    maximized: false
   },
   scale: {
     min: .01,

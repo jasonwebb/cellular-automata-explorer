@@ -18,10 +18,10 @@ export function createCanvasGroup() {
     })
   );
 
-  // Maximize checkbox
+  // Maximized checkbox
   group.appendChild(
-    createCheckbox('Maximize', variables.canvas.maximize, () => {
-      console.log('maximize changed');
+    createCheckbox('Maximized', variables.canvas.maximized, () => {
+      console.log('maximized changed');
     })
   );
 
