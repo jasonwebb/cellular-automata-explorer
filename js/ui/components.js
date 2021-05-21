@@ -144,6 +144,7 @@ export function createCheckbox(labelText, initialValue, listener) {
   let checkbox = document.createElement('input');
   checkbox.setAttribute('id', 'input-' + idCounter);
   checkbox.setAttribute('type', 'checkbox');
+  checkbox.classList.add('sr-only');  // hidden visually, but reachable by keyboard and screen reader
 
   if(initialValue === true) {
     checkbox.setAttribute('checked', 'checked');
@@ -151,8 +152,40 @@ export function createCheckbox(labelText, initialValue, listener) {
 
   checkbox.addEventListener('change', listener);
 
+  // Custom styled checkbox
+  let customCheckbox = document.createElement('div');
+  customCheckbox.classList.add('custom-checkbox');
+
+  // Toggle the real checkbox when the custom checkbox is clicked
+  customCheckbox.addEventListener('click', () => {
+    const isChecked = checkbox.getAttribute('checked') === 'checked' ? true : false;
+
+    if(isChecked) {
+      checkbox.removeAttribute('checked');
+    } else {
+      checkbox.setAttribute('checked', 'checked');
+    }
+  });
+
+  // Toggle the real checkbox on Space and Enter
+  checkbox.addEventListener('keydown', (e) => {
+    if(e.key == ' ' || e.key == 'Enter') {
+      e.preventDefault();   // prevent page scrolling on Space
+      e.stopPropagation();  // prevent event from bubbling up and pausing the simulation
+
+      const isChecked = checkbox.getAttribute('checked') === 'checked' ? true : false;
+
+      if(isChecked) {
+        checkbox.removeAttribute('checked');
+      } else {
+        checkbox.setAttribute('checked', 'checked');
+      }
+    }
+  });
+
   component.appendChild(label);
   component.appendChild(checkbox);
+  component.appendChild(customCheckbox);
 
   idCounter++;
 
