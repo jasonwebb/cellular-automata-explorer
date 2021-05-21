@@ -38,7 +38,6 @@ export function setupMouse() {
     if(mouseDown) {
       simulationUniforms.mousePosition.value.x = e.offsetX / variables.canvas.width.value * variables.scale.value;
       simulationUniforms.mousePosition.value.y = 1 - e.offsetY / variables.canvas.height.value * variables.scale.value;
-      console.log(e.offsetX / variables.canvas.width.value * variables.scale.value);
     } else {
       simulationUniforms.mousePosition.value.x = -1;
       simulationUniforms.mousePosition.value.y = -1;
