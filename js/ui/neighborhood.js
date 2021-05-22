@@ -18,6 +18,13 @@ export function createNeighborhoodGroup() {
     })
   );
 
+  // Include center (checkbox)
+  group.appendChild(
+    createCheckbox('Include center', true, () => {
+      console.log('include center changed');
+    })
+  );
+
   // Edge wrapping (X) checkbox
   group.appendChild(
     createCheckbox('Wrap X', variables.wrap.x, () => {
