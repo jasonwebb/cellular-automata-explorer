@@ -1,5 +1,4 @@
-import { createGroup, createDropdown, createButton, createSlider, createCheckbox } from './components';
-import variables from '../variables';
+import { createGroup, createDropdown, createSlider, createCheckbox } from './components';
 
 export function createNeighborhoodGroup() {
   let group = createGroup('Neighborhood');
@@ -22,22 +21,6 @@ export function createNeighborhoodGroup() {
   group.appendChild(
     createCheckbox('Include center', true, () => {
       console.log('include center changed');
-    })
-  );
-
-  // Edge wrapping (X) checkbox
-  group.appendChild(
-    createCheckbox('Wrap X', variables.wrap.x, () => {
-      console.log('wrap x changed');
-      variables.wrap.x = !variables.wrap.x;
-    })
-  );
-
-  // Edge wrapping (Y) checkbox
-  group.appendChild(
-    createCheckbox('Wrap Y', variables.wrap.y, () => {
-      console.log('wrap y changed');
-      variables.wrap.y = !variables.wrap.y;
     })
   );
 

@@ -1,4 +1,4 @@
-import { createGroup, createDropdown, createButton, createSlider, createCheckbox } from './components';
+import { createGroup, createSlider, createCheckbox } from './components';
 import variables from '../variables'
 
 export function createCanvasGroup() {
@@ -22,6 +22,22 @@ export function createCanvasGroup() {
   group.appendChild(
     createCheckbox('Maximized', variables.canvas.maximized, () => {
       console.log('maximized changed');
+    })
+  );
+
+  // Edge wrapping (X) checkbox
+  group.appendChild(
+    createCheckbox('Wrap X', variables.wrap.x, () => {
+      console.log('wrap x changed');
+      variables.wrap.x = !variables.wrap.x;
+    })
+  );
+
+  // Edge wrapping (Y) checkbox
+  group.appendChild(
+    createCheckbox('Wrap Y', variables.wrap.y, () => {
+      console.log('wrap y changed');
+      variables.wrap.y = !variables.wrap.y;
     })
   );
 
