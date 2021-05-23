@@ -79,6 +79,13 @@ export function createDropdown(labelText, options, listener) {
   // Run the provided callback when the value changes
   select.addEventListener('change', listener);
 
+  // Prevent Space key from bubbling up and pausing the simulation
+  select.addEventListener('keydown', (e) => {
+    if(e.key == ' ') {
+      e.stopPropagation();
+    }
+  });
+
   component.appendChild(label);
   component.appendChild(select);
 
