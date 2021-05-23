@@ -45,5 +45,12 @@ export function createCanvasGroup() {
     })
   );
 
+  // Scale slider
+  group.appendChild(
+    createSlider('Scale', .1, 3, .1, variables.scale.value, (e) => {
+      variables.scale.value = 3 - e.target.value;
+    })
+  );
+
   return group;
 }
