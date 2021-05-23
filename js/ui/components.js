@@ -4,6 +4,8 @@ let idCounter = 0;
 
 /****************************
   Panel
+  - Panels contain collections of Groups.
+  - Panels are the highest level wrappers in the UI.
 *****************************/
 export function createPanel() {
   let panel = document.createElement('div');
@@ -14,6 +16,8 @@ export function createPanel() {
 
 /****************************
   Group
+  - Groups contain collections of Components.
+  - Groups are the "sections" of the Panels, and they have headings at the top.
 *****************************/
 export function createGroup(name) {
   // Wrapper
@@ -31,6 +35,7 @@ export function createGroup(name) {
 
 /****************************
   Dropdown
+  - Dropdowns are <select> tags with associated <label>s.
 *****************************/
 export function createDropdown(labelText, options, listener) {
   // Wrapper
@@ -67,6 +72,7 @@ export function createDropdown(labelText, options, listener) {
 
 /****************************
   Button
+  - Buttons execute custom functions when they are activated.
 *****************************/
 export function createButton(buttonText, listener) {
   // Wrapper
@@ -87,6 +93,9 @@ export function createButton(buttonText, listener) {
 
 /****************************
   Slider
+  - Sliders are range inputs (<input type="range">).
+  - Sliders have a <label> on the left.
+  - Sliders have a text input on the right, which updates in real-time with the value of the range slider (and vice versa).
 *****************************/
 export function createSlider(labelText, minValue, maxValue, stepSize, initialValue, listener) {
   // Wrapper
@@ -131,6 +140,8 @@ export function createSlider(labelText, minValue, maxValue, stepSize, initialVal
 
 /****************************
   Checkbox
+  - Checkboxes are native <input type="checkbox"> tags that are visible ony to screen readers.
+  - Checkboxes are styled using a visible adjacent element and CSS.
 *****************************/
 export function createCheckbox(labelText, initialValue, listener) {
   // Wrapper
