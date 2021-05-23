@@ -51,12 +51,29 @@ export function createDropdown(labelText, options, listener) {
   let select = document.createElement('select');
   select.setAttribute('id', 'input-' + idCounter);
 
-  // Options in <select> dropdown
-  options.forEach((option, index) => {
-    let tag = document.createElement('option');
-    tag.setAttribute('value', index);
-    tag.innerText = option;
-    select.appendChild(tag);
+  // Options (<option>s)
+  Object.values(options).forEach((value, index) => {
+    // If the options contain nested arrays, that means it has sections and should be built with <optgroup>s
+    // TODO: native <optgroup>s are not accessible, so in the future this should be rebuilt as a custom select.
+    if(Array.isArray(value)) {
+      let groupTitle = Object.keys(options)[index];
+      let optgroup = document.createElement('optgroup');
+      optgroup.setAttribute('label', groupTitle);
+
+      Object.values(options)[index].forEach((optionName) => {
+        let option = document.createElement('option');
+        option.innerText = optionName;
+        optgroup.appendChild(option);
+      });
+
+      select.appendChild(optgroup);
+
+    // If the options don't contain nested arrays, we'll assume they are just simple strings.
+    } else {
+      let tag = document.createElement('option');
+      tag.innerText = value;
+      select.appendChild(tag);
+    }
   });
 
   // Run the provided callback when the value changes
