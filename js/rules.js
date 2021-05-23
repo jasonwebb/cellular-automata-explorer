@@ -15,6 +15,7 @@ import * as THREE from 'three';
 import * as parser from 'cellular-automata-rule-parser';
 
 import { simulationUniforms } from './uniforms';
+import variables from './variables';
 
 export function setRule(ruleString) {
   let rule = parser(ruleString);
@@ -46,6 +47,13 @@ export function setRule(ruleString) {
         break;
     }
 
+    // Capture the rule information in a globally available object to display in the UI
+    variables.activeRule.ruleFormat = ruleFormatNumber;
+    variables.activeRule.stateCount = rule.stateCount;
+    variables.activeRule.birth = rule.birth;
+    variables.activeRule.survival = rule.survival;
+
+    // Pass the rule format and state count to the shader
     simulationUniforms.ruleFormat.value = ruleFormatNumber;
     simulationUniforms.stateCount.value = rule.stateCount;
 
@@ -62,7 +70,10 @@ export function setRule(ruleString) {
       data[i * 4 + 1] = i < rule.survival.length ? rule.survival[i] / 255 : 0;
     }
 
+    // Pass the birth and survival data to the shader as a data texture
     simulationUniforms.birthAndSurvivalCounts.value = new THREE.DataTexture(data, longestLength, 1, THREE.RGBAFormat, THREE.FloatType);
+
+    window.dispatchEvent(new Event('ruleUpdated'));
 
   } else {
     console.log("Couldn't parse: " + ruleString);

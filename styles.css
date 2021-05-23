@@ -210,3 +210,55 @@ canvas {
         outline: 5px auto Highlight;
         outline: 5px auto -webkit-focus-ring-color;
       }
+
+  .panel .count-fieldset {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+
+    max-height: 150px;
+    overflow-y: scroll;
+
+    scrollbar-width: 5px;
+    scrollbar-color: transparent rgba(255,255,255,.1);
+  }
+
+    .panel .count-fieldset::-webkit-scrollbar {
+      width: 5px;
+      margin-left: 10px;
+    }
+
+    .panel .count-fieldset::-webkit-scrollbar-track {
+      background-color: rgb(255,255,255,.0);
+      border-radius: 100px;
+    }
+
+    .panel .count-fieldset::-webkit-scrollbar-thumb {
+      background-color: rgb(255,255,255,.7);
+      border-radius: 10px;
+    }
+
+    .panel .count-fieldset label {
+      flex: 0 0 calc(100% / 8);
+      margin: 2px;
+      padding: 6px 0;
+      text-align: center;
+
+      /* border: 1px solid rgba(255,255,255,.15); */
+      border-radius: 2px;
+      font-size: 12px;
+      color: rgba(255,255,255,.8);
+    }
+
+      .panel .count-fieldset label:hover,
+      .panel .count-fieldset label:focus-within {
+        background-color: rgba(255,255,255,.03);
+        /* border: 1px solid rgba(255,255,255,.25); */
+        color: white;
+      }
+
+      .panel .count-fieldset label .custom-checkbox {
+        margin-bottom: 2px;
+        display: inline-block;
+      }

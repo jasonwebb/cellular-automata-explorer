@@ -59,5 +59,12 @@ export default {
       },
       value: 'CA'
     }
+  },
+  activeRule: {
+    birth: null,
+    survival: null,
+    stateCount: null,
+    range: null,
+    neighborhoodType: null
   }
 }

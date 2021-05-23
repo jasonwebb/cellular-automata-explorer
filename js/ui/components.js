@@ -1,3 +1,5 @@
+import variables from '../variables';
+
 let idCounter = 0;
 
 /****************************
@@ -191,3 +193,108 @@ export function createCheckbox(labelText, initialValue, listener) {
 
   return component;
 }
+
+/*******************************************************
+  Fieldset of checkboxes for birth and survival counts
+
+  <fieldset>
+    <legend>...</legend>
+    ...
+  </fieldset>
+********************************************************/
+export function createCountCheckboxFieldset(type) {
+  let checkboxes = [];
+
+  // Fieldset (<fieldset>)
+  let fieldset = document.createElement('fieldset');
+  fieldset.classList.add('count-fieldset');
+
+  // Legend (<legend>)
+  let legend = document.createElement('legend');
+  legend.classList.add('sr-only');
+  legend.innerText = type === 'birth' ? 'Birth counts' : 'Survival counts';
+  fieldset.appendChild(legend);
+
+  // TODO: calculate total number of neighbors possible based on neighborhood type, range, and cyclic
+  let totalNeighbors = 8;
+
+  // Create all the checkboxes
+  for(let i=0; i < totalNeighbors; i++) {
+    let checkbox = createCountCheckbox(i);
+    checkboxes.push(checkbox.querySelector('input'));
+    fieldset.appendChild(checkbox);
+  }
+
+  // Check the checkboxes based on the active rule whenever it is set
+  window.addEventListener('ruleUpdated', () => {
+    const checkedCounts = type === 'birth' ? variables.activeRule.birth : variables.activeRule.survival;
+
+    checkedCounts.forEach((index) => {
+      checkboxes[index].setAttribute('checked', 'checked');
+    });
+  });
+
+  return fieldset;
+}
+
+  /**
+    Single count checkbox
+
+    <label>
+      <input type="checkbox" class="sr-only">
+      <div class="custom-checkbox"></div>
+      <div class="text">...</div>
+    </label>
+  */
+  function createCountCheckbox(countNumber, type) {
+    // Wrapper (<label>)
+    let label = document.createElement('label');
+    label.classList.add('checkbox');
+
+    // Checkbox (<input type="checkbox">)
+    let checkbox = document.createElement('input');
+    checkbox.setAttribute('type', 'checkbox');
+    checkbox.classList.add('sr-only');
+
+    checkbox.addEventListener('change', (e) => {
+      let newValue = e.target.checked;
+
+      switch(type) {
+        case 'birth':
+          // TODO: update simulationUniforms.birthAndSurvivalCounts
+          // TODO: update simulationsUniforms.birthCountsLength
+          // TODO: update activeRule.birth
+          break;
+
+        case 'survival':
+          // TODO: update simulationUniforms.birthAndSurvivalCounts
+          // TODO: update simulationsUniforms.survivalCountsLength
+          // TODO: update activeRule.survival
+          break;
+      }
+
+      // TODO: change Preset dropdown to "Custom"
+    });
+
+    // Prevent Space key from bubbling up and pausing the simulation
+    checkbox.addEventListener('keydown', (e) => {
+      if(e.key == ' ') {
+        e.stopPropagation();
+      }
+    });
+
+    // Custom styled checkbox
+    let customCheckbox = document.createElement('div');
+    customCheckbox.classList.add('custom-checkbox');
+
+    // Number text under checkbox
+    let text = document.createElement('div');
+    text.classList.add('text');
+    text.innerText = countNumber;
+
+    label.appendChild(checkbox);
+    label.appendChild(customCheckbox);
+    label.appendChild(text);
+
+    return label;
+  }
