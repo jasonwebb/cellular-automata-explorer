@@ -49,6 +49,12 @@ canvas {
       color: rgba(255,255,255,1);
     }
 
+  /** <hr>s are used as seperators between Components */
+  .panel hr {
+    border-bottom: 1px solid rgb(255,255,255,.1);
+    margin: 5px 0;
+  }
+
   /** Components are individual controls (sliders, dropdowns, etc). */
   .panel .component {
     display: block;

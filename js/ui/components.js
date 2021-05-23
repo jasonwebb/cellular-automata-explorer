@@ -33,6 +33,14 @@ export function createGroup(name) {
   return group;
 }
 
+/*******************
+  Seperator
+  - Seperators are <hr> tags that can break up sets of related Components inside Groups
+********************/
+export function createSeperator() {
+  return document.createElement('hr');
+}
+
 /****************************
   Dropdown
   - Dropdowns are <select> tags with associated <label>s.
