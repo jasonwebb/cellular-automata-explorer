@@ -73,6 +73,7 @@ export function setRule(ruleString) {
     // Pass the birth and survival data to the shader as a data texture
     simulationUniforms.birthAndSurvivalCounts.value = new THREE.DataTexture(data, longestLength, 1, THREE.RGBAFormat, THREE.FloatType);
 
+    // Dispatch a custom event to let the UI know it needs to update
     window.dispatchEvent(new Event('ruleUpdated'));
 
   } else {
