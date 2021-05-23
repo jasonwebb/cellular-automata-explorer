@@ -129,6 +129,12 @@ export function createSlider(labelText, minValue, maxValue, stepSize, initialVal
     listener();
   });
 
+  // Update the range slider whenever the text field is edited directly
+  textField.addEventListener('change', (e) => {
+    slider.value = e.target.value;
+    listener();
+  });
+
   component.appendChild(label);
   component.appendChild(slider);
   component.appendChild(textField);
