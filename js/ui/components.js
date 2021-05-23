@@ -114,7 +114,7 @@ export function createSlider(labelText, minValue, maxValue, stepSize, initialVal
   slider.setAttribute('min', minValue);
   slider.setAttribute('max', maxValue);
   slider.setAttribute('step', stepSize);
-  slider.setAttribute('value', 1.0);
+  slider.setAttribute('value', initialValue);
 
   // Small text field with live value
   let textField = document.createElement('input');
@@ -126,13 +126,13 @@ export function createSlider(labelText, minValue, maxValue, stepSize, initialVal
   // Update the live value in the text field and run the provided callback when the value changes
   slider.addEventListener('input', (e) => {
     textField.value = e.target.value;
-    listener();
+    listener(e);
   });
 
   // Update the range slider whenever the text field is edited directly
   textField.addEventListener('change', (e) => {
     slider.value = e.target.value;
-    listener();
+    listener(e);
   });
 
   component.appendChild(label);
