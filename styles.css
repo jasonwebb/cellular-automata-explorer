@@ -28,8 +28,6 @@ canvas {
   background-color: black;
   padding: 5px;
   border: 1px solid rgba(255,255,255,.2);
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
   border-top: 0;
   box-shadow: 0 0 3px 0 rgba(0,0,0,.6);
 }
@@ -39,8 +37,6 @@ canvas {
     padding: 10px;
     margin-bottom: 5px;
     background-color: rgba(255,255,255,.1);
-    border: 1px solid rgba(255,255,255,.2);
-    border-radius: 3px;
   }
 
     .panel .group:last-of-type {
