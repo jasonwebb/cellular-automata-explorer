@@ -186,19 +186,10 @@ export function createCheckbox(labelText, initialValue, listener) {
     }
   });
 
-  // Toggle the real checkbox on Space and Enter
+  // Prevent Space key from bubbling up and pausing the simulation
   checkbox.addEventListener('keydown', (e) => {
-    if(e.key == ' ' || e.key == 'Enter') {
-      e.preventDefault();   // prevent page scrolling on Space
-      e.stopPropagation();  // prevent event from bubbling up and pausing the simulation
-
-      const isChecked = checkbox.getAttribute('checked') === 'checked' ? true : false;
-
-      if(isChecked) {
-        checkbox.removeAttribute('checked');
-      } else {
-        checkbox.setAttribute('checked', 'checked');
-      }
+    if(e.key == ' ') {
+      e.stopPropagation();
     }
   });
 
