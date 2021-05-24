@@ -31,9 +31,13 @@ export let simulationUniforms = {
     type: 'i',
     value: 0
   },
-  includeMiddle: {
+  includeCenter: {
     type: 'b',
     value: false
+  },
+  neighborhoodType: {
+    type: 'i',
+    value: 0
   },
   range: {
     type: 'i',

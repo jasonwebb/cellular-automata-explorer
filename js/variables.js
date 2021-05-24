@@ -65,6 +65,7 @@ export default {
     survival: null,
     stateCount: null,
     range: null,
-    neighborhoodType: null
+    neighborhoodType: null,
+    includeCenter: null
   }
 }
