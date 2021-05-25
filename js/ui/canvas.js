@@ -1,4 +1,4 @@
-import { createGroup, createSlider, createCheckbox } from './components';
+import { createGroup, createSlider, createCheckbox, createSeperator } from './components';
 import variables from '../variables'
 import { resetTextureSizes } from '../entry';
 import { simulationUniforms } from '../uniforms';
@@ -30,6 +30,8 @@ export function createCanvasGroup() {
     })
   );
 
+    group.appendChild( createSeperator() );
+
   // Edge wrapping (X) checkbox
   group.appendChild(
     createCheckbox('Wrap X', variables.wrap.x, () => {
@@ -45,6 +47,8 @@ export function createCanvasGroup() {
       simulationUniforms.wrapping.value.y = variables.wrap.y;
     })
   );
+
+      group.appendChild( createSeperator() );
 
   // Scale slider
   group.appendChild(
