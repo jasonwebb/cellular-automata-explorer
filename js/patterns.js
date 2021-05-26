@@ -34,16 +34,16 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
 
   // Clear the invisible canvas
   bufferCanvasCtx.fillStyle = '#000';
-  bufferCanvasCtx.fillRect(0, 0, variables.canvas.width.value * variables.scale.value, variables.canvas.height.value * variables.scale.value);
+  bufferCanvasCtx.fillRect(0, 0, variables.canvas.width.value * variables.canvas.scale.value, variables.canvas.height.value * variables.canvas.scale.value);
 
   // Build initial simulation texture data and pass it on to the render targets
-  const centerX = (variables.canvas.width.value * variables.scale.value) / 2,
-        centerY = (variables.canvas.height.value * variables.scale.value) / 2;
+  const centerX = (variables.canvas.width.value * variables.canvas.scale.value) / 2,
+        centerY = (variables.canvas.height.value * variables.canvas.scale.value) / 2;
 
   switch(type) {
     case InitialPatternTypes.CIRCLE:
       bufferCanvasCtx.beginPath();
-      bufferCanvasCtx.arc(centerX, centerY, variables.patterns.circle.radius.value * variables.scale.value, 0, Math.PI*2);
+      bufferCanvasCtx.arc(centerX, centerY, variables.patterns.circle.radius.value * variables.canvas.scale.value, 0, Math.PI*2);
       bufferCanvasCtx.fillStyle = '#fff';
       bufferCanvasCtx.fill();
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
@@ -57,10 +57,10 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
       bufferCanvasCtx.translate(-centerX, -centerY);
 
       bufferCanvasCtx.fillRect(
-        centerX - variables.patterns.rectangle.width.value/2 * variables.scale.value,
-        centerY - variables.patterns.rectangle.height.value/2 * variables.scale.value,
-        variables.patterns.rectangle.width.value * variables.scale.value,
-        variables.patterns.rectangle.height.value * variables.scale.value
+        centerX - variables.patterns.rectangle.width.value/2 * variables.canvas.scale.value,
+        centerY - variables.patterns.rectangle.height.value/2 * variables.canvas.scale.value,
+        variables.patterns.rectangle.width.value * variables.canvas.scale.value,
+        variables.patterns.rectangle.height.value * variables.canvas.scale.value
       );
 
       bufferCanvasCtx.resetTransform();
@@ -69,7 +69,7 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
 
     case InitialPatternTypes.TEXT:
       bufferCanvasCtx.fillStyle = '#fff';
-      bufferCanvasCtx.font = '900 ' + variables.patterns.text.size.value * variables.scale.value + 'px Arial';
+      bufferCanvasCtx.font = '900 ' + variables.patterns.text.size.value * variables.canvas.scale.value + 'px Arial';
       bufferCanvasCtx.textAlign = 'center';
 
       bufferCanvasCtx.translate(centerX, centerY);
@@ -98,7 +98,7 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
       break;
 
     case InitialPatternTypes.SPARSE:
-      let pixels2 = bufferCanvasCtx.getImageData(0, 0, variables.canvas.width.value * variables.scale.value, variables.canvas.height.value * variables.scale.value);
+      let pixels2 = bufferCanvasCtx.getImageData(0, 0, variables.canvas.width.value * variables.canvas.scale.value, variables.canvas.height.value * variables.canvas.scale.value);
       const numPixels = pixels2.data.length / 4;
       const numPoints = 5;
 
@@ -112,7 +112,7 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
       break;
 
     case InitialPatternTypes.RANDOM:
-      let pixels = bufferCanvasCtx.getImageData(0, 0, variables.canvas.width.value * variables.scale.value, variables.canvas.height.value * variables.scale.value);
+      let pixels = bufferCanvasCtx.getImageData(0, 0, variables.canvas.width.value * variables.canvas.scale.value, variables.canvas.height.value * variables.canvas.scale.value);
 
       for(let i=0; i<pixels.data.length; i+=4) {
         pixels.data[i] = Math.floor(Math.random() * 256);
@@ -123,7 +123,7 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
       break;
 
     case InitialPatternTypes.EMPTY:
-      bufferCanvasCtx.clearRect(0, 0, variables.canvas.width.value * variables.scale.value, variables.canvas.height.value * variables.scale.value);
+      bufferCanvasCtx.clearRect(0, 0, variables.canvas.width.value * variables.canvas.scale.value, variables.canvas.height.value * variables.canvas.scale.value);
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
   }
@@ -133,8 +133,8 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
     // Put the initial data into a texture format that ThreeJS can pass into the render targets
     let texture = new THREE.DataTexture(
       initialData,
-      variables.canvas.width.value * variables.scale.value,
-      variables.canvas.height.value * variables.scale.value,
+      variables.canvas.width.value * variables.canvas.scale.value,
+      variables.canvas.height.value * variables.canvas.scale.value,
       THREE.RGBAFormat,
       THREE.FloatType
     );
@@ -219,8 +219,8 @@ export function drawPattern(type = InitialPatternTypes.RECTANGLE) {
   function convertPixelsToTextureData() {
     let pixels = bufferCanvasCtx.getImageData(
       0, 0,
-      variables.canvas.width.value * variables.scale.value,
-      variables.canvas.height.value * variables.scale.value
+      variables.canvas.width.value * variables.canvas.scale.value,
+      variables.canvas.height.value * variables.canvas.scale.value
     ).data;
 
     let data = new Float32Array(pixels.length);

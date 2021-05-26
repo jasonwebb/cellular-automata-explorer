@@ -34,17 +34,17 @@ export function createCanvasGroup() {
 
   // Edge wrapping (X) checkbox
   group.appendChild(
-    createCheckbox('Wrap X', variables.wrap.x, () => {
-      variables.wrap.x = !variables.wrap.x;
-      simulationUniforms.wrapping.value.x = variables.wrap.x;
+    createCheckbox('Wrap X', variables.canvas.wrap.x, () => {
+      variables.canvas.wrap.x = !variables.canvas.wrap.x;
+      simulationUniforms.wrapping.value.x = variables.canvas.wrap.x;
     })
   );
 
   // Edge wrapping (Y) checkbox
   group.appendChild(
-    createCheckbox('Wrap Y', variables.wrap.y, () => {
-      variables.wrap.y = !variables.wrap.y;
-      simulationUniforms.wrapping.value.y = variables.wrap.y;
+    createCheckbox('Wrap Y', variables.canvas.wrap.y, () => {
+      variables.canvas.wrap.y = !variables.canvas.wrap.y;
+      simulationUniforms.wrapping.value.y = variables.canvas.wrap.y;
     })
   );
 
@@ -52,8 +52,8 @@ export function createCanvasGroup() {
 
   // Scale slider
   group.appendChild(
-    createSlider('Scale', .1, 3, .1, variables.scale.value, (e) => {
-      variables.scale.value = 3 - e.target.value;
+    createSlider('Scale', .1, 3, .1, variables.canvas.scale.value, (e) => {
+      variables.canvas.scale.value = 3 - e.target.value;
     })
   );
 

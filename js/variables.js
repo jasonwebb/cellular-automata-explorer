@@ -10,16 +10,16 @@ export default {
       max: window.innerHeight,
       value: 900
     },
-    maximized: false
-  },
-  scale: {
-    min: .01,
-    max: 5,
-    value: 1
-  },
-  wrap: {
-    x: true,
-    y: true
+    maximized: false,
+    wrap: {
+      x: true,
+      y: true
+    },
+    scale: {
+      min: .01,
+      max: 5,
+      value: 1
+    },
   },
   patterns: {
     circle: {

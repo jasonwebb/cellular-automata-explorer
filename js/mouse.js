@@ -36,8 +36,8 @@ export function setupMouse() {
   // If dragging, pass the mouse coordinates into the shader.
   canvas.addEventListener('mousemove', (e) => {
     if(mouseDown) {
-      simulationUniforms.mousePosition.value.x = e.offsetX / variables.canvas.width.value * variables.scale.value;
-      simulationUniforms.mousePosition.value.y = 1 - e.offsetY / variables.canvas.height.value * variables.scale.value;
+      simulationUniforms.mousePosition.value.x = e.offsetX / variables.canvas.width.value * variables.canvas.scale.value;
+      simulationUniforms.mousePosition.value.y = 1 - e.offsetY / variables.canvas.height.value * variables.canvas.scale.value;
     } else {
       simulationUniforms.mousePosition.value.x = -1;
       simulationUniforms.mousePosition.value.y = -1;
