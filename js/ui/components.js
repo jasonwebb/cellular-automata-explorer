@@ -1,3 +1,4 @@
+import { convertRGBtoHex } from '../colors';
 import variables from '../variables';
 
 let idCounter = 0;
@@ -338,3 +339,32 @@ export function createCountCheckboxFieldset(type) {
 
     return label;
   }
+
+/*******************************
+  Color picker
+  - Color pickers are native <input type="color">s
+********************************/
+export function createColorPicker(labelText, initialValue, listener) {
+  let component = document.createElement('div');
+  component.classList.add('component', 'color-picker');
+
+  // Label (<label>)
+  let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
+  label.innerText = labelText;
+
+  // Color picker (<input type="color")
+  let colorpicker = document.createElement('input');
+  colorpicker.setAttribute('type', 'color');
+  colorpicker.setAttribute('value', convertRGBtoHex(initialValue));
+  colorpicker.setAttribute('id', 'input-' + idCounter);
+
+  colorpicker.addEventListener('input', listener);
+
+  component.appendChild(label);
+  component.appendChild(colorpicker);
+
+  idCounter++;
+
+  return component;
+}
