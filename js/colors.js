@@ -14,8 +14,10 @@ export function setColors() {
     let normalizedColor = normalizeRGB(color);
 
     for(let i=0; i<=color.length; i++) {
-      data[i + offset * color.length] = normalizedColor[i];
+      data[i + (offset * 4)] = normalizedColor[i];
     }
+
+    data[3 + (offset * 4)] = 0; // A channel, currently used for nothing
   });
 
   displayUniforms.colors.value = new THREE.DataTexture(data, colors.length, 1, THREE.RGBAFormat, THREE.FloatType);
@@ -39,22 +41,13 @@ export function setColors() {
   }
 
   export function convertHexToRGB(hex) {
-    let r = 0, g = 0, b = 0;
+    let rgb = hex.substring(1, hex.length).match(/.{1,2}/g); // split hex string into an array of strings, 2 characters in length.
 
-    // 3 digits
-    if (hex.length == 4) {
-      r = "0x" + hex[1] + hex[1];
-      g = "0x" + hex[2] + hex[2];
-      b = "0x" + hex[3] + hex[3];
-
-    // 6 digits
-    } else if (hex.length == 7) {
-      r = "0x" + hex[1] + hex[2];
-      g = "0x" + hex[3] + hex[4];
-      b = "0x" + hex[5] + hex[6];
-    }
-
-    return [r, g, b];
+    return [
+      parseInt(rgb[0], 16),
+      parseInt(rgb[1], 16),
+      parseInt(rgb[2], 16)
+    ];
   }
 
   export function normalizeRGB(color) {
