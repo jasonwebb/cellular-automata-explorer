@@ -1,4 +1,5 @@
 import { convertRGBtoHex } from '../colors';
+import { NeighborhoodTypes } from '../rules';
 import variables from '../variables';
 
 let idCounter = 0;
@@ -244,8 +245,6 @@ export function createCheckbox(labelText, initialValue, listener) {
   </fieldset>
 ********************************************************/
 export function createCountCheckboxFieldset(type) {
-  let checkboxes = [];
-
   // Fieldset (<fieldset>)
   let fieldset = document.createElement('fieldset');
   fieldset.classList.add('count-fieldset');
@@ -256,18 +255,42 @@ export function createCountCheckboxFieldset(type) {
   legend.innerText = type === 'birth' ? 'Birth counts' : 'Survival counts';
   fieldset.appendChild(legend);
 
-  // TODO: calculate total number of neighbors possible based on neighborhood type, range, and cyclic
-  let totalNeighbors = 8;
-
-  // Create all the checkboxes
-  for(let i=0; i < totalNeighbors; i++) {
-    let checkbox = createCountCheckbox(i);
-    checkboxes.push(checkbox.querySelector('input'));
-    fieldset.appendChild(checkbox);
-  }
-
-  // Check the checkboxes based on the active rule whenever it is set
+  // Build and check the checkboxes based on the active rule whenever it is set
   window.addEventListener('ruleUpdated', () => {
+    let checkboxes = [];
+
+    // Remove any checkboxes that were previously added to the group
+    fieldset.querySelectorAll('label').forEach((label) => {
+      label.remove();
+    });
+
+    let totalPossibleNeighbors = 0;
+
+    // Calculate how many neighbors are possible
+    switch(variables.activeRule.neighborhoodType) {
+      case NeighborhoodTypes['Moore']:
+        totalPossibleNeighbors = Math.pow(2 * variables.activeRule.range + 1, 2);  // equation: (2r + 1)^2
+        totalPossibleNeighbors -= !variables.activeRule.includeCenter ? 1 : 0;     // subtract 1 if the center is not included
+        break;
+
+      case NeighborhoodTypes['von Neumann']:
+        totalPossibleNeighbors = 2 * variables.activeRule.range * (variables.activeRule.range + 1);  // equation: 2r(r+1)
+        totalPossibleNeighbors += variables.activeRule.includeCenter ? 1 : 0;                        // add 1 if the center is included
+        break;
+
+      default:
+        console.log('Invalid neighborhood type: ' + variables.activeRule.neighborhoodType);
+        break;
+    }
+
+    // Create one checkbox for each possible neighbor count
+    for(let i=0; i < totalPossibleNeighbors; i++) {
+      let checkbox = createCountCheckbox(i);
+      checkboxes.push(checkbox.querySelector('input'));
+      fieldset.appendChild(checkbox);
+    }
+
+    // Check all the checkboxes that represent the appropriate neighbor counts
     const checkedCounts = type === 'birth' ? variables.activeRule.birth : variables.activeRule.survival;
 
     checkedCounts.forEach((index) => {
