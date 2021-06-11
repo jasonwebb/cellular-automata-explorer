@@ -1,15 +1,15 @@
 import { createGroup, createDropdown, createSlider, createCheckbox } from './components';
 import { simulationUniforms } from '../uniforms';
 import variables from '../variables';
+import { NeighborhoodTypes } from '../rules';
 
 export function createNeighborhoodGroup() {
   let group = createGroup('Neighborhood');
 
   // Type (Moore or von Neumann)
   group.appendChild(
-    createDropdown('Type', ['von Neumann', 'Moore'], (e) => {
-      variables.activeRule.neighborhoodType = e.target.value;
-      console.log(e.target.value);
+    createDropdown('Type', Object.keys(NeighborhoodTypes), (e) => {
+      variables.activeRule.neighborhoodType = NeighborhoodTypes[e.target.value];
       simulationUniforms.neighborhoodType.value = variables.activeRule.neighborhoodType;
     })
   );
