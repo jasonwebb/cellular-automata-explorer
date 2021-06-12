@@ -125,6 +125,13 @@ export function createButton(buttonText, isIndented = false, listener) {
   // Run the provided callback when activated
   button.addEventListener('click', listener);
 
+  // Prevent Space key from bubbling up and pausing the simulation
+  button.addEventListener('keydown', (e) => {
+    if(e.key == ' ') {
+      e.stopPropagation();
+    }
+  });
+
   component.appendChild(button);
 
   return component;
@@ -417,6 +424,13 @@ export function createTextInput(labelText, initialValue, listener) {
   textInput.setAttribute('id', 'input-' + idCounter);
 
   textInput.addEventListener('input', listener);
+
+  // Prevent Space key from bubbling up and pausing the simulation
+  textInput.addEventListener('keydown', (e) => {
+    if(e.key == ' ') {
+      e.stopPropagation();
+    }
+  });
 
   component.appendChild(label);
   component.appendChild(textInput);
