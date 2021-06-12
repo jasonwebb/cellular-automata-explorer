@@ -25,7 +25,16 @@ export function createCanvasGroup() {
   // Maximized checkbox
   group.appendChild(
     createCheckbox('Maximized', variables.canvas.maximized, (e) => {
-      variables.canvas.maximized = e.target.value;
+      variables.canvas.maximized = e.target.checked;
+
+      if(variables.canvas.maximized) {
+        variables.canvas.unmaximizedSize.width = variables.canvas.width.value;
+        variables.canvas.unmaximizedSize.height = variables.canvas.height.value;
+      } else {
+        variables.canvas.width.value = variables.canvas.unmaximizedSize.width;
+        variables.canvas.height.value = variables.canvas.unmaximizedSize.height;
+      }
+
       resetTextureSizes();
     })
   );

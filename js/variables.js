@@ -11,6 +11,10 @@ export default {
       value: 900
     },
     maximized: false,
+    unmaximizedSize: {
+      width: null,
+      height: null
+    },
     wrap: {
       x: true,
       y: true
