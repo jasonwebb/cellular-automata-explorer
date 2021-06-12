@@ -25,40 +25,39 @@ export const NeighborhoodTypes = {
 export function setRule(ruleString) {
   let rule = parser(ruleString);
 
-  if(rule != null) {
-    // Convert the rule format to a number and pass to the shader
-    let ruleFormatNumber = 0;   // default to Life format
-
-    switch(rule.ruleFormat) {
-      case 'life':          ruleFormatNumber = 0; break;
-      case 'extended-life': ruleFormatNumber = 1; break;
-      case 'generations':   ruleFormatNumber = 2; break;
-    }
-
-    // Capture the rule information in a globally-available object to display in the UI
-    variables.activeRule.ruleFormat = ruleFormatNumber;
-    variables.activeRule.stateCount = rule.stateCount || 2;
-    variables.activeRule.birth = rule.birth;
-    variables.activeRule.survival = rule.survival;
-    variables.activeRule.neighborhoodType = rule.neighborhoodType || NeighborhoodTypes['Moore'];
-    variables.activeRule.range = rule.neighborhoodRange || 1;
-    variables.activeRule.includeCenter = true;
-
-    console.log(variables.activeRule);
-
-    // Pass the rule format and state count to the shader
-    simulationUniforms.ruleFormat.value = variables.activeRule.ruleFormat;
-    simulationUniforms.stateCount.value = variables.activeRule.stateCount;
-
-    // Encode the birth and survival arrays into a texture and pass to the shader
-    passNeighborCountsToShader(rule.birth, rule.survival);
-
-    // Dispatch a custom event to let the UI know it needs to update
-    window.dispatchEvent(new Event('ruleUpdated'));
-
-  } else {
+  if(rule == null) {
     console.log("Couldn't parse: " + ruleString);
+    return;
   }
+
+  // Convert the rule format to a number and pass to the shader
+  let ruleFormatNumber = 0;   // default to Life format
+
+  switch(rule.ruleFormat) {
+    case 'life':          ruleFormatNumber = 0; break;
+    case 'extended-life': ruleFormatNumber = 1; break;
+    case 'generations':   ruleFormatNumber = 2; break;
+  }
+
+  // Capture the rule information in a globally-available object to display in the UI
+  variables.activeRule.ruleString = ruleString;
+  variables.activeRule.ruleFormat = ruleFormatNumber;
+  variables.activeRule.stateCount = rule.stateCount || 2;
+  variables.activeRule.birth = rule.birth;
+  variables.activeRule.survival = rule.survival;
+  variables.activeRule.neighborhoodType = rule.neighborhoodType || NeighborhoodTypes['Moore'];
+  variables.activeRule.range = rule.neighborhoodRange || 1;
+  variables.activeRule.includeCenter = true;
+
+  // Pass the rule format and state count to the shader
+  simulationUniforms.ruleFormat.value = variables.activeRule.ruleFormat;
+  simulationUniforms.stateCount.value = variables.activeRule.stateCount;
+
+  // Encode the birth and survival arrays into a texture and pass to the shader
+  passNeighborCountsToShader(rule.birth, rule.survival);
+
+  // Fire a custom event to let the UI know it needs to update
+  window.dispatchEvent(new Event('ruleUpdated'));
 }
 
   function passNeighborCountsToShader(birth, survival) {
