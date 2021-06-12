@@ -22,7 +22,7 @@ export function createControlsGroup() {
 
   // Restart button
   group.appendChild(
-    createButton('Restart', () => {
+    createButton('Restart', false, () => {
       console.log('restart');
       setupRenderTargets();
       drawPattern();
