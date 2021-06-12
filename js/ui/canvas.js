@@ -48,7 +48,7 @@ export function createCanvasGroup() {
     })
   );
 
-      group.appendChild( createSeperator() );
+    group.appendChild( createSeperator() );
 
   // Scale slider
   group.appendChild(
