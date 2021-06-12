@@ -21,14 +21,13 @@ canvas {
 /** Panels are the highest-level wrapper. */
 .panel {
   position: absolute;
-  top: 0;
+  top: 10px;
   width: 275px;
 
   color: white;
   background-color: black;
   padding: 5px;
-  border: 1px solid rgba(255,255,255,.2);
-  border-top: 0;
+  border: 3px solid rgba(255,255,255,.2);
   box-shadow: 0 0 3px 0 rgba(0,0,0,.6);
 }
 
@@ -67,37 +66,43 @@ canvas {
     align-items: flex-start;
   }
 
+    .panel .component.is-indented:before {
+      content: '';
+      display: block;
+      flex: 0 0 35%;
+    }
+
     /** <label> tag */
     .panel .component label {
       flex: 0 0 35%;
     }
 
-      .panel .component.dropdown label {
-        padding-top: 4px;
-      }
-
     /** <select> dropdowns */
-    .panel .component select {
-      flex: 1 1 auto;
-      background-color: rgb(255,255,255,.1);
-      color: rgba(255,255,255,.7);
-      padding: 5px;
-      font-size: 12px;
-      border: 1px solid rgba(255,255,255,.1);
+    .panel .dropdown label {
+      padding-top: 4px;
     }
 
-      .panel .component select optgroup,
-      .panel .component select option {
-        background-color: rgb(0,0,0,.8);
+      .panel .dropdown select {
+        flex: 1 1 auto;
+        background-color: rgb(255,255,255,.1);
         color: rgba(255,255,255,.7);
+        padding: 5px;
+        font-size: 12px;
+        border: 1px solid rgba(255,255,255,.1);
       }
 
-      .panel .component select:hover {
-        border: 1px solid rgba(255,255,255,.25);
-      }
+        .panel .dropdown select optgroup,
+        .panel .dropdown select option {
+          background-color: rgb(0,0,0,.8);
+          color: rgba(255,255,255,.7);
+        }
+
+        .panel .dropdown select:hover {
+          border: 1px solid rgba(255,255,255,.25);
+        }
 
     /** Sliders (<input type="range" ...>) */
-    .panel .component input[type="range"] {
+    .panel .slider input[type="range"] {
       flex: 1 1 auto;
       width: 100%;
       margin-top: 5px;
@@ -107,7 +112,7 @@ canvas {
       -webkit-appearance: none;
     }
 
-      .panel .component input[type="range"]:before {
+      .panel .slider input[type="range"]:before {
         position: absolute;
         top: 4px;
 
@@ -118,48 +123,48 @@ canvas {
         background-color: rgba(255,255,255,.1);
       }
 
-      .panel .component input[type=range]::-webkit-slider-runnable-track {
+      .panel .slider input[type=range]::-webkit-slider-runnable-track {
         background: transparent;
         border: 0;
         width: 100%;
       }
 
-      .panel .component input[type=range]::-webkit-slider-thumb {
+      .panel .slider input[type=range]::-webkit-slider-thumb {
         width: 10px;
         height: 10px;
         background: #ffffff;
         -webkit-appearance: none;
       }
 
-      .panel .component input[type=range]::-moz-range-track {
+      .panel .slider input[type=range]::-moz-range-track {
         background: transparent;
         border: 0;
         width: 100%;
       }
 
-      .panel .component input[type=range]::-moz-range-thumb {
+      .panel .slider input[type=range]::-moz-range-thumb {
         width: 10px;
         height: 10px;
         background: #ffffff;
       }
 
-      .panel .component input[type=range]::-ms-track {
+      .panel .slider input[type=range]::-ms-track {
         background: transparent;
         border: 0;
         width: 100%;
       }
 
-      .panel .component input[type=range]::-ms-fill-lower {
+      .panel .slider input[type=range]::-ms-fill-lower {
         background: transparent;
         border: 0;
       }
 
-      .panel .component input[type=range]::-ms-fill-upper {
+      .panel .slider input[type=range]::-ms-fill-upper {
         background: transparent;
         border: 0;
       }
 
-      .panel .component input[type=range]::-ms-thumb {
+      .panel .slider input[type=range]::-ms-thumb {
         width: 10px;
         height: 10px;
         background: #ffffff;
@@ -168,7 +173,7 @@ canvas {
       }
 
     /** Text field with value of component. */
-    .panel .component .value {
+    .panel .slider .value {
       flex: 1 0 15%;
       width: 100%;
       padding: 2px;
@@ -177,21 +182,22 @@ canvas {
       color: rgba(255,255,255,.7);
     }
 
-      .panel .component .value:hover,
-      .panel .component .value:focus {
+      .panel .slider .value:hover,
+      .panel .slider .value:focus {
         border: 1px solid rgba(255,255,255,.25);
       }
 
     /** Buttons */
-    .panel .component.button button {
+    .panel .button button {
       padding: 6px 10px;
       border-radius: 2px;
       background-color: rgba(255,255,255,.1);
       border: 1px solid rgba(255,255,255,.15);
       color: rgba(255,255,255,.7);
+      font-size: 12px;
     }
 
-      .panel .component.button button:hover {
+      .panel .button button:hover {
         border: 1px solid rgba(255,255,255,.25);
       }
 
@@ -231,54 +237,71 @@ canvas {
         outline: 5px auto -webkit-focus-ring-color;
       }
 
-  .panel .count-fieldset {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-
-    max-height: 150px;
-    overflow-y: scroll;
-
-    scrollbar-width: 5px;
-    scrollbar-color: transparent rgba(255,255,255,.1);
-  }
-
-    .panel .count-fieldset::-webkit-scrollbar {
-      width: 5px;
-      margin-left: 10px;
+    /** Color picker */
+    .panel .color-picker {
+      align-items: center;
     }
 
-    .panel .count-fieldset::-webkit-scrollbar-track {
-      background-color: rgb(255,255,255,.0);
-      border-radius: 100px;
+    /** Text input */
+    .panel .text-input {
+      align-items: center;
     }
 
-    .panel .count-fieldset::-webkit-scrollbar-thumb {
-      background-color: rgb(255,255,255,.7);
-      border-radius: 10px;
-    }
-
-    .panel .count-fieldset label {
-      flex: 0 0 calc(100% / 8);
-      margin: 2px;
-      padding: 6px 0;
-      text-align: center;
-
-      /* border: 1px solid rgba(255,255,255,.15); */
-      border-radius: 2px;
-      font-size: 12px;
-      color: rgba(255,255,255,.8);
-    }
-
-      .panel .count-fieldset label:hover,
-      .panel .count-fieldset label:focus-within {
-        background-color: rgba(255,255,255,.03);
-        /* border: 1px solid rgba(255,255,255,.25); */
-        color: white;
+      .panel .text-input input {
+        width: 100%;
+        padding: 5px 10px;
+        background-color: rgba(255,255,255,.1);
+        border: 1px solid rgba(255,255,255,.15);
+        color: rgba(255,255,255,.7);
+        font-family: 'Courier New', Courier, monospace;
       }
 
-      .panel .count-fieldset label .custom-checkbox {
-        margin-bottom: 2px;
-        display: inline-block;
+    /** Set of checkboxes for birth/survival counts */
+    .panel .count-fieldset {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
+
+      max-height: 150px;
+      overflow-y: scroll;
+
+      scrollbar-width: 5px;
+      scrollbar-color: transparent rgba(255,255,255,.1);
+    }
+
+      .panel .count-fieldset::-webkit-scrollbar {
+        width: 5px;
+        margin-left: 10px;
       }
+
+      .panel .count-fieldset::-webkit-scrollbar-track {
+        background-color: rgb(255,255,255,.0);
+        border-radius: 100px;
+      }
+
+      .panel .count-fieldset::-webkit-scrollbar-thumb {
+        background-color: rgb(255,255,255,.7);
+        border-radius: 10px;
+      }
+
+      .panel .count-fieldset label {
+        flex: 0 0 calc(100% / 9);
+        padding: 6px 0 10px 0;
+        text-align: center;
+
+        border-radius: 2px;
+        font-size: 12px;
+        color: rgba(255,255,255,.8);
+      }
+
+        .panel .count-fieldset label:hover,
+        .panel .count-fieldset label:focus-within {
+          background-color: rgba(255,255,255,.05);
+          color: white;
+        }
+
+        .panel .count-fieldset label .custom-checkbox {
+          margin-bottom: 2px;
+          display: inline-block;
+        }
