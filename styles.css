@@ -87,6 +87,7 @@ canvas {
         background-color: rgb(255,255,255,.1);
         color: rgba(255,255,255,.7);
         padding: 5px;
+        max-width: calc(100% - 84px);
         font-size: 12px;
         border: 1px solid rgba(255,255,255,.1);
       }
@@ -99,6 +100,10 @@ canvas {
 
         .panel .dropdown select:hover {
           border: 1px solid rgba(255,255,255,.25);
+        }
+
+        .panel .dropdown select:focus {
+          outline-offset: 3px;
         }
 
     /** Sliders (<input type="range" ...>) */
@@ -172,6 +177,10 @@ canvas {
         /*Needed to keep the Edge thumb centred*/
       }
 
+      .panel .slider input[type=range]:focus {
+        outline-offset: 3px;
+      }
+
     /** Text field with value of component. */
     .panel .slider .value {
       flex: 1 0 15%;
@@ -180,11 +189,16 @@ canvas {
       background-color: rgba(255,255,255,.1);
       border: 1px solid rgba(255,255,255,.15);
       color: rgba(255,255,255,.7);
+      font-family: 'Courier New', Courier, monospace;
     }
 
       .panel .slider .value:hover,
       .panel .slider .value:focus {
         border: 1px solid rgba(255,255,255,.25);
+      }
+
+      .panel .slider .value:focus {
+        outline-offset: 3px;
       }
 
     /** Buttons */
@@ -199,6 +213,10 @@ canvas {
 
       .panel .button button:hover {
         border: 1px solid rgba(255,255,255,.25);
+      }
+
+      .panel .button button:focus {
+        outline-offset: 3px;
       }
 
     /** Checkboxes */
@@ -235,12 +253,17 @@ canvas {
       .panel .checkbox input:focus + .custom-checkbox {
         outline: 5px auto Highlight;
         outline: 5px auto -webkit-focus-ring-color;
+        outline-offset: 3px;
       }
 
     /** Color picker */
     .panel .color-picker {
       align-items: center;
     }
+
+      .panel .color-picker input:focus {
+        outline-offset: 3px;
+      }
 
     /** Text input */
     .panel .text-input {
@@ -255,6 +278,10 @@ canvas {
         color: rgba(255,255,255,.7);
         font-family: 'Courier New', Courier, monospace;
       }
+
+        .panel .text-input input:focus {
+          outline-offset: 3px;
+        }
 
     /** Set of checkboxes for birth/survival counts */
     .panel .count-fieldset {
