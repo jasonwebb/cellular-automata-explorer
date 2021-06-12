@@ -1,5 +1,7 @@
-import { createGroup, createDropdown } from './components';
+import { createGroup, createDropdown, createTextInput, createButton, createSeperator } from './components';
 import presets from '../presets';
+import variables from '../variables';
+import { setRule } from '../rules';
 
 export function createRulesGroup() {
   let group = createGroup('Rules');
@@ -21,7 +23,26 @@ export function createRulesGroup() {
     })
   );
 
-  // If custom, show text input
+    group.appendChild(createSeperator());
+
+  // Text input for the rule string
+  group.appendChild(
+    createTextInput('Rule', '', (e) => {
+      console.log('rule text changed');
+    })
+  );
+
+    // Show the current rule string in this text input anytime it changes
+    window.addEventListener('ruleUpdated', () => {
+      group.querySelector('.text-input input').value = variables.activeRule.ruleString;
+    });
+
+  // Button to manually set a custom rule typed into the text input
+  group.appendChild(
+    createButton('Set rule', true, () => {
+      setRule(group.querySelector('.text-input input').value);
+    })
+  );
 
   return group;
 }
