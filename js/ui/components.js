@@ -1,5 +1,5 @@
 import { convertRGBtoHex } from '../colors';
-import { NeighborhoodTypes } from '../rules';
+import { NeighborhoodTypes, passNeighborCountsToShader } from '../rules';
 import variables from '../variables';
 
 let idCounter = 0;
@@ -297,7 +297,7 @@ export function createCountCheckboxFieldset(type) {
 
     // Create one checkbox for each possible neighbor count
     for(let i=0; i < totalPossibleNeighbors; i++) {
-      let checkbox = createCountCheckbox(i);
+      let checkbox = createCountCheckbox(i, type);
       checkboxes.push(checkbox.querySelector('input'));
       fieldset.appendChild(checkbox);
     }
@@ -333,23 +333,45 @@ export function createCountCheckboxFieldset(type) {
     checkbox.classList.add('sr-only');
 
     checkbox.addEventListener('change', (e) => {
-      let newValue = e.target.checked;
+      const isChecked = e.target.checked;
 
       switch(type) {
         case 'birth':
-          // TODO: update simulationUniforms.birthAndSurvivalCounts
-          // TODO: update simulationsUniforms.birthCountsLength
-          // TODO: update activeRule.birth
+          const isInBirthArray = variables.activeRule.birth.includes(countNumber);
+
+          // If checked, add it to the birth array if it isn't there already
+          if(isChecked && !isInBirthArray) {
+            variables.activeRule.birth.push(countNumber);
+          }
+
+          // If unchecked, remove it from the birth array if it exists
+          else if(!isChecked && isInBirthArray) {
+            variables.activeRule.birth.splice(variables.activeRule.birth.indexOf(countNumber), 1);
+          }
+
           break;
 
         case 'survival':
-          // TODO: update simulationUniforms.birthAndSurvivalCounts
-          // TODO: update simulationsUniforms.survivalCountsLength
-          // TODO: update activeRule.survival
+          const isInSurvivalArray = variables.activeRule.survival.includes(countNumber);
+
+          // If checked, add it to the survival array if it isn't there already
+          if(isChecked && !isInSurvivalArray) {
+            variables.activeRule.survival.push(countNumber);
+          }
+
+          // If unchecked, remove it from the survival array if it exists
+          else if(!isChecked && isInSurvivalArray) {
+            variables.activeRule.survival.splice(variables.activeRule.survival.indexOf(countNumber), 1);
+          }
+
           break;
       }
 
       // TODO: change Preset dropdown to "Custom"
+      // TODO: update variables.activeRule.ruleString
+      // TODO: update the rule string text field
+
+      passNeighborCountsToShader();
     });
 
     // Prevent Space key from bubbling up and pausing the simulation
