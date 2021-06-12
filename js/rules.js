@@ -54,24 +54,24 @@ export function setRule(ruleString) {
   simulationUniforms.stateCount.value = variables.activeRule.stateCount;
 
   // Encode the birth and survival arrays into a texture and pass to the shader
-  passNeighborCountsToShader(rule.birth, rule.survival);
+  passNeighborCountsToShader();
 
   // Fire a custom event to let the UI know it needs to update
   window.dispatchEvent(new Event('ruleUpdated'));
 }
 
-  function passNeighborCountsToShader(birth, survival) {
+  export function passNeighborCountsToShader() {
     // Pass the total numbers of birth and survival counts to the shader
-    simulationUniforms.birthCountsLength.value = birth.length;
-    simulationUniforms.survivalCountsLength.value = survival.length;
+    simulationUniforms.birthCountsLength.value = variables.activeRule.birth.length;
+    simulationUniforms.survivalCountsLength.value = variables.activeRule.survival.length;
 
     // Convert the birth and survival arrays into a single DataTexture and pass it into the shader
-    const longestLength = Math.max(birth.length, survival.length);
+    const longestLength = Math.max(variables.activeRule.birth.length, variables.activeRule.survival.length);
     let data = new Float32Array(longestLength * 4);  // RGBA = 4 channels
 
     for(let i=0; i<longestLength; i++) {
-      data[i * 4] = i < birth.length ? birth[i] / 255 : 0;            // encode birth into R channel
-      data[i * 4 + 1] = i < survival.length ? survival[i] / 255 : 0;  // encode survival into G channel
+      data[i * 4] = i < variables.activeRule.birth.length ? variables.activeRule.birth[i] / 255 : 0;            // encode birth into R channel
+      data[i * 4 + 1] = i < variables.activeRule.survival.length ? variables.activeRule.survival[i] / 255 : 0;  // encode survival into G channel
     }
 
     // Pass the birth and survival data to the shader as a data texture
