@@ -108,10 +108,15 @@ export function createDropdown(labelText, options, listener) {
   Button
   - Buttons execute custom functions when they are activated.
 *****************************/
-export function createButton(buttonText, listener) {
+export function createButton(buttonText, isIndented = false, listener) {
   // Wrapper
   let component = document.createElement('div');
   component.classList.add('component', 'button');
+
+  // Add class if this button needs to be indented
+  if(isIndented) {
+    component.classList.add('is-indented');
+  }
 
   // <button> tag
   let button = document.createElement('button');
@@ -386,6 +391,35 @@ export function createColorPicker(labelText, initialValue, listener) {
 
   component.appendChild(label);
   component.appendChild(colorpicker);
+
+  idCounter++;
+
+  return component;
+}
+
+/*******************************
+  Text input
+  - Text inputs are native <input type="text">s
+********************************/
+export function createTextInput(labelText, initialValue, listener) {
+  let component = document.createElement('div');
+  component.classList.add('component', 'text-input');
+
+  // Label (<label>)
+  let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
+  label.innerText = labelText;
+
+  // Text input (<input type="text">)
+  let textInput = document.createElement('input');
+  textInput.setAttribute('type', 'text');
+  textInput.setAttribute('value', initialValue);
+  textInput.setAttribute('id', 'input-' + idCounter);
+
+  textInput.addEventListener('input', listener);
+
+  component.appendChild(label);
+  component.appendChild(textInput);
 
   idCounter++;
 
