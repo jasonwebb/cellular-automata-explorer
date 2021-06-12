@@ -19,7 +19,11 @@ export function createRulesGroup() {
   // Dropdown for presets
   group.appendChild(
     createDropdown('Preset', rulesSimplified, (e) => {
-      console.log('changed');
+      for(let family in presets) {
+        if(presets[family].hasOwnProperty(e.target.value)) {
+          setRule(presets[family][e.target.value]);
+        }
+      }
     })
   );
 
