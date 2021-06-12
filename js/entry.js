@@ -18,8 +18,8 @@ export let scene, camera, renderer, mesh;
 export let canvas;
 let bufferCanvas;
 
-setup();
 setupUI();
+setup();
 setupKeyboard();
 setupMouse();
 update();
@@ -63,8 +63,16 @@ function setup() {
   setColors();
 
   // Set the rule that the shader should run
-  // setRule('23/3');  // Conway's Life
-  setRule('345/2/50');  // Generations - Burst
+
+  setRule('23/3');  // Conway's Life
+
+  // setTimeout(() => {
+  //   setRule('345/2/50');  // Generations - Burst
+  // }, 2000);
+
+  // setTimeout(() => {
+  //   setRule('45678/2478/250');  // Generations - Burst
+  // }, 5000);
 
   // Set up and render the first frame
   drawPattern();
