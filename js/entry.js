@@ -6,13 +6,12 @@ import variables from './variables';
 import { setupRenderTargets, renderTargets } from './renderTargets';
 import { simulationUniforms, displayUniforms } from './uniforms';
 import { simulationMaterial, displayMaterial } from './materials';
-import { drawPattern } from './patterns';
+import { InitialPatternTypes, drawPattern } from './patterns';
 import { setRule } from './rules';
 import { setupKeyboard } from './keyboard';
 import { setupMouse } from './mouse';
 import { setColors } from './colors';
 import { setupUI } from './ui';
-
 
 export let scene, camera, renderer, mesh;
 export let canvas;
@@ -75,7 +74,7 @@ function setup() {
   // }, 5000);
 
   // Set up and render the first frame
-  drawPattern();
+  drawPattern(InitialPatternTypes['Rectangle']);
 }
 
   export function resetTextureSizes() {
