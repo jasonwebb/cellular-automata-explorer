@@ -36,6 +36,13 @@ export function createRulesGroup() {
     })
   );
 
+    // Set the rule when the user presses 'Enter' while on the text input
+    group.querySelector('.text-input input').addEventListener('keydown', (e) => {
+      if(e.key === 'Enter') {
+        setRule(group.querySelector('.text-input input').value);
+      }
+    })
+
     // Show the current rule string in this text input anytime it changes
     window.addEventListener('ruleUpdated', () => {
       group.querySelector('.text-input input').value = variables.activeRule.ruleString;
