@@ -95,7 +95,6 @@ void main() {
 
     if(distToMouse < brushRadius) {
       nextState = 1.;
-      return;
     }
   }
 
