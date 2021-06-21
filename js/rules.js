@@ -16,6 +16,7 @@ import * as parser from 'cellular-automata-rule-parser';
 
 import { simulationUniforms } from './uniforms';
 import variables from './variables';
+import presets from './presets';
 
 export const NeighborhoodTypes = {
   'Moore': 0,
@@ -47,14 +48,38 @@ export function setRule(ruleString) {
   variables.activeRule.survival = rule.survival;
   variables.activeRule.neighborhoodType = rule.neighborhoodType || NeighborhoodTypes['Moore'];
   variables.activeRule.range = rule.neighborhoodRange || 1;
-  variables.activeRule.includeCenter = true;
+  variables.activeRule.includeCenter = false;
 
-  // Pass the rule format and state count to the shader
+  // Pass all the rule information to the shader
   simulationUniforms.ruleFormat.value = variables.activeRule.ruleFormat;
   simulationUniforms.stateCount.value = variables.activeRule.stateCount;
+  simulationUniforms.neighborhoodType.value = variables.activeRule.neighborhoodType;
+  simulationUniforms.range.value = variables.activeRule.range;
+  simulationUniforms.includeCenter.value = variables.activeRule.includeCenter;
 
   // Encode the birth and survival arrays into a texture and pass to the shader
   passNeighborCountsToShader();
+
+  // Select the appropriate preset in the Rule panel, if it matches.
+  Object.keys(presets).forEach((family) => {
+    const key = Object.keys(presets[family]).find(key => presets[family][key] === ruleString);
+
+    if(key !== undefined) {
+      let presetsDropdown = document.getElementById('input-0');
+
+      presetsDropdown.querySelectorAll('optgroup').forEach((optgroup) => {
+        if(optgroup.getAttribute('label') === family) {
+          optgroup.querySelectorAll('option').forEach((option) => {
+            if(option.innerText === key) {
+              option.setAttribute('selected', 'selected');
+            } else {
+              option.removeAttribute('selected');
+            }
+          });
+        }
+      });
+    }
+  });
 
   // Fire a custom event to let the UI know it needs to update
   window.dispatchEvent(new Event('ruleUpdated'));
