@@ -259,7 +259,7 @@ export function createCheckbox(labelText, initialValue, listener) {
 export function createCountCheckboxFieldset(type) {
   // Fieldset (<fieldset>)
   let fieldset = document.createElement('fieldset');
-  fieldset.classList.add('count-fieldset');
+  fieldset.classList.add('count-fieldset', 'is-scrollable');
 
   // Legend (<legend>)
   let legend = document.createElement('legend');

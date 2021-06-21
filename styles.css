@@ -289,27 +289,6 @@ canvas {
       flex-direction: row;
       flex-wrap: wrap;
       justify-content: space-between;
-
-      max-height: 150px;
-      overflow-y: scroll;
-
-      scrollbar-width: 5px;
-      scrollbar-color: transparent rgba(255,255,255,.1);
-    }
-
-      .panel .count-fieldset::-webkit-scrollbar {
-        width: 5px;
-        margin-left: 10px;
-      }
-
-      .panel .count-fieldset::-webkit-scrollbar-track {
-        background-color: rgb(255,255,255,.0);
-        border-radius: 100px;
-      }
-
-      .panel .count-fieldset::-webkit-scrollbar-thumb {
-        background-color: rgb(255,255,255,.7);
-        border-radius: 10px;
       }
 
       .panel .count-fieldset label {
@@ -332,3 +311,27 @@ canvas {
           margin-bottom: 2px;
           display: inline-block;
         }
+
+    /** Scrollable sections containing a variable of components. */
+    .panel .is-scrollable {
+      max-height: 150px;
+      overflow-y: scroll;
+
+      scrollbar-width: 5px;
+      scrollbar-color: transparent rgba(255,255,255,.1);
+    }
+
+      .panel .is-scrollable::-webkit-scrollbar {
+        width: 5px;
+        margin-left: 10px;
+      }
+
+      .panel .is-scrollable::-webkit-scrollbar-track {
+        background-color: rgb(255,255,255,.0);
+        border-radius: 100px;
+      }
+
+      .panel .is-scrollable::-webkit-scrollbar-thumb {
+        background-color: rgb(255,255,255,.7);
+        border-radius: 10px;
+      }

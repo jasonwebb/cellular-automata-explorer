@@ -7,14 +7,26 @@ export function createColorsGroup() {
   // TODO: add dropdown for color palette presets
 
   // Color pickers - one per state
-  // TODO: abstract this to be based on variables.activeRule.stateCount
-  colors.forEach((color, index) => {
-    group.appendChild(
-      createColorPicker('Color ' + (index+1), color, (e) => {
-        colors[index] = convertHexToRGB(e.target.value);
-        setColors();
-      })
-    );
+  window.addEventListener('ruleUpdated', () => {
+    let fieldset = group.querySelector('fieldset');
+
+    if(fieldset != null) {
+      fieldset.remove();
+    }
+
+    fieldset = document.createElement('fieldset');
+    fieldset.classList.add('is-scrollable');
+
+    colors.forEach((color, index) => {
+      fieldset.appendChild(
+        createColorPicker('Color ' + (index+1), color, (e) => {
+          colors[index] = convertHexToRGB(e.target.value);
+          setColors();
+        })
+      );
+    });
+
+    group.appendChild(fieldset);
   });
 
   return group;
