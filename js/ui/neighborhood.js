@@ -11,6 +11,7 @@ export function createNeighborhoodGroup() {
     createDropdown('Type', Object.keys(NeighborhoodTypes), (e) => {
       variables.activeRule.neighborhoodType = NeighborhoodTypes[e.target.value];
       simulationUniforms.neighborhoodType.value = variables.activeRule.neighborhoodType;
+      window.dispatchEvent(new Event('ruleUpdated'));
     })
   );
 
@@ -19,6 +20,7 @@ export function createNeighborhoodGroup() {
     createSlider('Range', 1, 10, 1, 1, (e) => {
       variables.activeRule.range = e.target.value;
       simulationUniforms.range.value = variables.activeRule.range;
+      window.dispatchEvent(new Event('ruleUpdated'));
     })
   );
 
@@ -27,6 +29,7 @@ export function createNeighborhoodGroup() {
     createCheckbox('Include center', true, (e) => {
       variables.activeRule.includeCenter = e.target.value;
       simulationUniforms.includeCenter.value = variables.activeRule.includeCenter;
+      window.dispatchEvent(new Event('ruleUpdated'));
     })
   );
 
