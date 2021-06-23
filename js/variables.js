@@ -64,6 +64,7 @@ export default {
       value: 'CA'
     }
   },
+  activePattern: 'Rectangle',
   activeRule: {
     birth: null,
     survival: null,

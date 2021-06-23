@@ -6,7 +6,7 @@ import variables from './variables';
 import { setupRenderTargets, renderTargets } from './renderTargets';
 import { simulationUniforms, displayUniforms } from './uniforms';
 import { simulationMaterial, displayMaterial } from './materials';
-import { InitialPatternTypes, drawPattern } from './patterns';
+import { drawPattern } from './patterns';
 import { setRule } from './rules';
 import { setupKeyboard } from './keyboard';
 import { setupMouse } from './mouse';
@@ -74,7 +74,7 @@ function setup() {
   // }, 5000);
 
   // Set up and render the first frame
-  drawPattern(InitialPatternTypes['Rectangle']);
+  drawPattern();
 }
 
   export function resetTextureSizes() {
