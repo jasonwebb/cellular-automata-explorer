@@ -1,4 +1,4 @@
-import { createGroup, createDropdown, createButton, createSlider, createCheckbox } from './components';
+import { createGroup, createButton, createSlider, createCheckbox } from './components';
 import { drawPattern } from '../patterns';
 import { setupRenderTargets } from '../renderTargets';
 import globals from '../globals';

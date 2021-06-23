@@ -1,7 +1,7 @@
 import { colors } from '../colors';
 import { simulationUniforms } from '../uniforms';
 import variables from '../variables';
-import { createGroup, createDropdown, createButton, createSlider, createCheckbox } from './components';
+import { createGroup, createSlider, createCheckbox } from './components';
 
 export function createStatesGroup() {
   let group = createGroup('States');
