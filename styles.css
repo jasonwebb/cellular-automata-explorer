@@ -98,8 +98,10 @@ canvas {
           color: rgba(255,255,255,.7);
         }
 
-        .panel .dropdown select:hover {
+        .panel .dropdown select:hover,
+        .panel .dropdown select:focus {
           border: 1px solid rgba(255,255,255,.25);
+          color: rgba(255,255,255,1);
         }
 
         .panel .dropdown select:focus {
@@ -195,6 +197,7 @@ canvas {
       .panel .slider .value:hover,
       .panel .slider .value:focus {
         border: 1px solid rgba(255,255,255,.25);
+        color: rgba(255,255,255,1);
       }
 
       .panel .slider .value:focus {
@@ -203,16 +206,18 @@ canvas {
 
     /** Buttons */
     .panel .button button {
-      padding: 6px 10px;
+      padding: 8px 12px;
       border-radius: 2px;
-      background-color: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.15);
+      background-color: rgba(0,0,0,.8);
+      border: 1px solid rgba(255,255,255,.35);
       color: rgba(255,255,255,.7);
       font-size: 12px;
     }
 
-      .panel .button button:hover {
-        border: 1px solid rgba(255,255,255,.25);
+      .panel .button button:hover,
+      .panel .button button:focus {
+        border: 1px solid rgba(255,255,255,.45);
+        color: rgba(255,255,255,1);
       }
 
       .panel .button button:focus {
@@ -278,6 +283,12 @@ canvas {
         color: rgba(255,255,255,.7);
         font-family: 'Courier New', Courier, monospace;
       }
+
+        .panel .text-input input:hover,
+        .panel .text-input input:focus {
+          border: 1px solid rgba(255,255,255,.25);
+          color: rgba(255,255,255,1);
+        }
 
         .panel .text-input input:focus {
           outline-offset: 3px;
