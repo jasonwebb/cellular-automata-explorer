@@ -223,13 +223,7 @@ export function createCheckbox(labelText, initialValue, listener) {
 
   // Toggle the real checkbox when the custom checkbox is clicked
   customCheckbox.addEventListener('click', () => {
-    const isChecked = checkbox.getAttribute('checked') === 'checked' ? true : false;
-
-    if(isChecked) {
-      checkbox.removeAttribute('checked');
-    } else {
-      checkbox.setAttribute('checked', 'checked');
-    }
+    checkbox.click();
   });
 
   // Prevent Space key from bubbling up and pausing the simulation
