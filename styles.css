@@ -21,21 +21,23 @@ canvas {
 /** Panels are the highest-level wrapper. */
 .panel {
   position: absolute;
-  top: 10px;
+  top: 0;
   width: 275px;
+  height: 100%;
 
   color: white;
-  background-color: black;
-  padding: 5px;
-  border: 3px solid rgba(255,255,255,.2);
+  background-color: rgba(0,0,0,.8);
   box-shadow: 0 0 3px 0 rgba(0,0,0,.6);
 }
 
+  .panel.is-docked-left  { left: 0;  border-right: 1px solid rgba(255,255,255,.15); }
+  .panel.is-docked-right { right: 0; border-left: 1px solid rgba(255,255,255,.15);  }
+
   /** Groups are sets of components with a heading at the top. */
   .panel .group {
-    padding: 10px;
+    padding: 15px;
     margin-bottom: 5px;
-    background-color: rgba(255,255,255,.1);
+    border-bottom: 1px solid rgba(255,255,255,.15);
   }
 
     .panel .group:last-of-type {
@@ -100,7 +102,7 @@ canvas {
 
         .panel .dropdown select:hover,
         .panel .dropdown select:focus {
-          border: 1px solid rgba(255,255,255,.25);
+          border: 1px solid rgba(255,255,255,.5);
           color: rgba(255,255,255,1);
         }
 
@@ -196,7 +198,7 @@ canvas {
 
       .panel .slider .value:hover,
       .panel .slider .value:focus {
-        border: 1px solid rgba(255,255,255,.25);
+        border: 1px solid rgba(255,255,255,.5);
         color: rgba(255,255,255,1);
       }
 
@@ -216,7 +218,7 @@ canvas {
 
       .panel .button button:hover,
       .panel .button button:focus {
-        border: 1px solid rgba(255,255,255,.45);
+        border: 1px solid rgba(255,255,255,.5);
         color: rgba(255,255,255,1);
       }
 
@@ -251,8 +253,9 @@ canvas {
         transform: rotate(-45deg);
       }
 
-      .panel .checkbox input + .custom-checkbox:hover {
-        border: 1px solid rgba(255,255,255,.3);
+      .panel .checkbox:hover .custom-checkbox,
+      .panel .checkbox input:focus + .custom-checkbox {
+        border: 1px solid rgba(255,255,255,.5);
       }
 
       .panel .checkbox input:focus + .custom-checkbox {
@@ -286,7 +289,7 @@ canvas {
 
         .panel .text-input input:hover,
         .panel .text-input input:focus {
-          border: 1px solid rgba(255,255,255,.25);
+          border: 1px solid rgba(255,255,255,.5);
           color: rgba(255,255,255,1);
         }
 

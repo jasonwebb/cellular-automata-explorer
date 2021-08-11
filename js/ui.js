@@ -19,7 +19,7 @@ export function setupUI() {
 
   function setupLeftPanel() {
     leftPanel = createPanel();
-    leftPanel.style.left = '10px';
+    leftPanel.classList.add('is-docked-left');
 
     leftPanel.appendChild(createRulesGroup());
     leftPanel.appendChild(createBirthGroup());
@@ -32,7 +32,7 @@ export function setupUI() {
 
   function setupRightPanel() {
     rightPanel = createPanel();
-    rightPanel.style.right = '10px';
+    rightPanel.classList.add('is-docked-right');
 
     rightPanel.appendChild(createColorsGroup());
     rightPanel.appendChild(createPatternGroup());
