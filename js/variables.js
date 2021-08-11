@@ -71,6 +71,7 @@ export default {
     stateCount: null,
     range: null,
     neighborhoodType: null,
-    includeCenter: null
+    includeCenter: null,
+    historyEnabled: null
   }
 }

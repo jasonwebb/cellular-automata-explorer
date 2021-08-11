@@ -62,6 +62,10 @@ export let simulationUniforms = {
   survivalCountsLength: {
     type: 'i',
     value: null
+  },
+  historyEnabled: {
+    type: 'b',
+    value: false
   }
 };
 

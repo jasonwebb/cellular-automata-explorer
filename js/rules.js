@@ -49,6 +49,7 @@ export function setRule(ruleString) {
   variables.activeRule.neighborhoodType = rule.neighborhoodType || NeighborhoodTypes['Moore'];
   variables.activeRule.range = rule.neighborhoodRange || 1;
   variables.activeRule.includeCenter = false;
+  variables.activeRule.historyEnabled = rule.ruleFormat === 'generations' ? true : false;
 
   // Pass all the rule information to the shader
   simulationUniforms.ruleFormat.value = variables.activeRule.ruleFormat;

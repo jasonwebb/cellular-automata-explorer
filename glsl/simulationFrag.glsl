@@ -11,6 +11,7 @@ uniform int neighborhoodType;
 uniform int range;
 uniform int stateCount;
 uniform vec2 wrapping;
+uniform bool historyEnabled;
 
 uniform sampler2D birthAndSurvivalCounts;
 uniform int birthCountsLength;
@@ -90,7 +91,7 @@ void main() {
         }
       }
 
-      if(ruleFormat == GENERATIONS && !willSurvive) {
+      if(historyEnabled && !willSurvive) {
         nextState = mod(currentState + stateStepSize, 1.);
       }
     }

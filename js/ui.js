@@ -1,6 +1,6 @@
 import { createPanel } from './ui/components';
 
-import { createStatesGroup } from './ui/states';
+import { createHistoryGroup } from './ui/history';
 import { createBirthGroup } from './ui/birth';
 import { createControlsGroup } from './ui/controls';
 import { createRulesGroup } from './ui/rules';
@@ -25,7 +25,7 @@ export function setupUI() {
     leftPanel.appendChild(createBirthGroup());
     leftPanel.appendChild(createSurvivalGroup());
     leftPanel.appendChild(createNeighborhoodGroup());
-    leftPanel.appendChild(createStatesGroup());
+    leftPanel.appendChild(createHistoryGroup());
 
     document.body.appendChild(leftPanel);
   }
