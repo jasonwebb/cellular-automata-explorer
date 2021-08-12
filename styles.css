@@ -1,3 +1,9 @@
+:root {
+  --border-color: rgba(255, 255, 255, .3);
+  --border-color--alt: rgba(255, 255, 255, .2);
+  --border-color--active: rgba(255, 255, 255, .8);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -24,20 +30,21 @@ canvas {
   top: 0;
   width: 275px;
   height: 100%;
+  z-index: 100;
 
   color: white;
-  background-color: rgba(0,0,0,.8);
-  box-shadow: 0 0 3px 0 rgba(0,0,0,.6);
+  background-color: rgba(0,0,0,.95);
+  box-shadow: 0 0 10px 3px rgba(0,0,0,.4);
 }
 
-  .panel.is-docked-left  { left: 0;  border-right: 1px solid rgba(255,255,255,.15); }
-  .panel.is-docked-right { right: 0; border-left: 1px solid rgba(255,255,255,.15);  }
+  .panel.is-docked-left  { left: 0;  border-right: 1px solid var(--border-color); }
+  .panel.is-docked-right { right: 0; border-left: 1px solid var(--border-color);  }
 
   /** Groups are sets of components with a heading at the top. */
   .panel .group {
     padding: 15px;
     margin-bottom: 5px;
-    border-bottom: 1px solid rgba(255,255,255,.15);
+    border-bottom: 1px solid var(--border-color);
   }
 
     .panel .group:last-of-type {
@@ -52,7 +59,7 @@ canvas {
 
   /** <hr>s are used as seperators between Components */
   .panel hr {
-    border-bottom: 1px solid rgb(255,255,255,.1);
+    border-bottom: 1px solid var(--border-color--alt);
     margin: 8px 0;
   }
 
@@ -91,7 +98,7 @@ canvas {
         padding: 5px;
         max-width: calc(100% - 84px);
         font-size: 12px;
-        border: 1px solid rgba(255,255,255,.1);
+        border: 1px solid var(--border-color);
       }
 
         .panel .dropdown select optgroup,
@@ -102,7 +109,7 @@ canvas {
 
         .panel .dropdown select:hover,
         .panel .dropdown select:focus {
-          border: 1px solid rgba(255,255,255,.5);
+          border: 1px solid var(--border-color--active);
           color: rgba(255,255,255,1);
         }
 
@@ -129,7 +136,7 @@ canvas {
         display: block;
         width: 100%;
         height: 1px;
-        background-color: rgba(255,255,255,.1);
+        background-color: var(--border-color);
       }
 
       .panel .slider input[type=range]::-webkit-slider-runnable-track {
@@ -191,14 +198,14 @@ canvas {
       width: 100%;
       padding: 2px;
       background-color: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.15);
+      border: 1px solid var(--border-color);
       color: rgba(255,255,255,.7);
       font-family: 'Courier New', Courier, monospace;
     }
 
       .panel .slider .value:hover,
       .panel .slider .value:focus {
-        border: 1px solid rgba(255,255,255,.5);
+        border: 1px solid var(--border-color--active);
         color: rgba(255,255,255,1);
       }
 
@@ -209,16 +216,16 @@ canvas {
     /** Buttons */
     .panel .button button {
       padding: 8px 12px;
-      border-radius: 2px;
-      background-color: rgba(0,0,0,.8);
-      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 3px;
+      background-color: rgb(255,255,255,.1);
+      border: 1px solid var(--border-color);
       color: rgba(255,255,255,.7);
       font-size: 12px;
     }
 
       .panel .button button:hover,
       .panel .button button:focus {
-        border: 1px solid rgba(255,255,255,.5);
+        border: 1px solid var(--border-color--active);
         color: rgba(255,255,255,1);
       }
 
@@ -233,9 +240,13 @@ canvas {
       width: 14px;
       height: 14px;
 
-      background-color: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.15);
+      background-color: black;
+      border: 1px solid var(--border-color);
     }
+
+      .panel .checkbox input:checked + .custom-checkbox {
+        background-color: white;
+      }
 
       .panel .checkbox input:checked + .custom-checkbox:after {
         position: absolute;
@@ -247,15 +258,15 @@ canvas {
         height: 4px;
         margin-right: 8px;
 
-        border-left: 2px solid rgba(255,255,255,.9);
-        border-bottom: 2px solid rgba(255,255,255,.9);
+        border-left: 2px solid black;
+        border-bottom: 2px solid black;
 
         transform: rotate(-45deg);
       }
 
       .panel .checkbox:hover .custom-checkbox,
       .panel .checkbox input:focus + .custom-checkbox {
-        border: 1px solid rgba(255,255,255,.5);
+        border: 1px solid var(--border-color--active);
       }
 
       .panel .checkbox input:focus + .custom-checkbox {
@@ -282,14 +293,14 @@ canvas {
         width: 100%;
         padding: 5px 10px;
         background-color: rgba(255,255,255,.1);
-        border: 1px solid rgba(255,255,255,.15);
+        border: 1px solid var(--border-color);
         color: rgba(255,255,255,.7);
         font-family: 'Courier New', Courier, monospace;
       }
 
         .panel .text-input input:hover,
         .panel .text-input input:focus {
-          border: 1px solid rgba(255,255,255,.5);
+          border: 1px solid var(--border-color--active);
           color: rgba(255,255,255,1);
         }
 
@@ -303,7 +314,7 @@ canvas {
       flex-direction: row;
       flex-wrap: wrap;
       justify-content: space-between;
-      }
+    }
 
       .panel .count-fieldset label {
         flex: 0 0 calc(100% / 9);
