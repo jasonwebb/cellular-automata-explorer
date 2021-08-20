@@ -47,7 +47,7 @@ export function createSeperator() {
   Dropdown
   - Dropdowns are <select> tags with associated <label>s.
 *****************************/
-export function createDropdown(labelText, options, listener) {
+export function createDropdown(labelText, options, selectedOption, listener) {
   // Wrapper
   let component = document.createElement('div');
   component.classList.add('component', 'dropdown');
@@ -82,6 +82,11 @@ export function createDropdown(labelText, options, listener) {
     } else {
       let tag = document.createElement('option');
       tag.innerText = value;
+
+      if(value == selectedOption) {
+        tag.selected = true;
+      }
+
       select.appendChild(tag);
     }
   });
