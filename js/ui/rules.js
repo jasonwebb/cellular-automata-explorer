@@ -18,7 +18,7 @@ export function createRulesGroup() {
 
   // Dropdown for presets
   group.appendChild(
-    createDropdown('Preset', rulesSimplified, (e) => {
+    createDropdown('Preset', rulesSimplified, null, (e) => {
       for(let family in presets) {
         if(presets[family].hasOwnProperty(e.target.value)) {
           setRule(presets[family][e.target.value]);

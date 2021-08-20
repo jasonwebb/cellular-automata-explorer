@@ -8,7 +8,7 @@ export function createNeighborhoodGroup() {
 
   // Type (Moore or von Neumann)
   group.appendChild(
-    createDropdown('Type', Object.keys(NeighborhoodTypes), (e) => {
+    createDropdown('Type', Object.keys(NeighborhoodTypes), null, (e) => {
       variables.activeRule.neighborhoodType = NeighborhoodTypes[e.target.value];
       simulationUniforms.neighborhoodType.value = variables.activeRule.neighborhoodType;
       window.dispatchEvent(new Event('ruleUpdated'));
@@ -26,8 +26,8 @@ export function createNeighborhoodGroup() {
 
   // Include center (checkbox)
   group.appendChild(
-    createCheckbox('Include center', true, (e) => {
-      variables.activeRule.includeCenter = e.target.value;
+    createCheckbox('Include center', false, (e) => {
+      variables.activeRule.includeCenter = e.target.checked;
       simulationUniforms.includeCenter.value = variables.activeRule.includeCenter;
       window.dispatchEvent(new Event('ruleUpdated'));
     })
