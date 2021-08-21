@@ -19,7 +19,6 @@ export const InitialPatternTypes = [
   'Rectangle',
   'Text',
   'Image',
-  'Sparse',
   'Random',
   'Empty',
 ];
@@ -43,7 +42,7 @@ export function drawPattern(type = variables.activePattern) {
   switch(type) {
     case 'Circle':
       bufferCanvasCtx.beginPath();
-      bufferCanvasCtx.arc(centerX, centerY, variables.patterns.circle.radius.value * variables.canvas.scale.value, 0, Math.PI*2);
+      bufferCanvasCtx.arc(centerX, centerY, variables.patterns.circle.diameter.value/2 * variables.canvas.scale.value, 0, Math.PI*2);
       bufferCanvasCtx.fillStyle = '#fff';
       bufferCanvasCtx.fill();
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
@@ -77,7 +76,7 @@ export function drawPattern(type = variables.activePattern) {
       bufferCanvasCtx.translate(-centerY, -centerY);
 
       bufferCanvasCtx.fillText(
-        variables.patterns.text.value,
+        variables.patterns.text.string,
         centerX, centerY
       );
 
@@ -97,25 +96,11 @@ export function drawPattern(type = variables.activePattern) {
       }
       break;
 
-    case 'Sparse':
-      let pixels2 = bufferCanvasCtx.getImageData(0, 0, variables.canvas.width.value * variables.canvas.scale.value, variables.canvas.height.value * variables.canvas.scale.value);
-      const numPixels = pixels2.data.length / 4;
-      const numPoints = 5;
-
-      for(let i=0; i<numPoints; i++) {
-        const pixelIndex = Math.floor(Math.random() * Math.floor(numPixels));
-        pixels2.data[pixelIndex * 4] = 255;
-      }
-
-      bufferCanvasCtx.putImageData(pixels2, 0, 0);
-      renderInitialDataToRenderTargets( convertPixelsToTextureData() );
-      break;
-
     case 'Random':
       let pixels = bufferCanvasCtx.getImageData(0, 0, variables.canvas.width.value * variables.canvas.scale.value, variables.canvas.height.value * variables.canvas.scale.value);
 
       for(let i=0; i<pixels.data.length; i+=4) {
-        pixels.data[i] = Math.floor(Math.random() * 256);
+        pixels.data[i] = Math.random() < variables.patterns.random.density.value ? 255 : 0;
       }
 
       bufferCanvasCtx.putImageData(pixels, 0, 0);

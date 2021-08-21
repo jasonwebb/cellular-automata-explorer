@@ -27,22 +27,35 @@ export default {
   },
   patterns: {
     circle: {
-      radius: {
-        min: 0.1,
-        max: 5,
+      diameter: {
+        min: 1,
+        max: 900,
         value: 200
       }
     },
     rectangle: {
       width: {
         min: 1,
-        max: window.innerWidth,
+        max: 900,
         value: 400
       },
       height: {
         min: 1,
-        max: window.innerHeight,
+        max: 900,
         value: 400
+      },
+      rotation: {
+        min: 0,
+        max: 360,
+        value: 0
+      }
+    },
+    text: {
+      string: 'Hello world!',
+      size: {
+        min: 1,
+        max: 200,
+        value: 100
       },
       rotation: {
         min: 0,
@@ -50,18 +63,12 @@ export default {
         value: 0
       }
     },
-    text: {
-      size: {
-        min: 1,
-        max: 100,
-        value: 200
-      },
-      rotation: {
-        min: 0,
-        max: Math.PI,
-        value: 0
-      },
-      value: 'CA'
+    random: {
+      density: {
+        min: .01,
+        max: 1.0,
+        value: .2
+      }
     }
   },
   activePattern: 'Rectangle',
