@@ -27,8 +27,8 @@ const int EXTENDED_LIFE = 1;
 const int GENERATIONS = 2;
 
 // Neighborhood types
-const int VON_NEUMANN = 0;
-const int MOORE = 1;
+const int MOORE = 0;
+const int VON_NEUMANN = 1;
 
 float getPreviousCellState(vec2 uv) {
   uv = vec2(
@@ -39,16 +39,29 @@ float getPreviousCellState(vec2 uv) {
   return texture2D(states, uv)[0];
 }
 
+float manhattanDistance(vec2 p1, vec2 p2) {
+	float d1 = abs(p1.x - p2.x);
+	float d2 = abs(p1.y - p2.y);
+	return d1 + d2;
+}
+
 int getLiveNeighborCount() {
   int total = 0;
 
-  // von Neumann neighborhood
-  if(neighborhoodType == 0) {
-    for(int row = -range; row <= range; row++) {
-      for(int col = -range; col <= range; col++) {
-        if(!includeCenter && row == 0 && col == 0) continue;
-        total += getPreviousCellState(v_uv + vec2(1. / resolution.x * float(row), 1. / resolution.y * float(col))) >= stateStepSize ? 1 : 0;
+  for(int row = -range; row <= range; row++) {
+    for(int col = -range; col <= range; col++) {
+      // Skip this cell if either...
+      //   1. This is the center cell and the "include center" checkbox is unchecked, or
+      //   2. We're calculating the von Neumann neighborhood and the Manhattan distance of this cell is outside the range.
+      if(
+        (!includeCenter && row == 0 && col == 0) ||
+        (neighborhoodType == VON_NEUMANN && manhattanDistance(vec2(0,0), vec2(row, col)) > float(range))
+      ) {
+        continue;
       }
+
+      // Add 1 to the neighbor count if the cell is in any non-zero state.
+      total += getPreviousCellState(v_uv + vec2(1. / resolution.x * float(row), 1. / resolution.y * float(col))) >= stateStepSize ? 1 : 0;
     }
   }
 
