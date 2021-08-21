@@ -93,7 +93,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "varying vec2 v_uv;\nuniform sampler2D textureToDisplay;\nuniform sampler2D colors;\nvoid main() {\n\tfloat state = texture2D(textureToDisplay, v_uv).r;\n\tvec3 startColor = vec3(0., 0., 0.);\n\tvec3 endColor = vec3(1., 1., 1.);\n\tvec3 mixedColor = state < .1 ? vec3(0., 0., 0.) : mix(startColor, endColor, 1. - state);\n\tgl_FragColor = vec4(mixedColor, 1.);\n}\n"
+module.exports = "varying vec2 v_uv;\nuniform sampler2D textureToDisplay;\nuniform sampler2D colors;\nvoid main() {\n\tfloat state = texture2D(textureToDisplay, v_uv).r;\n\tgl_FragColor = texture2D(colors, vec2(state, 0));\n}\n"
 
 /***/ }),
 
@@ -137,7 +137,7 @@ module.exports = "varying vec2 v_uv;\nvoid main() {\n\tv_uv = uv;\n\tgl_Position
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "varying vec2 v_uv;\nuniform vec2 resolution;\nuniform vec2 mousePosition;\nuniform float brushRadius;\nuniform sampler2D states;\nuniform int ruleFormat;\nuniform bool includeMiddle;\nuniform int range;\nuniform int stateCount;\nuniform vec2 wrapping;\nuniform sampler2D birthAndSurvivalCounts;\nuniform int birthCountsLength;\nuniform int survivalCountsLength;\nvec2 texelStepSize;\nfloat stateStepSize;\nconst int LIFE = 0;\nconst int EXTENDED_LIFE = 1;\nconst int GENERATIONS = 2;\nfloat getPreviousCellState(vec2 uv) {\n\tuv = vec2(bool(wrapping.x) ? mod(uv.x, 1.) : uv.x, bool(wrapping.y) ? mod(uv.y, 1.) : uv.y);\n\treturn texture2D(states, uv)[0];\n}\nint getLiveNeighborCount() {\n\tint total = 0;\n\tfor (int row = -range; row <= range; row++) {\n\t\tfor (int col = -range; col <= range; col++) {\n\t\t\tif ((!includeMiddle && (row == 0)) && (col == 0))\n\t\t\t\tcontinue;\n\t\t\ttotal += (getPreviousCellState(v_uv + vec2((1. / resolution.x) * float(row), (1. / resolution.y) * float(col))) >= stateStepSize ? 1 : 0);\n\t\t}\n\t}\n\treturn total;\n}\nvoid main() {\n\ttexelStepSize = 1. / resolution;\n\tstateStepSize = 1. / float(stateCount - 1);\n\tfloat currentState = getPreviousCellState(v_uv);\n\tfloat nextState = 0.;\n\tint liveNeighbors = getLiveNeighborCount();\n\tif (((ruleFormat == LIFE) || (ruleFormat == EXTENDED_LIFE)) || (ruleFormat == GENERATIONS)) {\n\t\tif (currentState == 0.) {\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < birthCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(birthCountsLength)) * float(i), 0)).r * 255.)) {\n\t\t\t\t\t\tnextState = stateStepSize;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse if (currentState >= stateStepSize) {\n\t\t\tbool willSurvive = false;\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < survivalCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(survivalCountsLength)) * float(i), 0)).g * 255.)) {\n\t\t\t\t\t\tnextState = currentState;\n\t\t\t\t\t\twillSurvive = true;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t\tif ((ruleFormat == GENERATIONS) && !willSurvive) {\n\t\t\t\tnextState = mod(currentState + stateStepSize, 1.);\n\t\t\t}\n\t\t}\n\t}\n\tif ((mousePosition.x > 0.0) && (mousePosition.y > 0.0)) {\n\t\tfloat distToMouse = distance(mousePosition * resolution, v_uv * resolution);\n\t\tif (distToMouse < brushRadius) {\n\t\t\tnextState = 1.;\n\t\t\treturn ;\n\t\t}\n\t}\n\tgl_FragColor = vec4(nextState, 0., 0., 1.);\n}\n"
+module.exports = "varying vec2 v_uv;\nuniform vec2 resolution;\nuniform vec2 mousePosition;\nuniform float brushRadius;\nuniform sampler2D states;\nuniform int ruleFormat;\nuniform bool includeCenter;\nuniform int neighborhoodType;\nuniform int range;\nuniform int stateCount;\nuniform vec2 wrapping;\nuniform bool historyEnabled;\nuniform sampler2D birthAndSurvivalCounts;\nuniform int birthCountsLength;\nuniform int survivalCountsLength;\nvec2 texelStepSize;\nfloat stateStepSize;\nconst int LIFE = 0;\nconst int EXTENDED_LIFE = 1;\nconst int GENERATIONS = 2;\nconst int VON_NEUMANN = 0;\nconst int MOORE = 1;\nfloat getPreviousCellState(vec2 uv) {\n\tuv = vec2(bool(wrapping.x) ? mod(uv.x, 1.) : uv.x, bool(wrapping.y) ? mod(uv.y, 1.) : uv.y);\n\treturn texture2D(states, uv)[0];\n}\nint getLiveNeighborCount() {\n\tint total = 0;\n\tif (neighborhoodType == 0) {\n\t\tfor (int row = -range; row <= range; row++) {\n\t\t\tfor (int col = -range; col <= range; col++) {\n\t\t\t\tif ((!includeCenter && (row == 0)) && (col == 0))\n\t\t\t\t\tcontinue;\n\t\t\t\ttotal += (getPreviousCellState(v_uv + vec2((1. / resolution.x) * float(row), (1. / resolution.y) * float(col))) >= stateStepSize ? 1 : 0);\n\t\t\t}\n\t\t}\n\t}\n\treturn total;\n}\nvoid main() {\n\ttexelStepSize = 1. / resolution;\n\tstateStepSize = 1. / float(stateCount - 1);\n\tfloat currentState = getPreviousCellState(v_uv);\n\tfloat nextState = 0.;\n\tint liveNeighbors = getLiveNeighborCount();\n\tif (((ruleFormat == LIFE) || (ruleFormat == EXTENDED_LIFE)) || (ruleFormat == GENERATIONS)) {\n\t\tif (currentState == 0.) {\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < birthCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(birthCountsLength)) * float(i), 0)).r * 255.)) {\n\t\t\t\t\t\tnextState = stateStepSize;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse if (currentState >= stateStepSize) {\n\t\t\tbool willSurvive = false;\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < survivalCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(survivalCountsLength)) * float(i), 0)).g * 255.)) {\n\t\t\t\t\t\tnextState = currentState;\n\t\t\t\t\t\twillSurvive = true;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t\tif (historyEnabled && !willSurvive) {\n\t\t\t\tnextState = mod(currentState + stateStepSize, 1.);\n\t\t\t}\n\t\t}\n\t}\n\tif ((mousePosition.x > 0.0) && (mousePosition.y > 0.0)) {\n\t\tfloat distToMouse = distance(mousePosition * resolution, v_uv * resolution);\n\t\tif (distToMouse < brushRadius) {\n\t\t\tnextState = 1.;\n\t\t}\n\t}\n\tgl_FragColor = vec4(nextState, 0., 0., 1.);\n}\n"
 
 /***/ }),
 
@@ -156,36 +156,77 @@ module.exports = "varying vec2 v_uv;\nvoid main() {\n\tv_uv = uv;\n\tgl_Position
 /*!**********************!*\
   !*** ./js/colors.js ***!
   \**********************/
-/*! exports provided: setColors */
+/*! exports provided: colors, setColors, convertRGBtoHex, convertHexToRGB, normalizeRGB */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "colors", function() { return colors; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setColors", function() { return setColors; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "convertRGBtoHex", function() { return convertRGBtoHex; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "convertHexToRGB", function() { return convertHexToRGB; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "normalizeRGB", function() { return normalizeRGB; });
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
 /* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
 
 
 
 
+let colors = [
+  [0, 78, 51],     // state 0 color
+  [255, 220, 170]  // state 1 color
+]
+
 function setColors() {
-  const numColors = 2;
-  let data = new Float32Array(numColors * 4);  // RGBA = 4 channels
+  let data = new Float32Array(colors.length * 4);  // RGBA = 4 channels
 
-  // State 0 color
-  data[0] = 0;
-  data[1] = .3;
-  data[2] = .2;
-  data[3] = 1;
+  colors.forEach((color, offset) => {
+    let normalizedColor = normalizeRGB(color);
 
-  // Sate 1 color
-  data[4] = 1;
-  data[5] = .8;
-  data[6] = .4;
-  data[7] = 1;
+    for(let i=0; i<=color.length; i++) {
+      data[i + (offset * 4)] = normalizedColor[i];
+    }
 
-  _uniforms__WEBPACK_IMPORTED_MODULE_1__["displayUniforms"].colors.value = new three__WEBPACK_IMPORTED_MODULE_0__["DataTexture"](data, numColors, 1, three__WEBPACK_IMPORTED_MODULE_0__["RGBAFormat"], three__WEBPACK_IMPORTED_MODULE_0__["FloatType"]);
+    data[3 + (offset * 4)] = 0; // A channel, currently used for nothing
+  });
+
+  _uniforms__WEBPACK_IMPORTED_MODULE_1__["displayUniforms"].colors.value = new three__WEBPACK_IMPORTED_MODULE_0__["DataTexture"](data, colors.length, 1, three__WEBPACK_IMPORTED_MODULE_0__["RGBAFormat"], three__WEBPACK_IMPORTED_MODULE_0__["FloatType"]);
 }
+
+  function convertRGBtoHex(rgb) {
+    let rgbClone = [...rgb];
+
+    rgbClone[0] = rgbClone[0].toString(16);
+    rgbClone[1] = rgbClone[1].toString(16);
+    rgbClone[2] = rgbClone[2].toString(16);
+
+    if (rgbClone[0].length == 1)
+      rgbClone[0] = "0" + rgbClone[0];
+    if (rgbClone[1].length == 1)
+      rgbClone[1] = "0" + rgbClone[1];
+    if (rgbClone[2].length == 1)
+      rgbClone[0] = "0" + rgbClone[2];
+
+    return "#" + rgbClone[0] + rgbClone[1] + rgbClone[2];
+  }
+
+  function convertHexToRGB(hex) {
+    let rgb = hex.substring(1, hex.length).match(/.{1,2}/g); // split hex string into an array of strings, 2 characters in length.
+
+    return [
+      parseInt(rgb[0], 16),
+      parseInt(rgb[1], 16),
+      parseInt(rgb[2], 16)
+    ];
+  }
+
+  function normalizeRGB(color) {
+    return [
+      color[0] / 255,
+      color[1] / 255,
+      color[2] / 255
+    ];
+  }
 
 /***/ }),
 
@@ -215,6 +256,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _keyboard__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./keyboard */ "./js/keyboard.js");
 /* harmony import */ var _mouse__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./mouse */ "./js/mouse.js");
 /* harmony import */ var _colors__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./colors */ "./js/colors.js");
+/* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./ui */ "./js/ui.js");
 
 
 
@@ -234,6 +276,7 @@ let scene, camera, renderer, mesh;
 let canvas;
 let bufferCanvas;
 
+Object(_ui__WEBPACK_IMPORTED_MODULE_11__["setupUI"])();
 setup();
 Object(_keyboard__WEBPACK_IMPORTED_MODULE_8__["setupKeyboard"])();
 Object(_mouse__WEBPACK_IMPORTED_MODULE_9__["setupMouse"])();
@@ -278,8 +321,16 @@ function setup() {
   Object(_colors__WEBPACK_IMPORTED_MODULE_10__["setColors"])();
 
   // Set the rule that the shader should run
-  // setRule('23/3');  // Conway's Life
-  Object(_rules__WEBPACK_IMPORTED_MODULE_7__["setRule"])('345/2/50');  // Generations - Burst
+
+  Object(_rules__WEBPACK_IMPORTED_MODULE_7__["setRule"])('23/3');  // Conway's Life
+
+  // setTimeout(() => {
+  //   setRule('345/2/50');  // Generations - Burst
+  // }, 2000);
+
+  // setTimeout(() => {
+  //   setRule('45678/2478/250');  // Generations - Burst
+  // }, 5000);
 
   // Set up and render the first frame
   Object(_patterns__WEBPACK_IMPORTED_MODULE_6__["drawPattern"])();
@@ -307,14 +358,14 @@ function setup() {
 
     // Reset the resolution in the simulation code to match new container size
     _uniforms__WEBPACK_IMPORTED_MODULE_4__["simulationUniforms"].resolution.value = new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](
-      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].scale.value,
-      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].scale.value
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value,
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value
     );
 
     // Resize the buffer canvas
     bufferCanvas = document.querySelector('#buffer-canvas');
-    bufferCanvas.width = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].scale.value;
-    bufferCanvas.height = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].scale.value;
+    bufferCanvas.width = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value;
+    bufferCanvas.height = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value;
   }
 
 
@@ -397,7 +448,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function setupKeyboard() {
-  window.addEventListener('keyup', function(e) {
+  window.addEventListener('keydown', function(e) {
     switch(e.key) {
       case ' ':
         e.preventDefault();
@@ -553,9 +604,8 @@ function setupMouse() {
   // If dragging, pass the mouse coordinates into the shader.
   _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mousemove', (e) => {
     if(mouseDown) {
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = e.offsetX / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].scale.value;
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = 1 - e.offsetY / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].scale.value;
-      console.log(e.offsetX / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].scale.value);
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = e.offsetX / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value;
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = 1 - e.offsetY / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value;
     } else {
       _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = -1;
       _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = -1;
@@ -635,17 +685,16 @@ __webpack_require__.r(__webpack_exports__);
 
 let bufferImage, bufferCanvas, bufferCanvasCtx;
 
-const InitialPatternTypes = {
-  CIRCLE: 0,
-  RECTANGLE: 1,
-  TEXT: 2,
-  IMAGE: 3,
-  SPARSE: 4,
-  RANDOM: 5,
-  EMPTY: 6,
-};
+const InitialPatternTypes = [
+  'Circle',
+  'Rectangle',
+  'Text',
+  'Image',
+  'Random',
+  'Empty',
+];
 
-function drawPattern(type = InitialPatternTypes.RECTANGLE) {
+function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].activePattern) {
   // Grab the invisible canvas context that we can draw initial image data into
   bufferCanvas = document.querySelector('#buffer-canvas');
   bufferCanvasCtx = bufferCanvas.getContext('2d');
@@ -655,22 +704,22 @@ function drawPattern(type = InitialPatternTypes.RECTANGLE) {
 
   // Clear the invisible canvas
   bufferCanvasCtx.fillStyle = '#000';
-  bufferCanvasCtx.fillRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value);
+  bufferCanvasCtx.fillRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value);
 
   // Build initial simulation texture data and pass it on to the render targets
-  const centerX = (_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value) / 2,
-        centerY = (_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value) / 2;
+  const centerX = (_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value) / 2,
+        centerY = (_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value) / 2;
 
   switch(type) {
-    case InitialPatternTypes.CIRCLE:
+    case 'Circle':
       bufferCanvasCtx.beginPath();
-      bufferCanvasCtx.arc(centerX, centerY, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.circle.radius.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value, 0, Math.PI*2);
+      bufferCanvasCtx.arc(centerX, centerY, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.circle.diameter.value/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value, 0, Math.PI*2);
       bufferCanvasCtx.fillStyle = '#fff';
       bufferCanvasCtx.fill();
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
 
-    case InitialPatternTypes.RECTANGLE:
+    case 'Rectangle':
       bufferCanvasCtx.fillStyle = '#fff';
 
       bufferCanvasCtx.translate(centerX, centerY);
@@ -678,19 +727,21 @@ function drawPattern(type = InitialPatternTypes.RECTANGLE) {
       bufferCanvasCtx.translate(-centerX, -centerY);
 
       bufferCanvasCtx.fillRect(
-        centerX - _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.value/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value,
-        centerY - _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.value/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value,
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value,
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value
+        centerX - _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.value/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
+        centerY - _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.value/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
+        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
+        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value
       );
 
       bufferCanvasCtx.resetTransform();
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
 
-    case InitialPatternTypes.TEXT:
+    case 'Text':
       bufferCanvasCtx.fillStyle = '#fff';
-      bufferCanvasCtx.font = '900 ' + _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.size.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value + 'px Arial';
+      bufferCanvasCtx.font = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontWeight.value + ' ' +
+                             _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.size.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value + 'px ' +
+                             _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.activeFontFace;
       bufferCanvasCtx.textAlign = 'center';
 
       bufferCanvasCtx.translate(centerX, centerY);
@@ -698,7 +749,7 @@ function drawPattern(type = InitialPatternTypes.RECTANGLE) {
       bufferCanvasCtx.translate(-centerY, -centerY);
 
       bufferCanvasCtx.fillText(
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.value,
+        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.string,
         centerX, centerY
       );
 
@@ -706,7 +757,7 @@ function drawPattern(type = InitialPatternTypes.RECTANGLE) {
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
 
-    case InitialPatternTypes.IMAGE:
+    case 'Image':
       if(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.image != null) {
         getImagePixels(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.image, centerX, centerY)
           .then((initialData) => {
@@ -718,33 +769,19 @@ function drawPattern(type = InitialPatternTypes.RECTANGLE) {
       }
       break;
 
-    case InitialPatternTypes.SPARSE:
-      let pixels2 = bufferCanvasCtx.getImageData(0, 0, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value);
-      const numPixels = pixels2.data.length / 4;
-      const numPoints = 5;
-
-      for(let i=0; i<numPoints; i++) {
-        const pixelIndex = Math.floor(Math.random() * Math.floor(numPixels));
-        pixels2.data[pixelIndex * 4] = 255;
-      }
-
-      bufferCanvasCtx.putImageData(pixels2, 0, 0);
-      renderInitialDataToRenderTargets( convertPixelsToTextureData() );
-      break;
-
-    case InitialPatternTypes.RANDOM:
-      let pixels = bufferCanvasCtx.getImageData(0, 0, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value);
+    case 'Random':
+      let pixels = bufferCanvasCtx.getImageData(0, 0, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value);
 
       for(let i=0; i<pixels.data.length; i+=4) {
-        pixels.data[i] = Math.floor(Math.random() * 256);
+        pixels.data[i] = Math.random() < _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.random.density.value ? 255 : 0;
       }
 
       bufferCanvasCtx.putImageData(pixels, 0, 0);
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
 
-    case InitialPatternTypes.EMPTY:
-      bufferCanvasCtx.clearRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value);
+    case 'Empty':
+      bufferCanvasCtx.clearRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value);
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
   }
@@ -754,8 +791,8 @@ function drawPattern(type = InitialPatternTypes.RECTANGLE) {
     // Put the initial data into a texture format that ThreeJS can pass into the render targets
     let texture = new three__WEBPACK_IMPORTED_MODULE_0__["DataTexture"](
       initialData,
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value,
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value,
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
       three__WEBPACK_IMPORTED_MODULE_0__["RGBAFormat"],
       three__WEBPACK_IMPORTED_MODULE_0__["FloatType"]
     );
@@ -840,14 +877,14 @@ function drawPattern(type = InitialPatternTypes.RECTANGLE) {
   function convertPixelsToTextureData() {
     let pixels = bufferCanvasCtx.getImageData(
       0, 0,
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value,
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value
     ).data;
 
     let data = new Float32Array(pixels.length);
 
     for(let i=0; i<data.length; i+=4) {
-      data[i] = pixels[i] === 255 ? pixels[i] / 255 : 0.0;
+      data[i] = pixels[i] / 255;
       data[i+1] = 0.0;
       data[i+2] = 0.0;
       data[i+3] = 0.0;
@@ -855,6 +892,45 @@ function drawPattern(type = InitialPatternTypes.RECTANGLE) {
 
     return data;
   }
+
+/***/ }),
+
+/***/ "./js/presets.js":
+/*!***********************!*\
+  !*** ./js/presets.js ***!
+  \***********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+  'Life': {
+    '2x2': '125/36',
+    '34 Life': '34/34',
+    'Amoeba': '1358/357',
+    'Assimilation': '4567/345',
+    'Coagulations': '235678/378',
+    'Conway\'s Game of Life': '23/3',
+    'Coral': '45678/3',
+    'Day & Night': '34678/3678',
+    'Diamoeba': '5678/35678',
+    'Flakes': '012345678/3',
+    'Gnarl': '1/1',
+    'HighLife': '23/36',
+    'InverseLife': '34678/0123478/2',
+    'Long life': '/345',
+    'Maze': '/3',
+    'Mazectric': '1234/3',
+    'Move': '/368',
+    'Pseudo life': '238/357',
+    'Replicator': '1357/1357',
+    'Seeds (2)': '/2',
+    'Serviettes': '/234',
+    'Stains': '235678/3678',
+    'WalledCities': '2345/45678'
+  }
+});
 
 /***/ }),
 
@@ -892,8 +968,8 @@ function setupRenderTargets() {
   for(let i=0; i<2; i++) {
     renderTargets.push(
       new three__WEBPACK_IMPORTED_MODULE_0__["WebGLRenderTarget"](
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value,
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value,
+        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
+        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
         {
           minFilter: three__WEBPACK_IMPORTED_MODULE_0__["NearestFilter"],
           magFilter: three__WEBPACK_IMPORTED_MODULE_0__["NearestFilter"],
@@ -911,24 +987,28 @@ function setupRenderTargets() {
 /*!*********************!*\
   !*** ./js/rules.js ***!
   \*********************/
-/*! exports provided: setRule */
+/*! exports provided: NeighborhoodTypes, setRule, passNeighborCountsToShader */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "NeighborhoodTypes", function() { return NeighborhoodTypes; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setRule", function() { return setRule; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "passNeighborCountsToShader", function() { return passNeighborCountsToShader; });
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
 /* harmony import */ var cellular_automata_rule_parser__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! cellular-automata-rule-parser */ "./node_modules/cellular-automata-rule-parser/index.js");
 /* harmony import */ var cellular_automata_rule_parser__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(cellular_automata_rule_parser__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
+/* harmony import */ var _presets__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./presets */ "./js/presets.js");
 /**********************
- SCHEMA:
+ Structure of object returned by the parser:
  {
    birth: array,
    neighbourhoodRange: int,
-   neighbourhoodType: string ('moore' | ),
+   neighbourhoodType: string ('moore' | ...),
    process: function(),
-   ruleFormat: string,
+   ruleFormat: string ('life' | 'extended-life' | 'generations' | ...),
    ruleString: string,
    stateCount: int,
    survival: array
@@ -939,57 +1019,1249 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+const NeighborhoodTypes = {
+  'Moore': 0,
+  'von Neumann': 1
+};
+
 function setRule(ruleString) {
   let rule = cellular_automata_rule_parser__WEBPACK_IMPORTED_MODULE_1__(ruleString);
 
-  if(rule != null) {
-    // 1. [DONE] Convert rule.birth and rule.survival arrays into a single DataTexture, pass into simulationUniforms.birthAndSurvivalCounts.value
-    // 2. [DONE] Pass rule.birth.length and rule.survival into simulationUniforms
-    // 3. [DONE] Pass rule.ruleFormat ...
-    // 4. Pass rule.neighbourhoodType ...
-    // 5. Pass rule.neighbourhoodRange ...
-    // 6. [DONE] Pass rule.stateCount ...
+  if(rule == null) {
+    console.log("Couldn't parse: " + ruleString);
+    return;
+  }
 
-    // Convert the rule format to a number and pass to the shader
-    let ruleFormatNumber = 0;
+  // Convert the rule format to a number and pass to the shader
+  let ruleFormatNumber = 0;   // default to Life format
 
-    switch(rule.ruleFormat) {
-      case 'life':
-        ruleFormatNumber = 0;
-        rule.stateCount = 2;
-        break;
+  switch(rule.ruleFormat) {
+    case 'life':          ruleFormatNumber = 0; break;
+    case 'extended-life': ruleFormatNumber = 1; break;
+    case 'generations':   ruleFormatNumber = 2; break;
+  }
 
-      case 'extended-life':
-        ruleFormatNumber = 1;
-        rule.stateCount = 2;
-        break;
+  // Capture the rule information in a globally-available object to display in the UI
+  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.ruleString = ruleString;
+  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.ruleFormat = ruleFormatNumber;
+  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.stateCount = rule.stateCount || 2;
+  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.birth = rule.birth;
+  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.survival = rule.survival;
+  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.neighborhoodType = rule.neighborhoodType || NeighborhoodTypes['Moore'];
+  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range = rule.neighborhoodRange || 1;
+  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.includeCenter = false;
+  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.historyEnabled = rule.ruleFormat === 'generations' ? true : false;
 
-      case 'generations':
-        ruleFormatNumber = 2;
-        break;
+  // Pass all the rule information to the shader
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].ruleFormat.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.ruleFormat;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].stateCount.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.stateCount;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].neighborhoodType.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.neighborhoodType;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].range.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].includeCenter.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.includeCenter;
+
+  // Encode the birth and survival arrays into a texture and pass to the shader
+  passNeighborCountsToShader();
+
+  // Select the appropriate preset in the Rule panel, if it matches.
+  Object.keys(_presets__WEBPACK_IMPORTED_MODULE_4__["default"]).forEach((family) => {
+    const key = Object.keys(_presets__WEBPACK_IMPORTED_MODULE_4__["default"][family]).find(key => _presets__WEBPACK_IMPORTED_MODULE_4__["default"][family][key] === ruleString);
+
+    if(key !== undefined) {
+      let presetsDropdown = document.getElementById('input-0');
+
+      presetsDropdown.querySelectorAll('optgroup').forEach((optgroup) => {
+        if(optgroup.getAttribute('label') === family) {
+          optgroup.querySelectorAll('option').forEach((option) => {
+            if(option.innerText === key) {
+              option.setAttribute('selected', 'selected');
+            } else {
+              option.removeAttribute('selected');
+            }
+          });
+        }
+      });
     }
+  });
 
-    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].ruleFormat.value = ruleFormatNumber;
-    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].stateCount.value = rule.stateCount;
+  // Fire a custom event to let the UI know it needs to update
+  window.dispatchEvent(new Event('ruleUpdated'));
+}
 
-    // Pass the number birth and survival counts to the shader
-    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].birthCountsLength.value = rule.birth.length;
-    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].survivalCountsLength.value = rule.survival.length;
+  function passNeighborCountsToShader() {
+    // Pass the total numbers of birth and survival counts to the shader
+    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].birthCountsLength.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.birth.length;
+    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].survivalCountsLength.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.survival.length;
 
     // Convert the birth and survival arrays into a single DataTexture and pass it into the shader
-    const longestLength = Math.max(rule.birth.length, rule.survival.length);
+    const longestLength = Math.max(_variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.birth.length, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.survival.length);
     let data = new Float32Array(longestLength * 4);  // RGBA = 4 channels
 
     for(let i=0; i<longestLength; i++) {
-      data[i * 4] = i < rule.birth.length ? rule.birth[i] / 255 : 0;
-      data[i * 4 + 1] = i < rule.survival.length ? rule.survival[i] / 255 : 0;
+      data[i * 4] = i < _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.birth.length ? _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.birth[i] / 255 : 0;            // encode birth into R channel
+      data[i * 4 + 1] = i < _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.survival.length ? _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.survival[i] / 255 : 0;  // encode survival into G channel
     }
 
+    // Pass the birth and survival data to the shader as a data texture
     _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].birthAndSurvivalCounts.value = new three__WEBPACK_IMPORTED_MODULE_0__["DataTexture"](data, longestLength, 1, three__WEBPACK_IMPORTED_MODULE_0__["RGBAFormat"], three__WEBPACK_IMPORTED_MODULE_0__["FloatType"]);
-
-  } else {
-    console.log("Couldn't parse: " + ruleString);
   }
+
+/***/ }),
+
+/***/ "./js/ui.js":
+/*!******************!*\
+  !*** ./js/ui.js ***!
+  \******************/
+/*! exports provided: setupUI */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupUI", function() { return setupUI; });
+/* harmony import */ var _ui_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ui/components */ "./js/ui/components.js");
+/* harmony import */ var _ui_history__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ui/history */ "./js/ui/history.js");
+/* harmony import */ var _ui_birth__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ui/birth */ "./js/ui/birth.js");
+/* harmony import */ var _ui_controls__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ui/controls */ "./js/ui/controls.js");
+/* harmony import */ var _ui_rules__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./ui/rules */ "./js/ui/rules.js");
+/* harmony import */ var _ui_neighborhood__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./ui/neighborhood */ "./js/ui/neighborhood.js");
+/* harmony import */ var _ui_colors__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./ui/colors */ "./js/ui/colors.js");
+/* harmony import */ var _ui_survival__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./ui/survival */ "./js/ui/survival.js");
+/* harmony import */ var _ui_pattern__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./ui/pattern */ "./js/ui/pattern.js");
+/* harmony import */ var _ui_canvas__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./ui/canvas */ "./js/ui/canvas.js");
+
+
+
+
+
+
+
+
+
+
+
+
+let leftPanel, rightPanel;
+
+function setupUI() {
+  setupLeftPanel();
+  setupRightPanel();
+}
+
+  function setupLeftPanel() {
+    leftPanel = Object(_ui_components__WEBPACK_IMPORTED_MODULE_0__["createPanel"])();
+    leftPanel.classList.add('is-docked-left');
+
+    leftPanel.appendChild(Object(_ui_rules__WEBPACK_IMPORTED_MODULE_4__["createRulesGroup"])());
+    leftPanel.appendChild(Object(_ui_birth__WEBPACK_IMPORTED_MODULE_2__["createBirthGroup"])());
+    leftPanel.appendChild(Object(_ui_survival__WEBPACK_IMPORTED_MODULE_7__["createSurvivalGroup"])());
+    leftPanel.appendChild(Object(_ui_neighborhood__WEBPACK_IMPORTED_MODULE_5__["createNeighborhoodGroup"])());
+    leftPanel.appendChild(Object(_ui_history__WEBPACK_IMPORTED_MODULE_1__["createHistoryGroup"])());
+
+    document.body.appendChild(leftPanel);
+  }
+
+  function setupRightPanel() {
+    rightPanel = Object(_ui_components__WEBPACK_IMPORTED_MODULE_0__["createPanel"])();
+    rightPanel.classList.add('is-docked-right');
+
+    rightPanel.appendChild(Object(_ui_colors__WEBPACK_IMPORTED_MODULE_6__["createColorsGroup"])());
+    rightPanel.appendChild(Object(_ui_pattern__WEBPACK_IMPORTED_MODULE_8__["createPatternGroup"])());
+    rightPanel.appendChild(Object(_ui_canvas__WEBPACK_IMPORTED_MODULE_9__["createCanvasGroup"])());
+    rightPanel.appendChild(Object(_ui_controls__WEBPACK_IMPORTED_MODULE_3__["createControlsGroup"])());
+
+    document.body.appendChild(rightPanel);
+  }
+
+/***/ }),
+
+/***/ "./js/ui/birth.js":
+/*!************************!*\
+  !*** ./js/ui/birth.js ***!
+  \************************/
+/*! exports provided: createBirthGroup */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createBirthGroup", function() { return createBirthGroup; });
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
+
+
+function createBirthGroup() {
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Birth');
+
+  let countCheckboxFieldset = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCountCheckboxFieldset"])('birth');
+
+  group.appendChild(countCheckboxFieldset);
+
+  return group;
+}
+
+/***/ }),
+
+/***/ "./js/ui/canvas.js":
+/*!*************************!*\
+  !*** ./js/ui/canvas.js ***!
+  \*************************/
+/*! exports provided: createCanvasGroup */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createCanvasGroup", function() { return createCanvasGroup; });
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
+/* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../entry */ "./js/entry.js");
+/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../uniforms */ "./js/uniforms.js");
+
+
+
+
+
+function createCanvasGroup() {
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Canvas');
+
+  // Width slider
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Width', 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value = e.target.value;
+      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+    })
+  );
+
+  // Height slider
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Height', 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value = e.target.value;
+      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+    })
+  );
+
+  // Maximized checkbox
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Maximized', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.maximized, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.maximized = e.target.checked;
+
+      if(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.maximized) {
+        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.unmaximizedSize.width = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value;
+        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.unmaximizedSize.height = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value;
+      } else {
+        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.unmaximizedSize.width;
+        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.unmaximizedSize.height;
+      }
+
+      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+    })
+  );
+
+    group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSeperator"])() );
+
+  // Edge wrapping (X) checkbox
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Wrap X', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.x, () => {
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.x = !_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.x;
+      _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].wrapping.value.x = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.x;
+    })
+  );
+
+  // Edge wrapping (Y) checkbox
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Wrap Y', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.y, () => {
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.y = !_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.y;
+      _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].wrapping.value.y = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.y;
+    })
+  );
+
+    group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSeperator"])() );
+
+  // Scale slider
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Scale', .1, 3, .1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value = 3 - e.target.value;
+    })
+  );
+
+  return group;
+}
+
+/***/ }),
+
+/***/ "./js/ui/colors.js":
+/*!*************************!*\
+  !*** ./js/ui/colors.js ***!
+  \*************************/
+/*! exports provided: createColorsGroup */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createColorsGroup", function() { return createColorsGroup; });
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
+/* harmony import */ var _colors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../colors */ "./js/colors.js");
+
+
+
+function createColorsGroup() {
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Colors');
+
+  // TODO: add dropdown for color palette presets
+
+  // Color pickers - one per state
+  window.addEventListener('ruleUpdated', () => {
+    let fieldset = group.querySelector('fieldset');
+
+    if(fieldset != null) {
+      fieldset.remove();
+    }
+
+    fieldset = document.createElement('fieldset');
+    fieldset.classList.add('is-scrollable');
+
+    _colors__WEBPACK_IMPORTED_MODULE_1__["colors"].forEach((color, index) => {
+      fieldset.appendChild(
+        Object(_components__WEBPACK_IMPORTED_MODULE_0__["createColorPicker"])('Color ' + (index+1), color, (e) => {
+          _colors__WEBPACK_IMPORTED_MODULE_1__["colors"][index] = Object(_colors__WEBPACK_IMPORTED_MODULE_1__["convertHexToRGB"])(e.target.value);
+          Object(_colors__WEBPACK_IMPORTED_MODULE_1__["setColors"])();
+        })
+      );
+    });
+
+    group.appendChild(fieldset);
+  });
+
+  return group;
+}
+
+/***/ }),
+
+/***/ "./js/ui/components.js":
+/*!*****************************!*\
+  !*** ./js/ui/components.js ***!
+  \*****************************/
+/*! exports provided: createPanel, createGroup, createSeperator, createDropdown, createButton, createSlider, createCheckbox, createCountCheckboxFieldset, createColorPicker, createTextInput, createTextarea */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createPanel", function() { return createPanel; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createGroup", function() { return createGroup; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createSeperator", function() { return createSeperator; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createDropdown", function() { return createDropdown; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createButton", function() { return createButton; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createSlider", function() { return createSlider; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createCheckbox", function() { return createCheckbox; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createCountCheckboxFieldset", function() { return createCountCheckboxFieldset; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createColorPicker", function() { return createColorPicker; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createTextInput", function() { return createTextInput; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createTextarea", function() { return createTextarea; });
+/* harmony import */ var _colors__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../colors */ "./js/colors.js");
+/* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../rules */ "./js/rules.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
+
+
+
+
+let idCounter = 0;
+
+/****************************
+  Panel
+  - Panels contain collections of Groups.
+  - Panels are the highest level wrappers in the UI.
+*****************************/
+function createPanel() {
+  let panel = document.createElement('div');
+  panel.classList.add('panel');
+
+  return panel;
+}
+
+/****************************
+  Group
+  - Groups contain collections of Components.
+  - Groups are the "sections" of the Panels, and they have headings at the top.
+*****************************/
+function createGroup(name) {
+  // Wrapper
+  let group = document.createElement('div');
+  group.classList.add('group');
+
+  // Heading
+  let heading = document.createElement('h2');
+  heading.classList.add('heading');
+  heading.innerText = name;
+  group.appendChild(heading);
+
+  return group;
+}
+
+/*******************
+  Seperator
+  - Seperators are <hr> tags that can break up sets of related Components inside Groups
+********************/
+function createSeperator() {
+  return document.createElement('hr');
+}
+
+/****************************
+  Dropdown
+  - Dropdowns are <select> tags with associated <label>s.
+*****************************/
+function createDropdown(labelText, options, selectedOption, listener) {
+  // Wrapper
+  let component = document.createElement('div');
+  component.classList.add('component', 'dropdown');
+
+  // <label> tag associated with <select>
+  let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
+  label.innerText = labelText;
+
+  // <select> dropdown
+  let select = document.createElement('select');
+  select.setAttribute('id', 'input-' + idCounter);
+
+  // Options (<option>s)
+  Object.values(options).forEach((value, index) => {
+    // If the options contain nested arrays, that means it has sections and should be built with <optgroup>s
+    // TODO: native <optgroup>s are not accessible, so in the future this should be rebuilt as a custom select.
+    if(Array.isArray(value)) {
+      let groupTitle = Object.keys(options)[index];
+      let optgroup = document.createElement('optgroup');
+      optgroup.setAttribute('label', groupTitle);
+
+      Object.values(options)[index].forEach((optionName) => {
+        let option = document.createElement('option');
+        option.innerText = optionName;
+        optgroup.appendChild(option);
+      });
+
+      select.appendChild(optgroup);
+
+    // If the options don't contain nested arrays, we'll assume they are just simple strings.
+    } else {
+      let tag = document.createElement('option');
+      tag.innerText = value;
+
+      if(value == selectedOption) {
+        tag.selected = true;
+      }
+
+      select.appendChild(tag);
+    }
+  });
+
+  // Run the provided callback when the value changes
+  select.addEventListener('change', listener);
+
+  // Prevent Space key from bubbling up and pausing the simulation
+  select.addEventListener('keydown', (e) => {
+    if(e.key == ' ') {
+      e.stopPropagation();
+    }
+  });
+
+  component.appendChild(label);
+  component.appendChild(select);
+
+  idCounter++;
+
+  return component;
+}
+
+/****************************
+  Button
+  - Buttons execute custom functions when they are activated.
+*****************************/
+function createButton(buttonText, isIndented = false, listener) {
+  // Wrapper
+  let component = document.createElement('div');
+  component.classList.add('component', 'button');
+
+  // Add class if this button needs to be indented
+  if(isIndented) {
+    component.classList.add('is-indented');
+  }
+
+  // <button> tag
+  let button = document.createElement('button');
+  button.innerText = buttonText;
+
+  // Run the provided callback when activated
+  button.addEventListener('click', listener);
+
+  // Prevent Space key from bubbling up and pausing the simulation
+  button.addEventListener('keydown', (e) => {
+    if(e.key == ' ') {
+      e.stopPropagation();
+    }
+  });
+
+  component.appendChild(button);
+
+  return component;
+}
+
+/****************************
+  Slider
+  - Sliders are range inputs (<input type="range">).
+  - Sliders have a <label> on the left.
+  - Sliders have a text input on the right, which updates in real-time with the value of the range slider (and vice versa).
+*****************************/
+function createSlider(labelText, minValue, maxValue, stepSize, initialValue, listener) {
+  // Wrapper
+  let component = document.createElement('div');
+  component.classList.add('component', 'slider');
+
+  // <label> tag associated with slider
+  let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
+  label.innerText = labelText;
+
+  // Slider (<input type="range" ...>)
+  let slider = document.createElement('input');
+  slider.setAttribute('id', 'input-' + idCounter);
+  slider.setAttribute('type', 'range');
+  slider.setAttribute('min', minValue);
+  slider.setAttribute('max', maxValue);
+  slider.setAttribute('step', stepSize);
+  slider.setAttribute('value', initialValue);
+
+  // Small text field with live value
+  let textField = document.createElement('input');
+  textField.setAttribute('type', 'text');
+  textField.setAttribute('aria-label', labelText + ' value');
+  textField.setAttribute('value', initialValue);
+  textField.classList.add('value');
+
+  // Update the live value in the text field and run the provided callback when the value changes
+  slider.addEventListener('input', (e) => {
+    textField.value = e.target.value;
+    listener(e);
+  });
+
+  // Update the range slider whenever the text field is edited directly
+  textField.addEventListener('change', (e) => {
+    slider.value = e.target.value;
+    listener(e);
+  });
+
+  component.appendChild(label);
+  component.appendChild(slider);
+  component.appendChild(textField);
+
+  idCounter++;
+
+  return component;
+}
+
+/****************************
+  Checkbox
+  - Checkboxes are native <input type="checkbox"> tags that are visible ony to screen readers.
+  - Checkboxes are styled using a visible adjacent element and CSS.
+*****************************/
+function createCheckbox(labelText, initialValue, listener) {
+  // Wrapper
+  let component = document.createElement('div');
+  component.classList.add('component', 'checkbox');
+
+  // <label> tag associated with checkbox
+  let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
+  label.innerText = labelText;
+
+  // Checkbox (<input type="checkbox" ...>)
+  let checkbox = document.createElement('input');
+  checkbox.setAttribute('id', 'input-' + idCounter);
+  checkbox.setAttribute('type', 'checkbox');
+  checkbox.classList.add('sr-only');  // hidden visually, but reachable by keyboard and screen reader
+
+  if(initialValue === true) {
+    checkbox.setAttribute('checked', 'checked');
+  }
+
+  checkbox.addEventListener('change', listener);
+
+  // Custom styled checkbox
+  let customCheckbox = document.createElement('div');
+  customCheckbox.classList.add('custom-checkbox');
+
+  // Toggle the real checkbox when the custom checkbox is clicked
+  customCheckbox.addEventListener('click', () => {
+    checkbox.click();
+  });
+
+  // Prevent Space key from bubbling up and pausing the simulation
+  checkbox.addEventListener('keydown', (e) => {
+    if(e.key == ' ') {
+      e.stopPropagation();
+    }
+  });
+
+  component.appendChild(label);
+  component.appendChild(checkbox);
+  component.appendChild(customCheckbox);
+
+  idCounter++;
+
+  return component;
+}
+
+/*******************************************************
+  Fieldset of checkboxes for birth and survival counts
+
+  <fieldset>
+    <legend>...</legend>
+    ...
+  </fieldset>
+********************************************************/
+function createCountCheckboxFieldset(type) {
+  // Fieldset (<fieldset>)
+  let fieldset = document.createElement('fieldset');
+  fieldset.classList.add('count-fieldset', 'is-scrollable');
+
+  // Legend (<legend>)
+  let legend = document.createElement('legend');
+  legend.classList.add('sr-only');
+  legend.innerText = type === 'birth' ? 'Birth counts' : 'Survival counts';
+  fieldset.appendChild(legend);
+
+  // Build and check the checkboxes based on the active rule whenever it is set
+  window.addEventListener('ruleUpdated', () => {
+    let checkboxes = [];
+
+    // Remove any checkboxes that were previously added to the group
+    fieldset.querySelectorAll('label').forEach((label) => {
+      label.remove();
+    });
+
+    let totalPossibleNeighbors = 0;
+
+    // Calculate how many neighbors are possible
+    switch(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.neighborhoodType) {
+      case _rules__WEBPACK_IMPORTED_MODULE_1__["NeighborhoodTypes"]['Moore']:
+        totalPossibleNeighbors = Math.pow(2 * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.range + 1, 2);  // equation: (2r + 1)^2
+        totalPossibleNeighbors -= !_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.includeCenter ? 1 : 0;     // subtract 1 if the center is not included
+        break;
+
+      case _rules__WEBPACK_IMPORTED_MODULE_1__["NeighborhoodTypes"]['von Neumann']:
+        totalPossibleNeighbors = 2 * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.range * (_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.range + 1);  // equation: 2r(r+1)
+        totalPossibleNeighbors += _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.includeCenter ? 1 : 0;                        // add 1 if the center is included
+        break;
+
+      default:
+        console.log('Invalid neighborhood type: ' + _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.neighborhoodType);
+        break;
+    }
+
+    // Create one checkbox for each possible neighbor count
+    for(let i=0; i < totalPossibleNeighbors; i++) {
+      let checkbox = createCountCheckbox(i, type);
+      checkboxes.push(checkbox.querySelector('input'));
+      fieldset.appendChild(checkbox);
+    }
+
+    // Check all the checkboxes that represent the appropriate neighbor counts
+    const checkedCounts = type === 'birth' ? _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.birth : _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.survival;
+
+    checkedCounts.forEach((index) => {
+      checkboxes[index].setAttribute('checked', 'checked');
+    });
+  });
+
+  return fieldset;
+}
+
+  /**
+    Single count checkbox
+
+    <label>
+      <input type="checkbox" class="sr-only">
+      <div class="custom-checkbox"></div>
+      <div class="text">...</div>
+    </label>
+  */
+  function createCountCheckbox(countNumber, type) {
+    // Wrapper (<label>)
+    let label = document.createElement('label');
+    label.classList.add('checkbox');
+
+    // Checkbox (<input type="checkbox">)
+    let checkbox = document.createElement('input');
+    checkbox.setAttribute('type', 'checkbox');
+    checkbox.classList.add('sr-only');
+
+    checkbox.addEventListener('change', (e) => {
+      const isChecked = e.target.checked;
+
+      switch(type) {
+        case 'birth':
+          const isInBirthArray = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.birth.includes(countNumber);
+
+          // If checked, add it to the birth array if it isn't there already
+          if(isChecked && !isInBirthArray) {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.birth.push(countNumber);
+          }
+
+          // If unchecked, remove it from the birth array if it exists
+          else if(!isChecked && isInBirthArray) {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.birth.splice(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.birth.indexOf(countNumber), 1);
+          }
+
+          break;
+
+        case 'survival':
+          const isInSurvivalArray = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.survival.includes(countNumber);
+
+          // If checked, add it to the survival array if it isn't there already
+          if(isChecked && !isInSurvivalArray) {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.survival.push(countNumber);
+          }
+
+          // If unchecked, remove it from the survival array if it exists
+          else if(!isChecked && isInSurvivalArray) {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.survival.splice(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.survival.indexOf(countNumber), 1);
+          }
+
+          break;
+      }
+
+      // TODO: change Preset dropdown to "Custom"
+      // TODO: update variables.activeRule.ruleString
+      // TODO: update the rule string text field
+
+      Object(_rules__WEBPACK_IMPORTED_MODULE_1__["passNeighborCountsToShader"])();
+    });
+
+    // Prevent Space key from bubbling up and pausing the simulation
+    checkbox.addEventListener('keydown', (e) => {
+      if(e.key == ' ') {
+        e.stopPropagation();
+      }
+    });
+
+    // Custom styled checkbox
+    let customCheckbox = document.createElement('div');
+    customCheckbox.classList.add('custom-checkbox');
+
+    // Number text under checkbox
+    let text = document.createElement('div');
+    text.classList.add('text');
+    text.innerText = countNumber;
+
+    label.appendChild(checkbox);
+    label.appendChild(customCheckbox);
+    label.appendChild(text);
+
+    return label;
+  }
+
+/*******************************
+  Color picker
+  - Color pickers are native <input type="color">s
+********************************/
+function createColorPicker(labelText, initialValue, listener) {
+  let component = document.createElement('div');
+  component.classList.add('component', 'color-picker');
+
+  // Label (<label>)
+  let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
+  label.innerText = labelText;
+
+  // Color picker (<input type="color")
+  let colorpicker = document.createElement('input');
+  colorpicker.setAttribute('type', 'color');
+  colorpicker.setAttribute('value', Object(_colors__WEBPACK_IMPORTED_MODULE_0__["convertRGBtoHex"])(initialValue));
+  colorpicker.setAttribute('id', 'input-' + idCounter);
+
+  colorpicker.addEventListener('input', listener);
+
+  component.appendChild(label);
+  component.appendChild(colorpicker);
+
+  idCounter++;
+
+  return component;
+}
+
+/*******************************
+  Text field input
+  - Text inputs are native <input type="text">s
+********************************/
+function createTextInput(labelText, initialValue, listener) {
+  let component = document.createElement('div');
+  component.classList.add('component', 'text-input');
+
+  // Label (<label>)
+  let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
+  label.innerText = labelText;
+
+  // Text input (<input type="text">)
+  let textInput = document.createElement('input');
+  textInput.setAttribute('type', 'text');
+  textInput.setAttribute('value', initialValue);
+  textInput.setAttribute('id', 'input-' + idCounter);
+
+  textInput.addEventListener('input', listener);
+
+  // Prevent Space key from bubbling up and pausing the simulation
+  textInput.addEventListener('keydown', (e) => {
+    if(e.key == ' ') {
+      e.stopPropagation();
+    }
+  });
+
+  component.appendChild(label);
+  component.appendChild(textInput);
+
+  idCounter++;
+
+  return component;
+}
+
+/*******************************
+  Textarea input
+  - Textarea inputs are native <textarea>s
+********************************/
+function createTextarea(labelText, initialValue, numRows, listener) {
+  let component = document.createElement('div');
+  component.classList.add('component', 'textarea');
+
+  // Label (<label>)
+  let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
+  label.innerText = labelText;
+
+  // Textarea (<textarea>)
+  let textarea = document.createElement('textarea');
+  textarea.innerText = initialValue;
+  textarea.rows = numRows;
+
+  textarea.addEventListener('input', listener);
+
+  component.appendChild(label);
+  component.appendChild(textarea);
+
+  idCounter++;
+
+  return component;
+}
+
+/***/ }),
+
+/***/ "./js/ui/controls.js":
+/*!***************************!*\
+  !*** ./js/ui/controls.js ***!
+  \***************************/
+/*! exports provided: createControlsGroup */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createControlsGroup", function() { return createControlsGroup; });
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
+/* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../patterns */ "./js/patterns.js");
+/* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../renderTargets */ "./js/renderTargets.js");
+/* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../globals */ "./js/globals.js");
+
+
+
+
+
+function createControlsGroup() {
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Controls');
+
+  // Play/pause button
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Paused', _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused, () => {
+      _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused;
+    })
+  );
+
+  // Speed slider
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Speed', 0.1, 2.0, .1, 1.0, () => {
+      console.log('speed changed');
+    })
+  );
+
+  // Restart button
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])('Restart', false, () => {
+      console.log('restart');
+      Object(_renderTargets__WEBPACK_IMPORTED_MODULE_2__["setupRenderTargets"])();
+      Object(_patterns__WEBPACK_IMPORTED_MODULE_1__["drawPattern"])();
+    })
+  );
+
+  return group;
+}
+
+/***/ }),
+
+/***/ "./js/ui/history.js":
+/*!**************************!*\
+  !*** ./js/ui/history.js ***!
+  \**************************/
+/*! exports provided: createHistoryGroup */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createHistoryGroup", function() { return createHistoryGroup; });
+/* harmony import */ var _colors__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../colors */ "./js/colors.js");
+/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../uniforms */ "./js/uniforms.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
+
+
+
+
+
+function createHistoryGroup() {
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_3__["createGroup"])('History');
+
+  window.addEventListener('ruleUpdated', () => {
+    // Get rid of any previously-added components
+    group.querySelectorAll('.component').forEach((component) => {
+      component.remove();
+    });
+
+    // Enable checkbox
+    group.appendChild(
+      Object(_components__WEBPACK_IMPORTED_MODULE_3__["createCheckbox"])('Enable history', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled, (e) => {
+        _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled = e.target.checked;
+        _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].historyEnabled.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled;
+
+        window.dispatchEvent(new Event('ruleUpdated'));
+      })
+    );
+
+    if(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled) {
+      // Number of generations (history) slider
+      group.appendChild(
+        Object(_components__WEBPACK_IMPORTED_MODULE_3__["createSlider"])('Number of generations', 1, 500, 1, 1, (e) => {
+          _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.stateCount =  2 + e.target.value;
+          _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].stateCount.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.stateCount;
+
+          /**
+          // Adjust the length of the colors array to match the new state count
+          if(variables.activeRule.stateCount < colors.length) {
+            colors.splice(variables.activeRule.stateCount, colors.length - variables.activeRule.stateCount);
+          } else if(variables.activeRule.stateCount > colors.length) {
+            while(colors.length < variables.activeRule.stateCount) {
+              colors.push(colors[colors.length-1]);
+            }
+          }
+          */
+        })
+      );
+
+      // Cyclic checkbox
+      group.appendChild(
+        Object(_components__WEBPACK_IMPORTED_MODULE_3__["createCheckbox"])('Cyclic', false, () => {
+          console.log('cyclic changed');
+        })
+      );
+    }
+  });
+
+  return group;
+}
+
+/***/ }),
+
+/***/ "./js/ui/neighborhood.js":
+/*!*******************************!*\
+  !*** ./js/ui/neighborhood.js ***!
+  \*******************************/
+/*! exports provided: createNeighborhoodGroup */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createNeighborhoodGroup", function() { return createNeighborhoodGroup; });
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
+/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../uniforms */ "./js/uniforms.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
+/* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../rules */ "./js/rules.js");
+
+
+
+
+
+function createNeighborhoodGroup() {
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Neighborhood');
+
+  // Type (Moore or von Neumann)
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Type', Object.keys(_rules__WEBPACK_IMPORTED_MODULE_3__["NeighborhoodTypes"]), null, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.neighborhoodType = _rules__WEBPACK_IMPORTED_MODULE_3__["NeighborhoodTypes"][e.target.value];
+      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].neighborhoodType.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.neighborhoodType;
+      window.dispatchEvent(new Event('ruleUpdated'));
+    })
+  );
+
+  // Range (number)
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Range', 1, 10, 1, 1, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.range = e.target.value;
+      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].range.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.range;
+      window.dispatchEvent(new Event('ruleUpdated'));
+    })
+  );
+
+  // Include center (checkbox)
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Include center', false, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.includeCenter = e.target.checked;
+      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].includeCenter.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.includeCenter;
+      window.dispatchEvent(new Event('ruleUpdated'));
+    })
+  );
+
+  return group;
+}
+
+/***/ }),
+
+/***/ "./js/ui/pattern.js":
+/*!**************************!*\
+  !*** ./js/ui/pattern.js ***!
+  \**************************/
+/*! exports provided: createPatternGroup */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createPatternGroup", function() { return createPatternGroup; });
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
+/* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../patterns */ "./js/patterns.js");
+
+
+
+
+function createPatternGroup() {
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Starting pattern');
+
+  // Dropdown for patterns
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Starting pattern', _patterns__WEBPACK_IMPORTED_MODULE_2__["InitialPatternTypes"], _variables__WEBPACK_IMPORTED_MODULE_1__["default"].activePattern, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].activePattern = e.target.value;
+      window.dispatchEvent(new Event('patternChanged'));
+    })
+  );
+
+  // Sub-panels with options for each pattern
+  window.addEventListener('patternChanged', () => {
+    // Get rid of any previously-added components
+    group.querySelectorAll('.component:not(:first-of-type), hr').forEach((component) => {
+      component.remove();
+    });
+
+    if(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].activePattern != 'Empty') {
+      group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSeperator"])() );
+    }
+
+    switch(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].activePattern) {
+      case 'Circle':
+        // Diameter slider
+        group.appendChild(
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Diameter', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.circle.diameter.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.circle.diameter.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.circle.diameter.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.circle.diameter.value = e.target.value;
+          })
+        );
+
+        break;
+
+      case 'Rectangle':
+        // Width slider
+        group.appendChild(
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Width', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.value = e.target.value;
+          })
+        );
+
+        // Height slider
+        group.appendChild(
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Height', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.value = e.target.value;
+          })
+        );
+
+        // Rotation slider
+        group.appendChild(
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Rotation', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.rotation.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.rotation.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.rotation.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.rotation.value = e.target.value;
+          })
+        );
+
+        break;
+
+      case 'Text':
+        // String - textarea
+        group.appendChild(
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createTextarea"])('String', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.string, 2, (e) => {
+
+          })
+        );
+
+        // Font face - dropdown
+        group.appendChild(
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Font face', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontFaceOptions, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.activeFontFace, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.activeFontFace = e.target.value;
+          })
+        );
+
+        // Font weight - slider
+        group.appendChild(
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Font weight', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontWeight.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontWeight.max, 100, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontWeight.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontWeight.value = e.target.value;
+          })
+        );
+
+        // Size - slider
+        group.appendChild(
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Font size', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.size.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.size.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.size.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.size.value = e.target.value;
+          })
+        );
+
+        // Rotation - slider
+        group.appendChild(
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Rotation', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.rotation.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.rotation.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.rotation.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.rotation.value = e.target.value;
+          })
+        );
+
+        break;
+
+      case 'Image':
+        // File upload
+        // Position - x and y sliders
+        // Rotation - slider
+        // Scale - slider
+        break;
+
+      case 'Random':
+        // Density
+        group.appendChild(
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Density', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.random.density.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.random.density.max, .01, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.random.density.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.random.density.value = e.target.value;
+          })
+        );
+
+        break;
+    }
+  });
+
+  window.dispatchEvent(new Event('patternChanged'));
+
+  return group
+}
+
+/***/ }),
+
+/***/ "./js/ui/rules.js":
+/*!************************!*\
+  !*** ./js/ui/rules.js ***!
+  \************************/
+/*! exports provided: createRulesGroup */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createRulesGroup", function() { return createRulesGroup; });
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
+/* harmony import */ var _presets__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../presets */ "./js/presets.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
+/* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../rules */ "./js/rules.js");
+
+
+
+
+
+function createRulesGroup() {
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Rules');
+
+  // Reduce the rule presets to a multi-dimensional array of strings for the dropdown
+  let rulesSimplified = [];
+  Object.keys(_presets__WEBPACK_IMPORTED_MODULE_1__["default"]).forEach((family) => {
+    rulesSimplified[family] = [];
+
+    Object.keys(_presets__WEBPACK_IMPORTED_MODULE_1__["default"][family]).forEach((rule) => {
+      rulesSimplified[family].push(rule);
+    });
+  });
+
+  // Dropdown for presets
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Preset', rulesSimplified, null, (e) => {
+      for(let family in _presets__WEBPACK_IMPORTED_MODULE_1__["default"]) {
+        if(_presets__WEBPACK_IMPORTED_MODULE_1__["default"][family].hasOwnProperty(e.target.value)) {
+          Object(_rules__WEBPACK_IMPORTED_MODULE_3__["setRule"])(_presets__WEBPACK_IMPORTED_MODULE_1__["default"][family][e.target.value]);
+        }
+      }
+    })
+  );
+
+    group.appendChild(Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSeperator"])());
+
+  // Text input for the rule string
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createTextInput"])('Rule', '', (e) => {
+      console.log('rule text changed');
+    })
+  );
+
+    // Set the rule when the user presses 'Enter' while on the text input
+    group.querySelector('.text-input input').addEventListener('keydown', (e) => {
+      if(e.key === 'Enter') {
+        Object(_rules__WEBPACK_IMPORTED_MODULE_3__["setRule"])(group.querySelector('.text-input input').value);
+      }
+    })
+
+    // Show the current rule string in this text input anytime it changes
+    window.addEventListener('ruleUpdated', () => {
+      group.querySelector('.text-input input').value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.ruleString;
+    });
+
+  // Button to manually set a custom rule typed into the text input
+  group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])('Set rule', true, () => {
+      Object(_rules__WEBPACK_IMPORTED_MODULE_3__["setRule"])(group.querySelector('.text-input input').value);
+    })
+  );
+
+  return group;
+}
+
+/***/ }),
+
+/***/ "./js/ui/survival.js":
+/*!***************************!*\
+  !*** ./js/ui/survival.js ***!
+  \***************************/
+/*! exports provided: createSurvivalGroup */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createSurvivalGroup", function() { return createSurvivalGroup; });
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
+
+
+function createSurvivalGroup() {
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Survival');
+
+  let countCheckboxFieldset = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCountCheckboxFieldset"])('survival');
+
+  group.appendChild(countCheckboxFieldset);
+
+  return group;
 }
 
 /***/ }),
@@ -1021,8 +2293,8 @@ let simulationUniforms = {
   resolution: {
     type: 'v2',
     value: new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value,
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].scale.value
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value
     )
   },
   mousePosition: {
@@ -1041,9 +2313,13 @@ let simulationUniforms = {
     type: 'i',
     value: 0
   },
-  includeMiddle: {
+  includeCenter: {
     type: 'b',
     value: false
+  },
+  neighborhoodType: {
+    type: 'i',
+    value: 0
   },
   range: {
     type: 'i',
@@ -1068,6 +2344,10 @@ let simulationUniforms = {
   survivalCountsLength: {
     type: 'i',
     value: null
+  },
+  historyEnabled: {
+    type: 'b',
+    value: false
   }
 };
 
@@ -1120,51 +2400,90 @@ __webpack_require__.r(__webpack_exports__);
       max: window.innerHeight,
       value: 900
     },
-    maximized: true
-  },
-  scale: {
-    min: .01,
-    max: 5,
-    value: 1
+    maximized: false,
+    unmaximizedSize: {
+      width: null,
+      height: null
+    },
+    wrap: {
+      x: true,
+      y: true
+    },
+    scale: {
+      min: .01,
+      max: 5,
+      value: 1
+    },
   },
   patterns: {
     circle: {
-      radius: {
-        min: 0.1,
-        max: 5,
+      diameter: {
+        min: 1,
+        max: 900,
         value: 200
       }
     },
     rectangle: {
       width: {
         min: 1,
-        max: window.innerWidth,
+        max: 900,
         value: 400
       },
       height: {
         min: 1,
-        max: window.innerHeight,
+        max: 900,
         value: 400
       },
       rotation: {
         min: 0,
-        max: Math.PI,
+        max: 360,
         value: 0
       }
     },
     text: {
+      string: 'Hello world!',
+      fontFaceOptions: [
+        'Arial',
+        'Courier',
+        'Garamond',
+        'Impact',
+        'Times New Roman',
+        'Verdana'
+      ],
+      activeFontFace: 'Courier',
+      fontWeight: {
+        min: 100,
+        max: 900,
+        value: 700
+      },
       size: {
         min: 1,
-        max: 100,
-        value: 200
+        max: 200,
+        value: 100
       },
       rotation: {
         min: 0,
-        max: Math.PI,
+        max: 360,
         value: 0
-      },
-      value: 'CA'
+      }
+    },
+    random: {
+      density: {
+        min: .01,
+        max: 1.0,
+        value: .2
+      }
     }
+  },
+  activePattern: 'Rectangle',
+  activeRule: {
+    birth: null,
+    survival: null,
+    stateCount: null,
+    range: null,
+    neighborhoodType: null,
+    includeCenter: null,
+    historyEnabled: null
   }
 });
 
