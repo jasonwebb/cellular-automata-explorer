@@ -12,6 +12,7 @@ uniform int range;
 uniform int stateCount;
 uniform vec2 wrapping;
 uniform bool historyEnabled;
+uniform bool cyclicEnabled;
 
 uniform sampler2D birthAndSurvivalCounts;
 uniform int birthCountsLength;
@@ -92,7 +93,9 @@ void main() {
       }
 
       if(historyEnabled && !willSurvive) {
-        nextState = mod(currentState + stateStepSize, 1.);
+        nextState = cyclicEnabled ?
+                      mod(currentState + stateStepSize, 1.) :
+                      clamp(currentState + stateStepSize, 0., 1.);
       }
     }
   }

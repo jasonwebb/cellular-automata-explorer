@@ -93,6 +93,7 @@ export default {
     range: null,
     neighborhoodType: null,
     includeCenter: null,
-    historyEnabled: null
+    historyEnabled: null,
+    cyclicEnabled: null
   }
 }

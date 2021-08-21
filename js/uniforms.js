@@ -66,6 +66,10 @@ export let simulationUniforms = {
   historyEnabled: {
     type: 'b',
     value: false
+  },
+  cyclicEnabled: {
+    type: 'b',
+    value: true
   }
 };
 

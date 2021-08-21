@@ -44,8 +44,9 @@ export function createHistoryGroup() {
 
       // Cyclic checkbox
       group.appendChild(
-        createCheckbox('Cyclic', false, () => {
-          console.log('cyclic changed');
+        createCheckbox('Cyclic', true, (e) => {
+          variables.activeRule.cyclicEnabled = e.target.checked;
+          simulationUniforms.cyclicEnabled.value = variables.activeRule.cyclicEnabled;
         })
       );
     }
