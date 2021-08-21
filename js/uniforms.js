@@ -89,6 +89,10 @@ export let displayUniforms = {
   colors: {
     type: 't',
     value: null
+  },
+  historyEnabled: {
+    type: 'b',
+    value: false
   }
 };
 

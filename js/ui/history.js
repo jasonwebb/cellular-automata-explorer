@@ -1,5 +1,4 @@
-import { colors } from '../colors';
-import { simulationUniforms } from '../uniforms';
+import { displayUniforms, simulationUniforms } from '../uniforms';
 import variables from '../variables';
 import { createGroup, createSlider, createCheckbox } from './components';
 
@@ -17,6 +16,7 @@ export function createHistoryGroup() {
       createCheckbox('Enable history', variables.activeRule.historyEnabled, (e) => {
         variables.activeRule.historyEnabled = e.target.checked;
         simulationUniforms.historyEnabled.value = variables.activeRule.historyEnabled;
+        displayUniforms.historyEnabled.value = simulationUniforms.historyEnabled.value;
 
         window.dispatchEvent(new Event('ruleUpdated'));
       })

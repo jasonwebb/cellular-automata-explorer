@@ -1,5 +1,6 @@
 import { createGroup, createColorPicker } from './components';
 import { colors, convertHexToRGB, setColors } from '../colors';
+import variables from '../variables';
 
 export function createColorsGroup() {
   let group = createGroup('Colors');
@@ -24,8 +25,10 @@ export function createColorsGroup() {
     fieldset.appendChild(legend);
 
     colors.forEach((color, index) => {
+      let label = variables.activeRule.historyEnabled ? 'Color stop ' + (index+1) : 'State ' + index;
+
       fieldset.appendChild(
-        createColorPicker('Color ' + (index+1), color, (e) => {
+        createColorPicker(label, color, (e) => {
           colors[index] = convertHexToRGB(e.target.value);
           setColors();
         })
