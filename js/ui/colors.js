@@ -17,6 +17,12 @@ export function createColorsGroup() {
     fieldset = document.createElement('fieldset');
     fieldset.classList.add('is-scrollable');
 
+    let legend = document.createElement('legend');
+    legend.classList.add('sr-only');
+    legend.innerText = 'Colors';
+
+    fieldset.appendChild(legend);
+
     colors.forEach((color, index) => {
       fieldset.appendChild(
         createColorPicker('Color ' + (index+1), color, (e) => {
