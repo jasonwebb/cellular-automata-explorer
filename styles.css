@@ -308,6 +308,28 @@ canvas {
           outline-offset: 3px;
         }
 
+    /** Textarea */
+    .panel .textarea {}
+
+      .panel .textarea textarea {
+        width: 100%;
+        padding: 5px 10px;
+        background-color: rgba(255,255,255,.1);
+        border: 1px solid var(--border-color);
+        color: rgba(255,255,255,.7);
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+        .panel .textarea textarea:hover,
+        .panel .textarea textarea:focus {
+          border: 1px solid var(--border-color--active);
+          color: rgba(255,255,255,1);
+        }
+
+        .panel .textarea textarea:focus {
+          outline-offset: 3px;
+        }
+
     /** Set of checkboxes for birth/survival counts */
     .panel .count-fieldset {
       display: flex;

@@ -426,7 +426,7 @@ export function createColorPicker(labelText, initialValue, listener) {
 }
 
 /*******************************
-  Text input
+  Text field input
   - Text inputs are native <input type="text">s
 ********************************/
 export function createTextInput(labelText, initialValue, listener) {
@@ -455,6 +455,34 @@ export function createTextInput(labelText, initialValue, listener) {
 
   component.appendChild(label);
   component.appendChild(textInput);
+
+  idCounter++;
+
+  return component;
+}
+
+/*******************************
+  Textarea input
+  - Textarea inputs are native <textarea>s
+********************************/
+export function createTextarea(labelText, initialValue, numRows, listener) {
+  let component = document.createElement('div');
+  component.classList.add('component', 'textarea');
+
+  // Label (<label>)
+  let label = document.createElement('label');
+  label.setAttribute('for', 'input-' + idCounter);
+  label.innerText = labelText;
+
+  // Textarea (<textarea>)
+  let textarea = document.createElement('textarea');
+  textarea.innerText = initialValue;
+  textarea.rows = numRows;
+
+  textarea.addEventListener('input', listener);
+
+  component.appendChild(label);
+  component.appendChild(textarea);
 
   idCounter++;
 
