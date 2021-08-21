@@ -1,3 +1,9 @@
+:root {
+  --border-color: rgba(255, 255, 255, .3);
+  --border-color--alt: rgba(255, 255, 255, .2);
+  --border-color--active: rgba(255, 255, 255, .8);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -7,8 +13,372 @@
 
 body {
   background: radial-gradient(circle, rgb(10,10,10) 20%, rgb(20,20,20) 100%);
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  overflow: hidden;
 }
 
 canvas {
   display: block;
 }
+
+/****************************
+  UI
+*****************************/
+/** Panels are the highest-level wrapper. */
+.panel {
+  position: absolute;
+  top: 0;
+  width: 275px;
+  height: 100%;
+  z-index: 100;
+
+  color: white;
+  background-color: rgba(0,0,0,.95);
+  box-shadow: 0 0 10px 3px rgba(0,0,0,.4);
+}
+
+  .panel.is-docked-left  { left: 0;  border-right: 1px solid var(--border-color); }
+  .panel.is-docked-right { right: 0; border-left: 1px solid var(--border-color);  }
+
+  /** Groups are sets of components with a heading at the top. */
+  .panel .group {
+    padding: 15px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+    .panel .group:last-of-type {
+      margin: 0;
+    }
+
+    .panel .group .heading {
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: rgba(255,255,255,1);
+    }
+
+  /** <hr>s are used as seperators between Components */
+  .panel hr {
+    border-bottom: 1px solid var(--border-color--alt);
+    margin: 8px 0;
+  }
+
+  /** Components are individual controls (sliders, dropdowns, etc). */
+  .panel .component {
+    display: block;
+    font-size: 12px;
+    color: rgba(255,255,255,.7);
+    padding: 3px 0;
+    width: 100%;
+
+    display: flex;
+    align-items: flex-start;
+  }
+
+    .panel .component.is-indented:before {
+      content: '';
+      display: block;
+      flex: 0 0 35%;
+    }
+
+    /** <label> tag */
+    .panel .component label {
+      flex: 0 0 35%;
+    }
+
+    /** <select> dropdowns */
+    .panel .dropdown label {
+      padding-top: 4px;
+    }
+
+      .panel .dropdown select {
+        flex: 1 1 auto;
+        background-color: rgb(255,255,255,.1);
+        color: rgba(255,255,255,.7);
+        padding: 5px;
+        max-width: calc(100% - 84px);
+        font-size: 12px;
+        border: 1px solid var(--border-color);
+      }
+
+        .panel .dropdown select optgroup,
+        .panel .dropdown select option {
+          background-color: rgb(0,0,0,.8);
+          color: rgba(255,255,255,.7);
+        }
+
+        .panel .dropdown select:hover,
+        .panel .dropdown select:focus {
+          border: 1px solid var(--border-color--active);
+          color: rgba(255,255,255,1);
+        }
+
+        .panel .dropdown select:focus {
+          outline-offset: 3px;
+        }
+
+    /** Sliders (<input type="range" ...>) */
+    .panel .slider input[type="range"] {
+      flex: 1 1 auto;
+      width: 100%;
+      margin-top: 5px;
+      margin-right: 10px;
+      position: relative;
+      background-color: transparent;
+      -webkit-appearance: none;
+    }
+
+      .panel .slider input[type="range"]:before {
+        position: absolute;
+        top: 4px;
+
+        content: '';
+        display: block;
+        width: 100%;
+        height: 1px;
+        background-color: var(--border-color);
+      }
+
+      .panel .slider input[type=range]::-webkit-slider-runnable-track {
+        background: transparent;
+        border: 0;
+        width: 100%;
+      }
+
+      .panel .slider input[type=range]::-webkit-slider-thumb {
+        width: 10px;
+        height: 10px;
+        background: #ffffff;
+        -webkit-appearance: none;
+      }
+
+      .panel .slider input[type=range]::-moz-range-track {
+        background: transparent;
+        border: 0;
+        width: 100%;
+      }
+
+      .panel .slider input[type=range]::-moz-range-thumb {
+        width: 10px;
+        height: 10px;
+        background: #ffffff;
+      }
+
+      .panel .slider input[type=range]::-ms-track {
+        background: transparent;
+        border: 0;
+        width: 100%;
+      }
+
+      .panel .slider input[type=range]::-ms-fill-lower {
+        background: transparent;
+        border: 0;
+      }
+
+      .panel .slider input[type=range]::-ms-fill-upper {
+        background: transparent;
+        border: 0;
+      }
+
+      .panel .slider input[type=range]::-ms-thumb {
+        width: 10px;
+        height: 10px;
+        background: #ffffff;
+        margin-top: 0px;
+        /*Needed to keep the Edge thumb centred*/
+      }
+
+      .panel .slider input[type=range]:focus {
+        outline-offset: 3px;
+      }
+
+    /** Text field with value of component. */
+    .panel .slider .value {
+      flex: 1 0 15%;
+      width: 100%;
+      padding: 2px;
+      background-color: rgba(255,255,255,.1);
+      border: 1px solid var(--border-color);
+      color: rgba(255,255,255,.7);
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+      .panel .slider .value:hover,
+      .panel .slider .value:focus {
+        border: 1px solid var(--border-color--active);
+        color: rgba(255,255,255,1);
+      }
+
+      .panel .slider .value:focus {
+        outline-offset: 3px;
+      }
+
+    /** Buttons */
+    .panel .button button {
+      padding: 8px 12px;
+      border-radius: 3px;
+      background-color: rgb(255,255,255,.1);
+      border: 1px solid var(--border-color);
+      color: rgba(255,255,255,.7);
+      font-size: 12px;
+    }
+
+      .panel .button button:hover,
+      .panel .button button:focus {
+        border: 1px solid var(--border-color--active);
+        color: rgba(255,255,255,1);
+      }
+
+      .panel .button button:focus {
+        outline-offset: 3px;
+      }
+
+    /** Checkboxes */
+    .panel .checkbox input + .custom-checkbox {
+      position: relative;
+      content: '';
+      width: 14px;
+      height: 14px;
+
+      background-color: black;
+      border: 1px solid var(--border-color);
+    }
+
+      .panel .checkbox input:checked + .custom-checkbox {
+        background-color: white;
+      }
+
+      .panel .checkbox input:checked + .custom-checkbox:after {
+        position: absolute;
+        left: 1px;
+        top: 2px;
+
+        content: '';
+        width: 8px;
+        height: 4px;
+        margin-right: 8px;
+
+        border-left: 2px solid black;
+        border-bottom: 2px solid black;
+
+        transform: rotate(-45deg);
+      }
+
+      .panel .checkbox:hover .custom-checkbox,
+      .panel .checkbox input:focus + .custom-checkbox {
+        border: 1px solid var(--border-color--active);
+      }
+
+      .panel .checkbox input:focus + .custom-checkbox {
+        outline: 5px auto Highlight;
+        outline: 5px auto -webkit-focus-ring-color;
+        outline-offset: 3px;
+      }
+
+    /** Color picker */
+    .panel .color-picker {
+      align-items: center;
+    }
+
+      .panel .color-picker input:focus {
+        outline-offset: 3px;
+      }
+
+    /** Text input */
+    .panel .text-input {
+      align-items: center;
+    }
+
+      .panel .text-input input {
+        width: 100%;
+        padding: 5px 10px;
+        background-color: rgba(255,255,255,.1);
+        border: 1px solid var(--border-color);
+        color: rgba(255,255,255,.7);
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+        .panel .text-input input:hover,
+        .panel .text-input input:focus {
+          border: 1px solid var(--border-color--active);
+          color: rgba(255,255,255,1);
+        }
+
+        .panel .text-input input:focus {
+          outline-offset: 3px;
+        }
+
+    /** Textarea */
+    .panel .textarea {}
+
+      .panel .textarea textarea {
+        width: 100%;
+        padding: 5px 10px;
+        background-color: rgba(255,255,255,.1);
+        border: 1px solid var(--border-color);
+        color: rgba(255,255,255,.7);
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+        .panel .textarea textarea:hover,
+        .panel .textarea textarea:focus {
+          border: 1px solid var(--border-color--active);
+          color: rgba(255,255,255,1);
+        }
+
+        .panel .textarea textarea:focus {
+          outline-offset: 3px;
+        }
+
+    /** Set of checkboxes for birth/survival counts */
+    .panel .count-fieldset {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+      .panel .count-fieldset label {
+        flex: 0 0 calc(100% / 9);
+        padding: 6px 0 10px 0;
+        text-align: center;
+
+        border-radius: 2px;
+        font-size: 12px;
+        color: rgba(255,255,255,.8);
+      }
+
+        .panel .count-fieldset label:hover,
+        .panel .count-fieldset label:focus-within {
+          background-color: rgba(255,255,255,.05);
+          color: white;
+        }
+
+        .panel .count-fieldset label .custom-checkbox {
+          margin-bottom: 2px;
+          display: inline-block;
+        }
+
+    /** Scrollable sections containing a variable of components. */
+    .panel .is-scrollable {
+      max-height: 150px;
+      overflow-y: scroll;
+
+      scrollbar-width: 5px;
+      scrollbar-color: transparent rgba(255,255,255,.1);
+    }
+
+      .panel .is-scrollable::-webkit-scrollbar {
+        width: 5px;
+        margin-left: 10px;
+      }
+
+      .panel .is-scrollable::-webkit-scrollbar-track {
+        background-color: rgb(255,255,255,.0);
+        border-radius: 100px;
+      }
+
+      .panel .is-scrollable::-webkit-scrollbar-thumb {
+        background-color: rgb(255,255,255,.7);
+        border-radius: 10px;
+      }

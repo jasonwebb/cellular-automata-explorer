@@ -2,21 +2,58 @@ import * as THREE from 'three';
 
 import { displayUniforms } from "./uniforms";
 
+export let colors = [
+  [0, 78, 51],     // state 0 color
+  [255, 220, 170]  // state 1 color
+]
+
 export function setColors() {
-  const numColors = 2;
-  let data = new Float32Array(numColors * 4);  // RGBA = 4 channels
+  let data = new Float32Array(colors.length * 4);  // RGBA = 4 channels
 
-  // State 0 color
-  data[0] = 0;
-  data[1] = .3;
-  data[2] = .2;
-  data[3] = 1;
+  colors.forEach((color, offset) => {
+    let normalizedColor = normalizeRGB(color);
 
-  // Sate 1 color
-  data[4] = 1;
-  data[5] = .8;
-  data[6] = .4;
-  data[7] = 1;
+    for(let i=0; i<=color.length; i++) {
+      data[i + (offset * 4)] = normalizedColor[i];
+    }
 
-  displayUniforms.colors.value = new THREE.DataTexture(data, numColors, 1, THREE.RGBAFormat, THREE.FloatType);
+    data[3 + (offset * 4)] = 0; // A channel, currently used for nothing
+  });
+
+  displayUniforms.colors.value = new THREE.DataTexture(data, colors.length, 1, THREE.RGBAFormat, THREE.FloatType);
 }
+
+  export function convertRGBtoHex(rgb) {
+    let rgbClone = [...rgb];
+
+    rgbClone[0] = rgbClone[0].toString(16);
+    rgbClone[1] = rgbClone[1].toString(16);
+    rgbClone[2] = rgbClone[2].toString(16);
+
+    if (rgbClone[0].length == 1)
+      rgbClone[0] = "0" + rgbClone[0];
+    if (rgbClone[1].length == 1)
+      rgbClone[1] = "0" + rgbClone[1];
+    if (rgbClone[2].length == 1)
+      rgbClone[0] = "0" + rgbClone[2];
+
+    return "#" + rgbClone[0] + rgbClone[1] + rgbClone[2];
+  }
+
+  export function convertHexToRGB(hex) {
+    let rgb = hex.substring(1, hex.length).match(/.{1,2}/g); // split hex string into an array of strings, 2 characters in length.
+
+    return [
+      parseInt(rgb[0], 16),
+      parseInt(rgb[1], 16),
+      parseInt(rgb[2], 16)
+    ];
+  }
+
+  export function normalizeRGB(color) {
+    return [
+      color[0] / 255,
+      color[1] / 255,
+      color[2] / 255
+    ];
+  }

@@ -6,10 +6,12 @@ uniform float brushRadius;
 
 uniform sampler2D states;
 uniform int ruleFormat;
-uniform bool includeMiddle;
+uniform bool includeCenter;
+uniform int neighborhoodType;
 uniform int range;
 uniform int stateCount;
 uniform vec2 wrapping;
+uniform bool historyEnabled;
 
 uniform sampler2D birthAndSurvivalCounts;
 uniform int birthCountsLength;
@@ -22,6 +24,10 @@ float stateStepSize;
 const int LIFE = 0;
 const int EXTENDED_LIFE = 1;
 const int GENERATIONS = 2;
+
+// Neighborhood types
+const int VON_NEUMANN = 0;
+const int MOORE = 1;
 
 float getPreviousCellState(vec2 uv) {
   uv = vec2(
@@ -36,10 +42,12 @@ int getLiveNeighborCount() {
   int total = 0;
 
   // von Neumann neighborhood
-  for(int row = -range; row <= range; row++) {
-    for(int col = -range; col <= range; col++) {
-      if(!includeMiddle && row == 0 && col == 0) continue;
-      total += getPreviousCellState(v_uv + vec2(1. / resolution.x * float(row), 1. / resolution.y * float(col))) >= stateStepSize ? 1 : 0;
+  if(neighborhoodType == 0) {
+    for(int row = -range; row <= range; row++) {
+      for(int col = -range; col <= range; col++) {
+        if(!includeCenter && row == 0 && col == 0) continue;
+        total += getPreviousCellState(v_uv + vec2(1. / resolution.x * float(row), 1. / resolution.y * float(col))) >= stateStepSize ? 1 : 0;
+      }
     }
   }
 
@@ -83,7 +91,7 @@ void main() {
         }
       }
 
-      if(ruleFormat == GENERATIONS && !willSurvive) {
+      if(historyEnabled && !willSurvive) {
         nextState = mod(currentState + stateStepSize, 1.);
       }
     }

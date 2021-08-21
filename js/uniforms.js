@@ -11,8 +11,8 @@ export let simulationUniforms = {
   resolution: {
     type: 'v2',
     value: new THREE.Vector2(
-      variables.canvas.width.value * variables.scale.value,
-      variables.canvas.height.value * variables.scale.value
+      variables.canvas.width.value * variables.canvas.scale.value,
+      variables.canvas.height.value * variables.canvas.scale.value
     )
   },
   mousePosition: {
@@ -31,9 +31,13 @@ export let simulationUniforms = {
     type: 'i',
     value: 0
   },
-  includeMiddle: {
+  includeCenter: {
     type: 'b',
     value: false
+  },
+  neighborhoodType: {
+    type: 'i',
+    value: 0
   },
   range: {
     type: 'i',
@@ -58,6 +62,10 @@ export let simulationUniforms = {
   survivalCountsLength: {
     type: 'i',
     value: null
+  },
+  historyEnabled: {
+    type: 'b',
+    value: false
   }
 };
 

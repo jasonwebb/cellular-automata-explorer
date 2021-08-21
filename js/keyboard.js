@@ -7,7 +7,7 @@ import { drawPattern } from './patterns';
 import { setupRenderTargets } from './renderTargets';
 
 export function setupKeyboard() {
-  window.addEventListener('keyup', function(e) {
+  window.addEventListener('keydown', function(e) {
     switch(e.key) {
       case ' ':
         e.preventDefault();

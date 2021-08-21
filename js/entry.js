@@ -11,12 +11,13 @@ import { setRule } from './rules';
 import { setupKeyboard } from './keyboard';
 import { setupMouse } from './mouse';
 import { setColors } from './colors';
-
+import { setupUI } from './ui';
 
 export let scene, camera, renderer, mesh;
 export let canvas;
 let bufferCanvas;
 
+setupUI();
 setup();
 setupKeyboard();
 setupMouse();
@@ -61,8 +62,16 @@ function setup() {
   setColors();
 
   // Set the rule that the shader should run
-  // setRule('23/3');  // Conway's Life
-  setRule('345/2/50');  // Generations - Burst
+
+  setRule('23/3');  // Conway's Life
+
+  // setTimeout(() => {
+  //   setRule('345/2/50');  // Generations - Burst
+  // }, 2000);
+
+  // setTimeout(() => {
+  //   setRule('45678/2478/250');  // Generations - Burst
+  // }, 5000);
 
   // Set up and render the first frame
   drawPattern();
@@ -90,14 +99,14 @@ function setup() {
 
     // Reset the resolution in the simulation code to match new container size
     simulationUniforms.resolution.value = new THREE.Vector2(
-      variables.canvas.width.value * variables.scale.value,
-      variables.canvas.height.value * variables.scale.value
+      variables.canvas.width.value * variables.canvas.scale.value,
+      variables.canvas.height.value * variables.canvas.scale.value
     );
 
     // Resize the buffer canvas
     bufferCanvas = document.querySelector('#buffer-canvas');
-    bufferCanvas.width = variables.canvas.width.value * variables.scale.value;
-    bufferCanvas.height = variables.canvas.height.value * variables.scale.value;
+    bufferCanvas.width = variables.canvas.width.value * variables.canvas.scale.value;
+    bufferCanvas.height = variables.canvas.height.value * variables.canvas.scale.value;
   }
 
 
