@@ -29,7 +29,32 @@ export function createGroup(name) {
   // Heading
   let heading = document.createElement('h2');
   heading.classList.add('heading');
-  heading.innerText = name;
+
+  // Button
+  let button = document.createElement('button');
+  button.setAttribute('aria-expanded', true);
+  button.innerHTML = name + ' <span class="fas fa-caret-down" aria-hidden="true"></span>';
+
+  button.addEventListener('click', () => {
+    let isExpanded = button.getAttribute('aria-expanded') === 'true' ? true : false;
+    button.setAttribute('aria-expanded', !isExpanded);
+
+    if(isExpanded) {
+      group.classList.add('is-collapsed');
+
+      group.querySelectorAll('.component, fieldset, hr').forEach((element) => {
+        element.classList.add('is-hidden');
+      });
+    } else {
+      group.classList.remove('is-collapsed');
+
+      group.querySelectorAll('.component, fieldset, hr').forEach((element) => {
+        element.classList.remove('is-hidden');
+      });
+    }
+  });
+
+  heading.appendChild(button);
   group.appendChild(heading);
 
   return group;

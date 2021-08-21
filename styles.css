@@ -21,6 +21,10 @@ canvas {
   display: block;
 }
 
+.is-hidden {
+  display: none !important;
+}
+
 /****************************
   UI
 *****************************/
@@ -46,18 +50,53 @@ canvas {
     padding-bottom: 25px;
   }
 
-    .panel .group .heading {
-      margin-bottom: 10px;
-      font-size: 14px;
-      font-weight: 700;
-      color: rgba(255,255,255,1);
-
-      background-color: black;
-      background: linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(0,0,0,0) 80%);
-      padding: 8px 15px 9px 15px;
-      border-top: 1px solid rgba(255,255,255,.22);
-      border-bottom: 1px solid rgba(255,255,255,.1);
+    .panel .group.is-collapsed {
+      padding-bottom: 0px;
     }
+
+    .panel .group .heading {}
+
+      .panel .group .heading button {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 8px 15px 9px 15px;
+
+        text-align: left;
+        font-size: 14px;
+        font-weight: 700;
+        color: rgba(255,255,255,1);
+
+        background-color: black;
+        background: linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(0,0,0,0) 80%);
+
+        border: 0;
+        border-top: 1px solid rgba(255,255,255,.22);
+        border-bottom: 1px solid rgba(255,255,255,.15);
+
+        cursor: pointer;
+      }
+
+        .panel .group .heading button[aria-expanded="false"] {
+          margin-bottom: 2px;
+        }
+
+        .panel .group .heading button:hover,
+        .panel .group .heading button:focus {
+          border-top-color: rgba(255, 255, 255, .35);
+          border-bottom-color: rgba(255, 255, 255, .3);
+          background: linear-gradient(180deg, rgba(255,255,255,.16) 0%, rgba(0,0,0,0) 80%);
+        }
+
+        /** Caret icon */
+        .panel .group .heading button span {
+          float: right;
+          opacity: .6;
+        }
+
+        .panel .group .heading button[aria-expanded="true"] span {
+          transform: rotate(180deg);
+        }
 
   /** <hr>s are used as seperators between Components */
   .panel hr {
