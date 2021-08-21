@@ -68,7 +68,9 @@ export function drawPattern(type = variables.activePattern) {
 
     case 'Text':
       bufferCanvasCtx.fillStyle = '#fff';
-      bufferCanvasCtx.font = '900 ' + variables.patterns.text.size.value * variables.canvas.scale.value + 'px Arial';
+      bufferCanvasCtx.font = variables.patterns.text.fontWeight.value + ' ' +
+                             variables.patterns.text.size.value * variables.canvas.scale.value + 'px ' +
+                             variables.patterns.text.activeFontFace;
       bufferCanvasCtx.textAlign = 'center';
 
       bufferCanvasCtx.translate(centerX, centerY);

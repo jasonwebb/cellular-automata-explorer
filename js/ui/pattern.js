@@ -1,4 +1,4 @@
-import { createGroup, createDropdown, createSlider, createTextarea } from './components';
+import { createGroup, createDropdown, createSlider, createTextarea, createSeperator } from './components';
 import variables from '../variables';
 import { InitialPatternTypes } from '../patterns';
 
@@ -16,9 +16,13 @@ export function createPatternGroup() {
   // Sub-panels with options for each pattern
   window.addEventListener('patternChanged', () => {
     // Get rid of any previously-added components
-    group.querySelectorAll('.component:not(:first-of-type)').forEach((component) => {
+    group.querySelectorAll('.component:not(:first-of-type), hr').forEach((component) => {
       component.remove();
     });
+
+    if(variables.activePattern != 'Empty') {
+      group.appendChild( createSeperator() );
+    }
 
     switch(variables.activePattern) {
       case 'Circle':
@@ -64,6 +68,18 @@ export function createPatternGroup() {
         );
 
         // Font face - dropdown
+        group.appendChild(
+          createDropdown('Font face', variables.patterns.text.fontFaceOptions, variables.patterns.text.activeFontFace, (e) => {
+            variables.patterns.text.activeFontFace = e.target.value;
+          })
+        );
+
+        // Font weight - slider
+        group.appendChild(
+          createSlider('Font weight', variables.patterns.text.fontWeight.min, variables.patterns.text.fontWeight.max, 100, variables.patterns.text.fontWeight.value, (e) => {
+            variables.patterns.text.fontWeight.value = e.target.value;
+          })
+        );
 
         // Size - slider
         group.appendChild(

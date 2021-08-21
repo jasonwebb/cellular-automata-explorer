@@ -52,6 +52,20 @@ export default {
     },
     text: {
       string: 'Hello world!',
+      fontFaceOptions: [
+        'Arial',
+        'Courier',
+        'Garamond',
+        'Impact',
+        'Times New Roman',
+        'Verdana'
+      ],
+      activeFontFace: 'Courier',
+      fontWeight: {
+        min: 100,
+        max: 900,
+        value: 700
+      },
       size: {
         min: 1,
         max: 200,
@@ -59,7 +73,7 @@ export default {
       },
       rotation: {
         min: 0,
-        max: Math.PI,
+        max: 360,
         value: 0
       }
     },
