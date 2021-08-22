@@ -6,11 +6,11 @@
 
 import * as THREE from 'three';
 
-import variables from './variables';
 import { displayUniforms, passthroughUniforms } from './uniforms';
 import { displayMaterial, passthroughMaterial } from './materials';
 import { scene, camera, renderer, mesh } from './entry';
 import { renderTargets } from './renderTargets';
+import variables from './variables';
 
 let bufferImage, bufferCanvas, bufferCanvasCtx;
 

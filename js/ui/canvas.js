@@ -1,7 +1,7 @@
 import { createGroup, createSlider, createCheckbox, createSeperator } from './components';
-import variables from '../variables'
 import { resetTextureSizes } from '../entry';
 import { simulationUniforms } from '../uniforms';
+import variables from '../variables'
 
 export function createCanvasGroup() {
   let group = createGroup('Canvas');

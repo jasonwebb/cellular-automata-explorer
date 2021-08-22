@@ -2,9 +2,9 @@
 //  KEYBOARD CONTROLS
 //==============================================================
 
-import globals from './globals';
 import { drawPattern } from './patterns';
 import { setupRenderTargets } from './renderTargets';
+import globals from './globals';
 
 export function setupKeyboard() {
   window.addEventListener('keydown', function(e) {

@@ -1,7 +1,7 @@
 import { createGroup, createDropdown, createTextInput, createButton, createSeperator } from './components';
+import { setRule } from '../rules';
 import presets from '../presets';
 import variables from '../variables';
-import { setRule } from '../rules';
 
 export function createRulesGroup() {
   let group = createGroup('Rules');

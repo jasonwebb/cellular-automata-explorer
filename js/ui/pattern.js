@@ -1,6 +1,6 @@
 import { createGroup, createDropdown, createSlider, createTextarea, createSeperator } from './components';
-import variables from '../variables';
 import { InitialPatternTypes } from '../patterns';
+import variables from '../variables';
 
 export function createPatternGroup() {
   let group = createGroup('Starting pattern');

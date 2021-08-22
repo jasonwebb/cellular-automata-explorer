@@ -1,7 +1,7 @@
 import { createGroup, createDropdown, createSlider, createCheckbox } from './components';
 import { simulationUniforms } from '../uniforms';
-import variables from '../variables';
 import { NeighborhoodTypes } from '../rules';
+import variables from '../variables';
 
 export function createNeighborhoodGroup() {
   let group = createGroup('Neighborhood');

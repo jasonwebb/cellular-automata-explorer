@@ -15,8 +15,8 @@ import * as THREE from 'three';
 import * as parser from 'cellular-automata-rule-parser';
 
 import { simulationUniforms } from './uniforms';
-import variables from './variables';
 import presets from './presets';
+import variables from './variables';
 
 export const NeighborhoodTypes = {
   'Moore': 0,

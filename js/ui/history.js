@@ -1,6 +1,6 @@
+import { createGroup, createSlider, createCheckbox } from './components';
 import { displayUniforms, simulationUniforms } from '../uniforms';
 import variables from '../variables';
-import { createGroup, createSlider, createCheckbox } from './components';
 
 export function createHistoryGroup() {
   let group = createGroup('History');
