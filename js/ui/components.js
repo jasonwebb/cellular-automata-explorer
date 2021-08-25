@@ -68,6 +68,13 @@ export function createSeperator() {
   return document.createElement('hr');
 }
 
+export function createRow() {
+  let row = document.createElement('div')
+  row.classList.add('row');
+
+  return row;
+}
+
 /****************************
   Dropdown
   - Dropdowns are <select> tags with associated <label>s.
@@ -150,10 +157,43 @@ export function createButton(buttonText, isIndented = false, listener) {
 
   // <button> tag
   let button = document.createElement('button');
-  button.innerText = buttonText;
+  button.innerHTML = buttonText;
 
   // Run the provided callback when activated
   button.addEventListener('click', listener);
+
+  // Prevent Space key from bubbling up and pausing the simulation
+  button.addEventListener('keydown', (e) => {
+    if(e.key == ' ') {
+      e.stopPropagation();
+    }
+  });
+
+  component.appendChild(button);
+
+  return component;
+}
+
+/**********************************
+  Toggle button
+  - Toggle buttons are a button with an on/off state
+**********************************/
+export function createToggleButton(buttonText, initialState, listener) {
+  // Wrapper
+  let component = document.createElement('div');
+  component.classList.add('component', 'button');
+
+  // <button> tag
+  let button = document.createElement('button');
+  button.setAttribute('aria-pressed', initialState);
+  button.innerHTML = buttonText;
+
+  // Run the provided callback when activated
+  button.addEventListener('click', () => {
+    let isPressed = button.getAttribute('aria-pressed') === 'true' ? true : false;
+    button.setAttribute('aria-pressed', !isPressed);
+    listener();
+  });
 
   // Prevent Space key from bubbling up and pausing the simulation
   button.addEventListener('keydown', (e) => {
