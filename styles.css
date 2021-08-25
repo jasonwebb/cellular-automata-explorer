@@ -281,6 +281,7 @@ canvas {
       border: 1px solid var(--border-color);
       color: rgba(255,255,255,.7);
       font-size: 12px;
+      cursor: pointer;
     }
 
       .panel .button button:hover,
