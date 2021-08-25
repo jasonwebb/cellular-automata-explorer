@@ -93,7 +93,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "varying vec2 v_uv;\nuniform sampler2D textureToDisplay;\nuniform sampler2D colors;\nvoid main() {\n\tfloat state = texture2D(textureToDisplay, v_uv).r;\n\tgl_FragColor = texture2D(colors, vec2(state, 0));\n}\n"
+module.exports = "varying vec2 v_uv;\nuniform sampler2D textureToDisplay;\nuniform sampler2D colors;\nuniform bool historyEnabled;\nvoid main() {\n\tfloat state = texture2D(textureToDisplay, v_uv).r;\n\tvec4 outputColor = vec4(0, 0, 0, 0);\n\tif (historyEnabled) {\n\t\toutputColor = mix(texture2D(colors, vec2(0, 0)), texture2D(colors, vec2(1, 0)), state);\n\t}\n\telse {\n\t\toutputColor = texture2D(colors, vec2(state, 0));\n\t}\n\tgl_FragColor = outputColor;\n}\n"
 
 /***/ }),
 
@@ -137,7 +137,7 @@ module.exports = "varying vec2 v_uv;\nvoid main() {\n\tv_uv = uv;\n\tgl_Position
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "varying vec2 v_uv;\nuniform vec2 resolution;\nuniform vec2 mousePosition;\nuniform float brushRadius;\nuniform sampler2D states;\nuniform int ruleFormat;\nuniform bool includeCenter;\nuniform int neighborhoodType;\nuniform int range;\nuniform int stateCount;\nuniform vec2 wrapping;\nuniform bool historyEnabled;\nuniform sampler2D birthAndSurvivalCounts;\nuniform int birthCountsLength;\nuniform int survivalCountsLength;\nvec2 texelStepSize;\nfloat stateStepSize;\nconst int LIFE = 0;\nconst int EXTENDED_LIFE = 1;\nconst int GENERATIONS = 2;\nconst int VON_NEUMANN = 0;\nconst int MOORE = 1;\nfloat getPreviousCellState(vec2 uv) {\n\tuv = vec2(bool(wrapping.x) ? mod(uv.x, 1.) : uv.x, bool(wrapping.y) ? mod(uv.y, 1.) : uv.y);\n\treturn texture2D(states, uv)[0];\n}\nint getLiveNeighborCount() {\n\tint total = 0;\n\tif (neighborhoodType == 0) {\n\t\tfor (int row = -range; row <= range; row++) {\n\t\t\tfor (int col = -range; col <= range; col++) {\n\t\t\t\tif ((!includeCenter && (row == 0)) && (col == 0))\n\t\t\t\t\tcontinue;\n\t\t\t\ttotal += (getPreviousCellState(v_uv + vec2((1. / resolution.x) * float(row), (1. / resolution.y) * float(col))) >= stateStepSize ? 1 : 0);\n\t\t\t}\n\t\t}\n\t}\n\treturn total;\n}\nvoid main() {\n\ttexelStepSize = 1. / resolution;\n\tstateStepSize = 1. / float(stateCount - 1);\n\tfloat currentState = getPreviousCellState(v_uv);\n\tfloat nextState = 0.;\n\tint liveNeighbors = getLiveNeighborCount();\n\tif (((ruleFormat == LIFE) || (ruleFormat == EXTENDED_LIFE)) || (ruleFormat == GENERATIONS)) {\n\t\tif (currentState == 0.) {\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < birthCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(birthCountsLength)) * float(i), 0)).r * 255.)) {\n\t\t\t\t\t\tnextState = stateStepSize;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse if (currentState >= stateStepSize) {\n\t\t\tbool willSurvive = false;\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < survivalCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(survivalCountsLength)) * float(i), 0)).g * 255.)) {\n\t\t\t\t\t\tnextState = currentState;\n\t\t\t\t\t\twillSurvive = true;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t\tif (historyEnabled && !willSurvive) {\n\t\t\t\tnextState = mod(currentState + stateStepSize, 1.);\n\t\t\t}\n\t\t}\n\t}\n\tif ((mousePosition.x > 0.0) && (mousePosition.y > 0.0)) {\n\t\tfloat distToMouse = distance(mousePosition * resolution, v_uv * resolution);\n\t\tif (distToMouse < brushRadius) {\n\t\t\tnextState = 1.;\n\t\t}\n\t}\n\tgl_FragColor = vec4(nextState, 0., 0., 1.);\n}\n"
+module.exports = "varying vec2 v_uv;\nuniform vec2 resolution;\nuniform vec2 mousePosition;\nuniform float brushRadius;\nuniform sampler2D states;\nuniform int ruleFormat;\nuniform bool includeCenter;\nuniform int neighborhoodType;\nuniform int range;\nuniform int stateCount;\nuniform vec2 wrapping;\nuniform bool historyEnabled;\nuniform bool cyclicEnabled;\nuniform sampler2D birthAndSurvivalCounts;\nuniform int birthCountsLength;\nuniform int survivalCountsLength;\nvec2 texelStepSize;\nfloat stateStepSize;\nconst int LIFE = 0;\nconst int EXTENDED_LIFE = 1;\nconst int GENERATIONS = 2;\nconst int MOORE = 0;\nconst int VON_NEUMANN = 1;\nfloat getPreviousCellState(vec2 uv) {\n\tuv = vec2(bool(wrapping.x) ? mod(uv.x, 1.) : uv.x, bool(wrapping.y) ? mod(uv.y, 1.) : uv.y);\n\treturn texture2D(states, uv)[0];\n}\nfloat manhattanDistance(vec2 p1, vec2 p2) {\n\tfloat d1 = abs(p1.x - p2.x);\n\tfloat d2 = abs(p1.y - p2.y);\n\treturn d1 + d2;\n}\nint getLiveNeighborCount() {\n\tint total = 0;\n\tfor (int row = -range; row <= range; row++) {\n\t\tfor (int col = -range; col <= range; col++) {\n\t\t\tif (((!includeCenter && (row == 0)) && (col == 0)) || ((neighborhoodType == VON_NEUMANN) && (manhattanDistance(vec2(0, 0), vec2(row, col)) > float(range)))) {\n\t\t\t\tcontinue;\n\t\t\t}\n\t\t\ttotal += (getPreviousCellState(v_uv + vec2((1. / resolution.x) * float(row), (1. / resolution.y) * float(col))) >= stateStepSize ? 1 : 0);\n\t\t}\n\t}\n\treturn total;\n}\nvoid main() {\n\ttexelStepSize = 1. / resolution;\n\tstateStepSize = 1. / float(stateCount - 1);\n\tfloat currentState = getPreviousCellState(v_uv);\n\tfloat nextState = 0.;\n\tint liveNeighbors = getLiveNeighborCount();\n\tif (((ruleFormat == LIFE) || (ruleFormat == EXTENDED_LIFE)) || (ruleFormat == GENERATIONS)) {\n\t\tif (currentState == 0.) {\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < birthCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(birthCountsLength)) * float(i), 0)).r * 255.)) {\n\t\t\t\t\t\tnextState = stateStepSize;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse if (currentState >= stateStepSize) {\n\t\t\tbool willSurvive = false;\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < survivalCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(survivalCountsLength)) * float(i), 0)).g * 255.)) {\n\t\t\t\t\t\tnextState = currentState;\n\t\t\t\t\t\twillSurvive = true;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t\tif (historyEnabled && !willSurvive) {\n\t\t\t\tnextState = cyclicEnabled ? mod(currentState + stateStepSize, 1.) : clamp(currentState + stateStepSize, 0., 1.);\n\t\t\t}\n\t\t}\n\t}\n\tif ((mousePosition.x > 0.0) && (mousePosition.y > 0.0)) {\n\t\tfloat distToMouse = distance(mousePosition * resolution, v_uv * resolution);\n\t\tif (distToMouse < brushRadius) {\n\t\t\tnextState = 1.;\n\t\t}\n\t}\n\tgl_FragColor = vec4(nextState, 0., 0., 1.);\n}\n"
 
 /***/ }),
 
@@ -436,9 +436,9 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupKeyboard", function() { return setupKeyboard; });
-/* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./globals */ "./js/globals.js");
-/* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
-/* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
+/* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
+/* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
+/* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./globals */ "./js/globals.js");
 //==============================================================
 //  KEYBOARD CONTROLS
 //==============================================================
@@ -452,12 +452,12 @@ function setupKeyboard() {
     switch(e.key) {
       case ' ':
         e.preventDefault();
-        _globals__WEBPACK_IMPORTED_MODULE_0__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_0__["default"].isPaused;
+        _globals__WEBPACK_IMPORTED_MODULE_2__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_2__["default"].isPaused;
         break;
 
       case 'r':
-        Object(_renderTargets__WEBPACK_IMPORTED_MODULE_2__["setupRenderTargets"])();
-        Object(_patterns__WEBPACK_IMPORTED_MODULE_1__["drawPattern"])();
+        Object(_renderTargets__WEBPACK_IMPORTED_MODULE_1__["setupRenderTargets"])();
+        Object(_patterns__WEBPACK_IMPORTED_MODULE_0__["drawPattern"])();
         break;
     }
   });
@@ -664,11 +664,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "InitialPatternTypes", function() { return InitialPatternTypes; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "drawPattern", function() { return drawPattern; });
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
-/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
-/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
-/* harmony import */ var _materials__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./materials */ "./js/materials.js");
-/* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./entry */ "./js/entry.js");
-/* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
+/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
+/* harmony import */ var _materials__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./materials */ "./js/materials.js");
+/* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./entry */ "./js/entry.js");
+/* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
 //==============================================================
 //  INITIAL TEXTURE
 //  - To start (or reset) the simulation, we need to "seed"
@@ -694,7 +694,7 @@ const InitialPatternTypes = [
   'Empty',
 ];
 
-function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].activePattern) {
+function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].activePattern) {
   // Grab the invisible canvas context that we can draw initial image data into
   bufferCanvas = document.querySelector('#buffer-canvas');
   bufferCanvasCtx = bufferCanvas.getContext('2d');
@@ -704,16 +704,16 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].a
 
   // Clear the invisible canvas
   bufferCanvasCtx.fillStyle = '#000';
-  bufferCanvasCtx.fillRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value);
+  bufferCanvasCtx.fillRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value);
 
   // Build initial simulation texture data and pass it on to the render targets
-  const centerX = (_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value) / 2,
-        centerY = (_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value) / 2;
+  const centerX = (_variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value) / 2,
+        centerY = (_variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value) / 2;
 
   switch(type) {
     case 'Circle':
       bufferCanvasCtx.beginPath();
-      bufferCanvasCtx.arc(centerX, centerY, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.circle.diameter.value/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value, 0, Math.PI*2);
+      bufferCanvasCtx.arc(centerX, centerY, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.circle.diameter.value/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value, 0, Math.PI*2);
       bufferCanvasCtx.fillStyle = '#fff';
       bufferCanvasCtx.fill();
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
@@ -723,14 +723,14 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].a
       bufferCanvasCtx.fillStyle = '#fff';
 
       bufferCanvasCtx.translate(centerX, centerY);
-      bufferCanvasCtx.rotate(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.rotation.value * Math.PI / 180);
+      bufferCanvasCtx.rotate(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.rotation.value * Math.PI / 180);
       bufferCanvasCtx.translate(-centerX, -centerY);
 
       bufferCanvasCtx.fillRect(
-        centerX - _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.value/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
-        centerY - _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.value/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value
+        centerX - _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.width.value/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
+        centerY - _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.height.value/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
+        _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
+        _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value
       );
 
       bufferCanvasCtx.resetTransform();
@@ -739,17 +739,17 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].a
 
     case 'Text':
       bufferCanvasCtx.fillStyle = '#fff';
-      bufferCanvasCtx.font = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontWeight.value + ' ' +
-                             _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.size.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value + 'px ' +
-                             _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.activeFontFace;
+      bufferCanvasCtx.font = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.text.fontWeight.value + ' ' +
+                             _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.text.size.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value + 'px ' +
+                             _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.text.activeFontFace;
       bufferCanvasCtx.textAlign = 'center';
 
       bufferCanvasCtx.translate(centerX, centerY);
-      bufferCanvasCtx.rotate(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.rotation.value * Math.PI / 180);
+      bufferCanvasCtx.rotate(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.text.rotation.value * Math.PI / 180);
       bufferCanvasCtx.translate(-centerY, -centerY);
 
       bufferCanvasCtx.fillText(
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.string,
+        _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.text.string,
         centerX, centerY
       );
 
@@ -758,8 +758,8 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].a
       break;
 
     case 'Image':
-      if(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.image != null) {
-        getImagePixels(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.image, centerX, centerY)
+      if(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.image != null) {
+        getImagePixels(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.image, centerX, centerY)
           .then((initialData) => {
             renderInitialDataToRenderTargets(initialData);
           })
@@ -770,10 +770,10 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].a
       break;
 
     case 'Random':
-      let pixels = bufferCanvasCtx.getImageData(0, 0, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value);
+      let pixels = bufferCanvasCtx.getImageData(0, 0, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value);
 
       for(let i=0; i<pixels.data.length; i+=4) {
-        pixels.data[i] = Math.random() < _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.random.density.value ? 255 : 0;
+        pixels.data[i] = Math.random() < _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.random.density.value ? 255 : 0;
       }
 
       bufferCanvasCtx.putImageData(pixels, 0, 0);
@@ -781,7 +781,7 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].a
       break;
 
     case 'Empty':
-      bufferCanvasCtx.clearRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value);
+      bufferCanvasCtx.clearRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value);
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
   }
@@ -791,8 +791,8 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].a
     // Put the initial data into a texture format that ThreeJS can pass into the render targets
     let texture = new three__WEBPACK_IMPORTED_MODULE_0__["DataTexture"](
       initialData,
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
+      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
+      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
       three__WEBPACK_IMPORTED_MODULE_0__["RGBAFormat"],
       three__WEBPACK_IMPORTED_MODULE_0__["FloatType"]
     );
@@ -800,24 +800,24 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].a
     texture.needsUpdate = true;
 
     // Pass the DataTexture to the passthrough material
-    _uniforms__WEBPACK_IMPORTED_MODULE_2__["passthroughUniforms"].textureToDisplay.value = texture;
+    _uniforms__WEBPACK_IMPORTED_MODULE_1__["passthroughUniforms"].textureToDisplay.value = texture;
 
     // Activate the passthrough material
-    _entry__WEBPACK_IMPORTED_MODULE_4__["mesh"].material = _materials__WEBPACK_IMPORTED_MODULE_3__["passthroughMaterial"];
+    _entry__WEBPACK_IMPORTED_MODULE_3__["mesh"].material = _materials__WEBPACK_IMPORTED_MODULE_2__["passthroughMaterial"];
 
     // Render the DataTexture into both of the render targets
     for(let i=0; i<2; i++) {
-      _entry__WEBPACK_IMPORTED_MODULE_4__["renderer"].setRenderTarget(_renderTargets__WEBPACK_IMPORTED_MODULE_5__["renderTargets"][i]);
-      _entry__WEBPACK_IMPORTED_MODULE_4__["renderer"].render(_entry__WEBPACK_IMPORTED_MODULE_4__["scene"], _entry__WEBPACK_IMPORTED_MODULE_4__["camera"]);
+      _entry__WEBPACK_IMPORTED_MODULE_3__["renderer"].setRenderTarget(_renderTargets__WEBPACK_IMPORTED_MODULE_4__["renderTargets"][i]);
+      _entry__WEBPACK_IMPORTED_MODULE_3__["renderer"].render(_entry__WEBPACK_IMPORTED_MODULE_3__["scene"], _entry__WEBPACK_IMPORTED_MODULE_3__["camera"]);
     }
 
     // Switch back to the display material and pass along the initial rendered texture
-    _uniforms__WEBPACK_IMPORTED_MODULE_2__["displayUniforms"].textureToDisplay.value = _renderTargets__WEBPACK_IMPORTED_MODULE_5__["renderTargets"][0].texture;
-    _entry__WEBPACK_IMPORTED_MODULE_4__["mesh"].material = _materials__WEBPACK_IMPORTED_MODULE_3__["displayMaterial"];
+    _uniforms__WEBPACK_IMPORTED_MODULE_1__["displayUniforms"].textureToDisplay.value = _renderTargets__WEBPACK_IMPORTED_MODULE_4__["renderTargets"][0].texture;
+    _entry__WEBPACK_IMPORTED_MODULE_3__["mesh"].material = _materials__WEBPACK_IMPORTED_MODULE_2__["displayMaterial"];
 
     // Set the render target back to the default display buffer and render the first frame
-    _entry__WEBPACK_IMPORTED_MODULE_4__["renderer"].setRenderTarget(null);
-    _entry__WEBPACK_IMPORTED_MODULE_4__["renderer"].render(_entry__WEBPACK_IMPORTED_MODULE_4__["scene"], _entry__WEBPACK_IMPORTED_MODULE_4__["camera"]);
+    _entry__WEBPACK_IMPORTED_MODULE_3__["renderer"].setRenderTarget(null);
+    _entry__WEBPACK_IMPORTED_MODULE_3__["renderer"].render(_entry__WEBPACK_IMPORTED_MODULE_3__["scene"], _entry__WEBPACK_IMPORTED_MODULE_3__["camera"]);
   }
 
   function getImagePixels(imageData, centerX, centerY) {
@@ -826,26 +826,26 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].a
       bufferImage.src = imageData;
 
       bufferImage.addEventListener('load', () => {
-        bufferCanvasCtx.translate(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.scale, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.scale);
-        bufferCanvasCtx.rotate(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.rotation * Math.PI / 180);
-        bufferCanvasCtx.translate(-_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.scale, -_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height/2 * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.scale);
+        bufferCanvasCtx.translate(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale);
+        bufferCanvasCtx.rotate(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.rotation * Math.PI / 180);
+        bufferCanvasCtx.translate(-_variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale, -_variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale);
 
         let startX, startY, width, height;
 
-        switch(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.fit) {
+        switch(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.fit) {
           // None - use the image's true dimensions
           case 0:
             startX = centerX - bufferImage.width/2;
             startY = centerY - bufferImage.height/2;
-            width = bufferImage.width * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.scale;
-            height = bufferImage.height * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.image.scale;
+            width = bufferImage.width * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale;
+            height = bufferImage.height * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale;
             break;
 
           // Scale - scale the image up or down to fit the canvas without stretching
           // https://stackoverflow.com/a/50165098
           case 1:
-            const widthRatio = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width / bufferImage.width,
-                  heightRatio = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height / bufferImage.height,
+            const widthRatio = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width / bufferImage.width,
+                  heightRatio = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height / bufferImage.height,
                   bestFitRatio = Math.min(widthRatio, heightRatio),
                   scaledWidth = bufferImage.width * bestFitRatio,
                   scaledHeight = bufferImage.height * bestFitRatio;
@@ -860,8 +860,8 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].a
           case 2:
             startX = 0;
             startY = 0;
-            width = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width;
-            height = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height;
+            width = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width;
+            height = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height;
             break;
         }
 
@@ -877,8 +877,8 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].a
   function convertPixelsToTextureData() {
     let pixels = bufferCanvasCtx.getImageData(
       0, 0,
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value
+      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
+      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value
     ).data;
 
     let data = new Float32Array(pixels.length);
@@ -999,8 +999,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var cellular_automata_rule_parser__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! cellular-automata-rule-parser */ "./node_modules/cellular-automata-rule-parser/index.js");
 /* harmony import */ var cellular_automata_rule_parser__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(cellular_automata_rule_parser__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
-/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
-/* harmony import */ var _presets__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./presets */ "./js/presets.js");
+/* harmony import */ var _presets__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./presets */ "./js/presets.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
 /**********************
  Structure of object returned by the parser:
  {
@@ -1044,29 +1044,30 @@ function setRule(ruleString) {
   }
 
   // Capture the rule information in a globally-available object to display in the UI
-  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.ruleString = ruleString;
-  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.ruleFormat = ruleFormatNumber;
-  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.stateCount = rule.stateCount || 2;
-  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.birth = rule.birth;
-  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.survival = rule.survival;
-  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.neighborhoodType = rule.neighborhoodType || NeighborhoodTypes['Moore'];
-  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range = rule.neighborhoodRange || 1;
-  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.includeCenter = false;
-  _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.historyEnabled = rule.ruleFormat === 'generations' ? true : false;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.ruleString = ruleString;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.ruleFormat = ruleFormatNumber;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.stateCount = rule.stateCount || 2;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth = rule.birth;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival = rule.survival;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.neighborhoodType = rule.neighborhoodType || NeighborhoodTypes['Moore'];
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.range = rule.neighborhoodRange || 1;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.includeCenter = false;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.historyEnabled = rule.ruleFormat === 'generations' ? true : false;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.cyclicEnabled = true;
 
   // Pass all the rule information to the shader
-  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].ruleFormat.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.ruleFormat;
-  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].stateCount.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.stateCount;
-  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].neighborhoodType.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.neighborhoodType;
-  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].range.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range;
-  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].includeCenter.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.includeCenter;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].ruleFormat.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.ruleFormat;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].stateCount.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.stateCount;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].neighborhoodType.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.neighborhoodType;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].range.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.range;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].includeCenter.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.includeCenter;
 
   // Encode the birth and survival arrays into a texture and pass to the shader
   passNeighborCountsToShader();
 
   // Select the appropriate preset in the Rule panel, if it matches.
-  Object.keys(_presets__WEBPACK_IMPORTED_MODULE_4__["default"]).forEach((family) => {
-    const key = Object.keys(_presets__WEBPACK_IMPORTED_MODULE_4__["default"][family]).find(key => _presets__WEBPACK_IMPORTED_MODULE_4__["default"][family][key] === ruleString);
+  Object.keys(_presets__WEBPACK_IMPORTED_MODULE_3__["default"]).forEach((family) => {
+    const key = Object.keys(_presets__WEBPACK_IMPORTED_MODULE_3__["default"][family]).find(key => _presets__WEBPACK_IMPORTED_MODULE_3__["default"][family][key] === ruleString);
 
     if(key !== undefined) {
       let presetsDropdown = document.getElementById('input-0');
@@ -1091,16 +1092,16 @@ function setRule(ruleString) {
 
   function passNeighborCountsToShader() {
     // Pass the total numbers of birth and survival counts to the shader
-    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].birthCountsLength.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.birth.length;
-    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].survivalCountsLength.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.survival.length;
+    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].birthCountsLength.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth.length;
+    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].survivalCountsLength.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival.length;
 
     // Convert the birth and survival arrays into a single DataTexture and pass it into the shader
-    const longestLength = Math.max(_variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.birth.length, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.survival.length);
+    const longestLength = Math.max(_variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth.length, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival.length);
     let data = new Float32Array(longestLength * 4);  // RGBA = 4 channels
 
     for(let i=0; i<longestLength; i++) {
-      data[i * 4] = i < _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.birth.length ? _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.birth[i] / 255 : 0;            // encode birth into R channel
-      data[i * 4 + 1] = i < _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.survival.length ? _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.survival[i] / 255 : 0;  // encode survival into G channel
+      data[i * 4] = i < _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth.length ? _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth[i] / 255 : 0;            // encode birth into R channel
+      data[i * 4 + 1] = i < _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival.length ? _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival[i] / 255 : 0;  // encode survival into G channel
     }
 
     // Pass the birth and survival data to the shader as a data texture
@@ -1211,9 +1212,9 @@ function createBirthGroup() {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createCanvasGroup", function() { return createCanvasGroup; });
 /* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
-/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
-/* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../entry */ "./js/entry.js");
-/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../uniforms */ "./js/uniforms.js");
+/* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../entry */ "./js/entry.js");
+/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../uniforms */ "./js/uniforms.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
 
 
 
@@ -1224,34 +1225,34 @@ function createCanvasGroup() {
 
   // Width slider
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Width', 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value = e.target.value;
-      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Width', 1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.width.max, 1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.width.value, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.width.value = e.target.value;
+      Object(_entry__WEBPACK_IMPORTED_MODULE_1__["resetTextureSizes"])();
     })
   );
 
   // Height slider
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Height', 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value = e.target.value;
-      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Height', 1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.height.max, 1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.height.value, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.height.value = e.target.value;
+      Object(_entry__WEBPACK_IMPORTED_MODULE_1__["resetTextureSizes"])();
     })
   );
 
   // Maximized checkbox
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Maximized', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.maximized, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.maximized = e.target.checked;
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Maximized', _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.maximized, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.maximized = e.target.checked;
 
-      if(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.maximized) {
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.unmaximizedSize.width = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value;
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.unmaximizedSize.height = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value;
+      if(_variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.maximized) {
+        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.unmaximizedSize.width = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.width.value;
+        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.unmaximizedSize.height = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.height.value;
       } else {
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.unmaximizedSize.width;
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.unmaximizedSize.height;
+        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.width.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.unmaximizedSize.width;
+        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.height.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.unmaximizedSize.height;
       }
 
-      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+      Object(_entry__WEBPACK_IMPORTED_MODULE_1__["resetTextureSizes"])();
     })
   );
 
@@ -1259,17 +1260,17 @@ function createCanvasGroup() {
 
   // Edge wrapping (X) checkbox
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Wrap X', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.x, () => {
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.x = !_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.x;
-      _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].wrapping.value.x = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.x;
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Wrap X', _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.x, () => {
+      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.x = !_variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.x;
+      _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].wrapping.value.x = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.x;
     })
   );
 
   // Edge wrapping (Y) checkbox
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Wrap Y', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.y, () => {
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.y = !_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.y;
-      _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].wrapping.value.y = _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.wrap.y;
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Wrap Y', _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.y, () => {
+      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.y = !_variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.y;
+      _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].wrapping.value.y = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.y;
     })
   );
 
@@ -1277,8 +1278,8 @@ function createCanvasGroup() {
 
   // Scale slider
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Scale', .1, 3, .1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value = 3 - e.target.value;
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Scale', .1, 3, .1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.scale.value, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.scale.value = 3 - e.target.value;
     })
   );
 
@@ -1299,6 +1300,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createColorsGroup", function() { return createColorsGroup; });
 /* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
 /* harmony import */ var _colors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../colors */ "./js/colors.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
+
 
 
 
@@ -1318,9 +1321,17 @@ function createColorsGroup() {
     fieldset = document.createElement('fieldset');
     fieldset.classList.add('is-scrollable');
 
+    let legend = document.createElement('legend');
+    legend.classList.add('sr-only');
+    legend.innerText = 'Colors';
+
+    fieldset.appendChild(legend);
+
     _colors__WEBPACK_IMPORTED_MODULE_1__["colors"].forEach((color, index) => {
+      let label = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled ? 'Color stop ' + (index+1) : 'State ' + index;
+
       fieldset.appendChild(
-        Object(_components__WEBPACK_IMPORTED_MODULE_0__["createColorPicker"])('Color ' + (index+1), color, (e) => {
+        Object(_components__WEBPACK_IMPORTED_MODULE_0__["createColorPicker"])(label, color, (e) => {
           _colors__WEBPACK_IMPORTED_MODULE_1__["colors"][index] = Object(_colors__WEBPACK_IMPORTED_MODULE_1__["convertHexToRGB"])(e.target.value);
           Object(_colors__WEBPACK_IMPORTED_MODULE_1__["setColors"])();
         })
@@ -1339,7 +1350,7 @@ function createColorsGroup() {
 /*!*****************************!*\
   !*** ./js/ui/components.js ***!
   \*****************************/
-/*! exports provided: createPanel, createGroup, createSeperator, createDropdown, createButton, createSlider, createCheckbox, createCountCheckboxFieldset, createColorPicker, createTextInput, createTextarea */
+/*! exports provided: createPanel, createGroup, createSeperator, createRow, createDropdown, createButton, createToggleButton, createSlider, createCheckbox, createCountCheckboxFieldset, createColorPicker, createTextInput, createTextarea */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1347,8 +1358,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createPanel", function() { return createPanel; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createGroup", function() { return createGroup; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createSeperator", function() { return createSeperator; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createRow", function() { return createRow; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createDropdown", function() { return createDropdown; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createButton", function() { return createButton; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createToggleButton", function() { return createToggleButton; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createSlider", function() { return createSlider; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createCheckbox", function() { return createCheckbox; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createCountCheckboxFieldset", function() { return createCountCheckboxFieldset; });
@@ -1389,7 +1402,32 @@ function createGroup(name) {
   // Heading
   let heading = document.createElement('h2');
   heading.classList.add('heading');
-  heading.innerText = name;
+
+  // Button
+  let button = document.createElement('button');
+  button.setAttribute('aria-expanded', true);
+  button.innerHTML = name + ' <span class="fas fa-caret-down" aria-hidden="true"></span>';
+
+  button.addEventListener('click', () => {
+    let isExpanded = button.getAttribute('aria-expanded') === 'true' ? true : false;
+    button.setAttribute('aria-expanded', !isExpanded);
+
+    if(isExpanded) {
+      group.classList.add('is-collapsed');
+
+      group.querySelectorAll('.component, fieldset, hr').forEach((element) => {
+        element.classList.add('is-hidden');
+      });
+    } else {
+      group.classList.remove('is-collapsed');
+
+      group.querySelectorAll('.component, fieldset, hr').forEach((element) => {
+        element.classList.remove('is-hidden');
+      });
+    }
+  });
+
+  heading.appendChild(button);
   group.appendChild(heading);
 
   return group;
@@ -1401,6 +1439,13 @@ function createGroup(name) {
 ********************/
 function createSeperator() {
   return document.createElement('hr');
+}
+
+function createRow() {
+  let row = document.createElement('div')
+  row.classList.add('row');
+
+  return row;
 }
 
 /****************************
@@ -1485,10 +1530,43 @@ function createButton(buttonText, isIndented = false, listener) {
 
   // <button> tag
   let button = document.createElement('button');
-  button.innerText = buttonText;
+  button.innerHTML = buttonText;
 
   // Run the provided callback when activated
   button.addEventListener('click', listener);
+
+  // Prevent Space key from bubbling up and pausing the simulation
+  button.addEventListener('keydown', (e) => {
+    if(e.key == ' ') {
+      e.stopPropagation();
+    }
+  });
+
+  component.appendChild(button);
+
+  return component;
+}
+
+/**********************************
+  Toggle button
+  - Toggle buttons are a button with an on/off state
+**********************************/
+function createToggleButton(buttonText, initialState, listener) {
+  // Wrapper
+  let component = document.createElement('div');
+  component.classList.add('component', 'button');
+
+  // <button> tag
+  let button = document.createElement('button');
+  button.setAttribute('aria-pressed', initialState);
+  button.innerHTML = buttonText;
+
+  // Run the provided callback when activated
+  button.addEventListener('click', () => {
+    let isPressed = button.getAttribute('aria-pressed') === 'true' ? true : false;
+    button.setAttribute('aria-pressed', !isPressed);
+    listener();
+  });
 
   // Prevent Space key from bubbling up and pausing the simulation
   button.addEventListener('keydown', (e) => {
@@ -1873,13 +1951,6 @@ __webpack_require__.r(__webpack_exports__);
 function createControlsGroup() {
   let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Controls');
 
-  // Play/pause button
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Paused', _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused, () => {
-      _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused;
-    })
-  );
-
   // Speed slider
   group.appendChild(
     Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Speed', 0.1, 2.0, .1, 1.0, () => {
@@ -1887,14 +1958,39 @@ function createControlsGroup() {
     })
   );
 
+  // Row for laying out buttons horizontally
+  let buttonRow = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createRow"])();
+
+  // Pause button
+  let pauseButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createToggleButton"])(`
+    <span class="fas fa-pause" aria-hidden="true"></span>
+    <span class="fas fa-play" aria-hidden="true"></span>
+    <span class="text pause">Pause</span>
+    <span class="text play">Play</span>
+  `, _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused, () => {
+    _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused;
+  });
+
+    pauseButton.querySelector('button').setAttribute('aria-label', 'Pause');
+
   // Restart button
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])('Restart', false, () => {
-      console.log('restart');
-      Object(_renderTargets__WEBPACK_IMPORTED_MODULE_2__["setupRenderTargets"])();
-      Object(_patterns__WEBPACK_IMPORTED_MODULE_1__["drawPattern"])();
-    })
-  );
+  let restartButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])(`
+    <span class="fas fa-sync-alt" aria-hidden="true"></span>
+    <span class="text">Restart</span>
+  `, false, () => {
+    Object(_renderTargets__WEBPACK_IMPORTED_MODULE_2__["setupRenderTargets"])();
+    Object(_patterns__WEBPACK_IMPORTED_MODULE_1__["drawPattern"])();
+  });
+
+  pauseButton.classList.add('is-control-button');
+  restartButton.classList.add('is-control-button');
+
+  pauseButton.querySelector('button').setAttribute('id', 'pause-button');
+  restartButton.querySelector('button').setAttribute('id', 'restart-button');
+
+  buttonRow.appendChild(pauseButton);
+  buttonRow.appendChild(restartButton);
+  group.appendChild(buttonRow);
 
   return group;
 }
@@ -1911,17 +2007,15 @@ function createControlsGroup() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createHistoryGroup", function() { return createHistoryGroup; });
-/* harmony import */ var _colors__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../colors */ "./js/colors.js");
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
 /* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../uniforms */ "./js/uniforms.js");
 /* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
-/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
-
 
 
 
 
 function createHistoryGroup() {
-  let group = Object(_components__WEBPACK_IMPORTED_MODULE_3__["createGroup"])('History');
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('History');
 
   window.addEventListener('ruleUpdated', () => {
     // Get rid of any previously-added components
@@ -1931,9 +2025,10 @@ function createHistoryGroup() {
 
     // Enable checkbox
     group.appendChild(
-      Object(_components__WEBPACK_IMPORTED_MODULE_3__["createCheckbox"])('Enable history', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled, (e) => {
+      Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Enable history', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled, (e) => {
         _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled = e.target.checked;
         _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].historyEnabled.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled;
+        _uniforms__WEBPACK_IMPORTED_MODULE_1__["displayUniforms"].historyEnabled.value = _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].historyEnabled.value;
 
         window.dispatchEvent(new Event('ruleUpdated'));
       })
@@ -1942,7 +2037,7 @@ function createHistoryGroup() {
     if(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled) {
       // Number of generations (history) slider
       group.appendChild(
-        Object(_components__WEBPACK_IMPORTED_MODULE_3__["createSlider"])('Number of generations', 1, 500, 1, 1, (e) => {
+        Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Number of generations', 1, 500, 1, 1, (e) => {
           _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.stateCount =  2 + e.target.value;
           _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].stateCount.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.stateCount;
 
@@ -1961,8 +2056,9 @@ function createHistoryGroup() {
 
       // Cyclic checkbox
       group.appendChild(
-        Object(_components__WEBPACK_IMPORTED_MODULE_3__["createCheckbox"])('Cyclic', false, () => {
-          console.log('cyclic changed');
+        Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Cyclic', true, (e) => {
+          _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.cyclicEnabled = e.target.checked;
+          _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].cyclicEnabled.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.cyclicEnabled;
         })
       );
     }
@@ -1985,8 +2081,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createNeighborhoodGroup", function() { return createNeighborhoodGroup; });
 /* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
 /* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../uniforms */ "./js/uniforms.js");
-/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
-/* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../rules */ "./js/rules.js");
+/* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../rules */ "./js/rules.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
 
 
 
@@ -1997,9 +2093,9 @@ function createNeighborhoodGroup() {
 
   // Type (Moore or von Neumann)
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Type', Object.keys(_rules__WEBPACK_IMPORTED_MODULE_3__["NeighborhoodTypes"]), null, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.neighborhoodType = _rules__WEBPACK_IMPORTED_MODULE_3__["NeighborhoodTypes"][e.target.value];
-      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].neighborhoodType.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.neighborhoodType;
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Type', Object.keys(_rules__WEBPACK_IMPORTED_MODULE_2__["NeighborhoodTypes"]), null, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.neighborhoodType = _rules__WEBPACK_IMPORTED_MODULE_2__["NeighborhoodTypes"][e.target.value];
+      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].neighborhoodType.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.neighborhoodType;
       window.dispatchEvent(new Event('ruleUpdated'));
     })
   );
@@ -2007,8 +2103,8 @@ function createNeighborhoodGroup() {
   // Range (number)
   group.appendChild(
     Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Range', 1, 10, 1, 1, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.range = e.target.value;
-      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].range.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.range;
+      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range = e.target.value;
+      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].range.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range;
       window.dispatchEvent(new Event('ruleUpdated'));
     })
   );
@@ -2016,8 +2112,8 @@ function createNeighborhoodGroup() {
   // Include center (checkbox)
   group.appendChild(
     Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Include center', false, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.includeCenter = e.target.checked;
-      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].includeCenter.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.includeCenter;
+      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.includeCenter = e.target.checked;
+      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].includeCenter.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.includeCenter;
       window.dispatchEvent(new Event('ruleUpdated'));
     })
   );
@@ -2038,8 +2134,8 @@ function createNeighborhoodGroup() {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createPatternGroup", function() { return createPatternGroup; });
 /* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
-/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
-/* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../patterns */ "./js/patterns.js");
+/* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../patterns */ "./js/patterns.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
 
 
 
@@ -2049,8 +2145,8 @@ function createPatternGroup() {
 
   // Dropdown for patterns
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Starting pattern', _patterns__WEBPACK_IMPORTED_MODULE_2__["InitialPatternTypes"], _variables__WEBPACK_IMPORTED_MODULE_1__["default"].activePattern, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].activePattern = e.target.value;
+    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Starting pattern', _patterns__WEBPACK_IMPORTED_MODULE_1__["InitialPatternTypes"], _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activePattern, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activePattern = e.target.value;
       window.dispatchEvent(new Event('patternChanged'));
     })
   );
@@ -2062,16 +2158,16 @@ function createPatternGroup() {
       component.remove();
     });
 
-    if(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].activePattern != 'Empty') {
+    if(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activePattern != 'Empty') {
       group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSeperator"])() );
     }
 
-    switch(_variables__WEBPACK_IMPORTED_MODULE_1__["default"].activePattern) {
+    switch(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activePattern) {
       case 'Circle':
         // Diameter slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Diameter', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.circle.diameter.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.circle.diameter.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.circle.diameter.value, (e) => {
-            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.circle.diameter.value = e.target.value;
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Diameter', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.value = e.target.value;
           })
         );
 
@@ -2080,22 +2176,22 @@ function createPatternGroup() {
       case 'Rectangle':
         // Width slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Width', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.value, (e) => {
-            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.width.value = e.target.value;
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Width', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.value = e.target.value;
           })
         );
 
         // Height slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Height', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.value, (e) => {
-            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.height.value = e.target.value;
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Height', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.value = e.target.value;
           })
         );
 
         // Rotation slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Rotation', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.rotation.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.rotation.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.rotation.value, (e) => {
-            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.rectangle.rotation.value = e.target.value;
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Rotation', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.value = e.target.value;
           })
         );
 
@@ -2104,36 +2200,36 @@ function createPatternGroup() {
       case 'Text':
         // String - textarea
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createTextarea"])('String', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.string, 2, (e) => {
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createTextarea"])('String', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.string, 2, (e) => {
 
           })
         );
 
         // Font face - dropdown
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Font face', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontFaceOptions, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.activeFontFace, (e) => {
-            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.activeFontFace = e.target.value;
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Font face', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontFaceOptions, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.activeFontFace, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.activeFontFace = e.target.value;
           })
         );
 
         // Font weight - slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Font weight', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontWeight.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontWeight.max, 100, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontWeight.value, (e) => {
-            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.fontWeight.value = e.target.value;
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Font weight', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.max, 100, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.value = e.target.value;
           })
         );
 
         // Size - slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Font size', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.size.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.size.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.size.value, (e) => {
-            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.size.value = e.target.value;
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Font size', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.value = e.target.value;
           })
         );
 
         // Rotation - slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Rotation', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.rotation.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.rotation.max, 1, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.rotation.value, (e) => {
-            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.text.rotation.value = e.target.value;
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Rotation', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.rotation.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.rotation.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.rotation.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.rotation.value = e.target.value;
           })
         );
 
@@ -2149,8 +2245,8 @@ function createPatternGroup() {
       case 'Random':
         // Density
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Density', _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.random.density.min, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.random.density.max, .01, _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.random.density.value, (e) => {
-            _variables__WEBPACK_IMPORTED_MODULE_1__["default"].patterns.random.density.value = e.target.value;
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Density', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.max, .01, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.value, (e) => {
+            _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.value = e.target.value;
           })
         );
 
@@ -2176,9 +2272,9 @@ function createPatternGroup() {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createRulesGroup", function() { return createRulesGroup; });
 /* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
-/* harmony import */ var _presets__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../presets */ "./js/presets.js");
-/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
-/* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../rules */ "./js/rules.js");
+/* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../rules */ "./js/rules.js");
+/* harmony import */ var _presets__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../presets */ "./js/presets.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
 
 
 
@@ -2189,10 +2285,10 @@ function createRulesGroup() {
 
   // Reduce the rule presets to a multi-dimensional array of strings for the dropdown
   let rulesSimplified = [];
-  Object.keys(_presets__WEBPACK_IMPORTED_MODULE_1__["default"]).forEach((family) => {
+  Object.keys(_presets__WEBPACK_IMPORTED_MODULE_2__["default"]).forEach((family) => {
     rulesSimplified[family] = [];
 
-    Object.keys(_presets__WEBPACK_IMPORTED_MODULE_1__["default"][family]).forEach((rule) => {
+    Object.keys(_presets__WEBPACK_IMPORTED_MODULE_2__["default"][family]).forEach((rule) => {
       rulesSimplified[family].push(rule);
     });
   });
@@ -2200,9 +2296,9 @@ function createRulesGroup() {
   // Dropdown for presets
   group.appendChild(
     Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Preset', rulesSimplified, null, (e) => {
-      for(let family in _presets__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-        if(_presets__WEBPACK_IMPORTED_MODULE_1__["default"][family].hasOwnProperty(e.target.value)) {
-          Object(_rules__WEBPACK_IMPORTED_MODULE_3__["setRule"])(_presets__WEBPACK_IMPORTED_MODULE_1__["default"][family][e.target.value]);
+      for(let family in _presets__WEBPACK_IMPORTED_MODULE_2__["default"]) {
+        if(_presets__WEBPACK_IMPORTED_MODULE_2__["default"][family].hasOwnProperty(e.target.value)) {
+          Object(_rules__WEBPACK_IMPORTED_MODULE_1__["setRule"])(_presets__WEBPACK_IMPORTED_MODULE_2__["default"][family][e.target.value]);
         }
       }
     })
@@ -2220,19 +2316,19 @@ function createRulesGroup() {
     // Set the rule when the user presses 'Enter' while on the text input
     group.querySelector('.text-input input').addEventListener('keydown', (e) => {
       if(e.key === 'Enter') {
-        Object(_rules__WEBPACK_IMPORTED_MODULE_3__["setRule"])(group.querySelector('.text-input input').value);
+        Object(_rules__WEBPACK_IMPORTED_MODULE_1__["setRule"])(group.querySelector('.text-input input').value);
       }
     })
 
     // Show the current rule string in this text input anytime it changes
     window.addEventListener('ruleUpdated', () => {
-      group.querySelector('.text-input input').value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.ruleString;
+      group.querySelector('.text-input input').value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.ruleString;
     });
 
   // Button to manually set a custom rule typed into the text input
   group.appendChild(
     Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])('Set rule', true, () => {
-      Object(_rules__WEBPACK_IMPORTED_MODULE_3__["setRule"])(group.querySelector('.text-input input').value);
+      Object(_rules__WEBPACK_IMPORTED_MODULE_1__["setRule"])(group.querySelector('.text-input input').value);
     })
   );
 
@@ -2348,6 +2444,10 @@ let simulationUniforms = {
   historyEnabled: {
     type: 'b',
     value: false
+  },
+  cyclicEnabled: {
+    type: 'b',
+    value: true
   }
 };
 
@@ -2367,6 +2467,10 @@ let displayUniforms = {
   colors: {
     type: 't',
     value: null
+  },
+  historyEnabled: {
+    type: 'b',
+    value: false
   }
 };
 
@@ -2483,7 +2587,8 @@ __webpack_require__.r(__webpack_exports__);
     range: null,
     neighborhoodType: null,
     includeCenter: null,
-    historyEnabled: null
+    historyEnabled: null,
+    cyclicEnabled: null
   }
 });
 
