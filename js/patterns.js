@@ -15,12 +15,12 @@ import variables from './variables';
 let bufferImage, bufferCanvas, bufferCanvasCtx;
 
 export const InitialPatternTypes = [
+  'None',
   'Circle',
   'Rectangle',
   'Text',
   'Image',
-  'Random',
-  'Empty',
+  'Random'
 ];
 
 export function drawPattern(type = variables.activePattern) {
@@ -109,7 +109,7 @@ export function drawPattern(type = variables.activePattern) {
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
 
-    case 'Empty':
+    case 'None':
       bufferCanvasCtx.clearRect(0, 0, variables.canvas.width.value * variables.canvas.scale.value, variables.canvas.height.value * variables.canvas.scale.value);
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;

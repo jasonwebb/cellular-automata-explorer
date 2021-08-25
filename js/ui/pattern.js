@@ -20,7 +20,7 @@ export function createPatternGroup() {
       component.remove();
     });
 
-    if(variables.activePattern != 'Empty') {
+    if(variables.activePattern != 'None') {
       group.appendChild( createSeperator() );
     }
 
