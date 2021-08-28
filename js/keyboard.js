@@ -4,6 +4,7 @@
 
 import { drawPattern } from './patterns';
 import { setupRenderTargets } from './renderTargets';
+import { toggleUI } from './ui';
 import globals from './globals';
 
 export function setupKeyboard() {
@@ -17,6 +18,10 @@ export function setupKeyboard() {
       case 'r':
         setupRenderTargets();
         drawPattern();
+        break;
+
+      case 'u':
+        toggleUI();
         break;
     }
   });

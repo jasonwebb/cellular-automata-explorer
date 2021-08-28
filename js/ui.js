@@ -11,6 +11,7 @@ import { createPatternGroup } from './ui/pattern';
 import { createCanvasGroup } from './ui/canvas';
 
 let leftPanel, rightPanel;
+export let isUIVisible = true;
 
 export function setupUI() {
   setupLeftPanel();
@@ -40,4 +41,24 @@ export function setupUI() {
     rightPanel.appendChild(createControlsGroup());
 
     document.body.appendChild(rightPanel);
+  }
+
+export function toggleUI() {
+  if(isUIVisible) {
+    hideUI();
+  } else {
+    showUI();
+  }
+}
+
+  export function hideUI() {
+    leftPanel.classList.add('is-hidden');
+    rightPanel.classList.add('is-hidden');
+    isUIVisible = false;
+  }
+
+  export function showUI() {
+    leftPanel.classList.remove('is-hidden');
+    rightPanel.classList.remove('is-hidden');
+    isUIVisible = true;
   }
