@@ -17,6 +17,14 @@ body {
   overflow: hidden;
 }
 
+main {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 canvas {
   display: block;
 }
@@ -35,6 +43,7 @@ canvas {
   width: 275px;
   height: 100%;
   z-index: 100;
+  overflow-y: auto;
   padding-top: 10px;
 
   color: white;
@@ -83,8 +92,8 @@ canvas {
 
         .panel .group .heading button:hover,
         .panel .group .heading button:focus {
-          border-top-color: rgba(255, 255, 255, .35);
-          border-bottom-color: rgba(255, 255, 255, .3);
+          border-top-color: rgba(255, 255, 255, .65);
+          border-bottom-color: rgba(255, 255, 255, .6);
           background: linear-gradient(180deg, rgba(255,255,255,.16) 0%, rgba(0,0,0,0) 80%);
         }
 
@@ -156,9 +165,12 @@ canvas {
         border: 1px solid var(--border-color);
       }
 
-        .panel .dropdown select optgroup,
+        .panel .dropdown select optgroup {
+          background-color: rgb(50,50,50);
+        }
+
         .panel .dropdown select option {
-          background-color: rgb(0,0,0,.8);
+          background-color: rgba(0,0,0,.8);
           color: rgba(255,255,255,.7);
         }
 
@@ -460,19 +472,92 @@ canvas {
       margin-bottom: 10px;
     }
 
-      .panel .component.button.is-control-button button[aria-pressed="false"] .fas.fa-pause,
-      .panel .component.button.is-control-button button[aria-pressed="false"] .text.pause { display: block; }
-
       .panel .component.button.is-control-button button[aria-pressed="false"] .fas.fa-play,
       .panel .component.button.is-control-button button[aria-pressed="false"] .text.play { display: none; }
 
       .panel .component.button.is-control-button button[aria-pressed="true"] .fas.fa-pause,
       .panel .component.button.is-control-button button[aria-pressed="true"] .text.pause { display: none; }
 
-      .panel .component.button.is-control-button button[aria-pressed="true"] .fas.fa-play,
-      .panel .component.button.is-control-button button[aria-pressed="true"] .text.play { display: block; }
-
     .panel .component.button.is-control-button button:hover .text,
     .panel .component.button.is-control-button button:focus .text {
       text-decoration: underline;
+    }
+
+/** Center buttons and links */
+.center-controls {
+  position: absolute;
+  left: 20px;
+  top: 10px;
+  z-index: 100;
+  transition: left .2s ease-in-out;
+}
+
+  .center-controls.has-left-indent {
+    left: 300px;
+  }
+
+  .center-controls .toggle-ui-button {
+    background-color: black;
+    border: 1px solid var(--border-color);
+    padding: 5px 15px;
+    border-radius: 100px;
+    color: rgb(255,255,255,.7);
+    cursor: pointer;
+    vertical-align: middle;
+  }
+
+    .center-controls .toggle-ui-button:hover,
+    .center-controls .toggle-ui-button:focus {
+      border-color: var(--border-color--active);
+      color: white;
+    }
+
+    .center-controls .toggle-ui-button:focus {
+      outline-offset: 4px;
+    }
+
+    .center-controls .toggle-ui-button .fas { margin-right: 5px; }
+
+    .center-controls .toggle-ui-button[aria-pressed="false"] .fas.fa-eye,
+    .center-controls .toggle-ui-button[aria-pressed="false"] .show { display: none; }
+
+    .center-controls .toggle-ui-button[aria-pressed="true"] .fas.fa-eye-slash,
+    .center-controls .toggle-ui-button[aria-pressed="true"] .hide { display: none;}
+
+  .center-controls .help-button {
+    display: inline-block;
+    width: 27px;
+    height: 27px;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 100px;
+    color:rgba(255, 255, 255, .7);
+    font-size: 12px;
+    cursor: pointer;
+    margin: 0 10px;
+    padding: 0;
+  }
+
+    .center-controls .help-button:hover,
+    .center-controls .help-button:focus {
+      border-color: var(--border-color--active);
+    }
+
+    .center-controls .help-button:focus {
+      outline-offset: 4px;
+    }
+
+  .center-controls .github-link {
+    color: rgba(255, 255, 255, .7);
+    font-size: 27px;
+    vertical-align: middle;
+    padding: 0;
+    margin: 0;
+  }
+
+    .center-controls .help-button:hover,
+    .center-controls .help-button:focus,
+    .center-controls .github-link:hover,
+    .center-controls .github-link:focus {
+      color: white;
     }
