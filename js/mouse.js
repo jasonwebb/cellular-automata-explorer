@@ -18,6 +18,7 @@ export function setupMouse() {
   mouseFollower.style.position = 'absolute';
   mouseFollower.style.border = '1px solid white';
   mouseFollower.style.borderRadius = '1000px';
+  mouseFollower.style.boxShadow = '0 0 0 2px rgba(0,0,0,.4)'
   mouseFollower.style.pointerEvents = 'none';
   document.body.append(mouseFollower);
 
@@ -36,8 +37,8 @@ export function setupMouse() {
   // If dragging, pass the mouse coordinates into the shader.
   canvas.addEventListener('mousemove', (e) => {
     if(mouseDown) {
-      simulationUniforms.mousePosition.value.x = e.offsetX / variables.canvas.width.value * variables.canvas.scale.value;
-      simulationUniforms.mousePosition.value.y = 1 - e.offsetY / variables.canvas.height.value * variables.canvas.scale.value;
+      simulationUniforms.mousePosition.value.x = e.offsetX / variables.canvas.width.value;
+      simulationUniforms.mousePosition.value.y = 1 - e.offsetY / variables.canvas.height.value;
     } else {
       simulationUniforms.mousePosition.value.x = -1;
       simulationUniforms.mousePosition.value.y = -1;
