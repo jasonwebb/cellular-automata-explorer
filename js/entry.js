@@ -7,7 +7,7 @@ import { setupRenderTargets, renderTargets } from './renderTargets';
 import { simulationUniforms, displayUniforms } from './uniforms';
 import { simulationMaterial, displayMaterial } from './materials';
 import { drawPattern } from './patterns';
-import { setRule } from './rules';
+import { setRuleFromString } from './rules';
 import { setupKeyboard } from './keyboard';
 import { setupMouse } from './mouse';
 import { setColors } from './colors';
@@ -63,14 +63,14 @@ function setup() {
 
   // Set the rule that the shader should run
 
-  setRule('23/3');  // Conway's Life
+  setRuleFromString('23/3');  // Conway's Life
 
   // setTimeout(() => {
-  //   setRule('345/2/50');  // Generations - Burst
+  //   setRuleFromString('345/2/50');  // Generations - Burst
   // }, 2000);
 
   // setTimeout(() => {
-  //   setRule('45678/2478/250');  // Generations - Burst
+  //   setRuleFromString('45678/2478/250');  // Generations - Burst
   // }, 5000);
 
   // Set up and render the first frame
