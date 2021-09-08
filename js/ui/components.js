@@ -332,7 +332,7 @@ export function createCountCheckboxFieldset(type) {
   fieldset.appendChild(legend);
 
   // Build and check the checkboxes based on the active rule whenever it is set
-  window.addEventListener('ruleUpdated', () => {
+  window.addEventListener('rebuildUI', () => {
     let checkboxes = [];
 
     // Remove any checkboxes that were previously added to the group

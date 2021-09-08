@@ -8,7 +8,7 @@ export function createColorsGroup() {
   // TODO: add dropdown for color palette presets
 
   // Color pickers - one per state
-  window.addEventListener('ruleUpdated', () => {
+  window.addEventListener('rebuildUI', () => {
     let fieldset = group.querySelector('fieldset');
 
     if(fieldset != null) {

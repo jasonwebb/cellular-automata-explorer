@@ -13,6 +13,7 @@ export function setupKeyboard() {
       case ' ':
         e.preventDefault();
         globals.isPaused = !globals.isPaused;
+        window.dispatchEvent(new Event('rebuildUI'));
         break;
 
       case 'r':

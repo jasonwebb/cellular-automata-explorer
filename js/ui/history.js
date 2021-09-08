@@ -5,7 +5,7 @@ import variables from '../variables';
 export function createHistoryGroup() {
   let group = createGroup('History');
 
-  window.addEventListener('ruleUpdated', () => {
+  window.addEventListener('rebuildUI', () => {
     // Get rid of any previously-added components
     group.querySelectorAll('.component').forEach((component) => {
       component.remove();
@@ -18,14 +18,14 @@ export function createHistoryGroup() {
         simulationUniforms.historyEnabled.value = variables.activeRule.historyEnabled;
         displayUniforms.historyEnabled.value = simulationUniforms.historyEnabled.value;
 
-        window.dispatchEvent(new Event('ruleUpdated'));
+        window.dispatchEvent(new Event('rebuildUI'));
       })
     );
 
     if(variables.activeRule.historyEnabled) {
       // Number of generations (history) slider
       group.appendChild(
-        createSlider('Number of generations', 1, 500, 1, 1, (e) => {
+        createSlider('Number of generations', 1, 255, 1, variables.activeRule.stateCount, (e) => {
           variables.activeRule.stateCount =  2 + e.target.value;
           simulationUniforms.stateCount.value = variables.activeRule.stateCount;
 
@@ -44,11 +44,13 @@ export function createHistoryGroup() {
 
       // Cyclic checkbox
       group.appendChild(
-        createCheckbox('Cyclic', true, (e) => {
+        createCheckbox('Cyclic', variables.activeRule.cyclicEnabled, (e) => {
           variables.activeRule.cyclicEnabled = e.target.checked;
           simulationUniforms.cyclicEnabled.value = variables.activeRule.cyclicEnabled;
         })
       );
+
+      // TODO: add "max cycles"
     }
   });
 
