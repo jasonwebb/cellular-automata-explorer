@@ -10,11 +10,15 @@ import { createSurvivalGroup } from './ui/survival';
 import { createPatternGroup } from './ui/pattern';
 import { createCanvasGroup } from './ui/canvas';
 
-let leftPanel, rightPanel;
+let mainWrapper;
+let leftPanel, rightPanel, centerControlsWrapper;
 export let isUIVisible = true;
 
 export function setupUI() {
+  mainWrapper = document.querySelector('main');
+
   setupLeftPanel();
+  setupCenterControls();
   setupRightPanel();
 }
 
@@ -28,7 +32,7 @@ export function setupUI() {
     leftPanel.appendChild(createNeighborhoodGroup());
     leftPanel.appendChild(createHistoryGroup());
 
-    document.body.appendChild(leftPanel);
+    mainWrapper.appendChild(leftPanel);
   }
 
   function setupRightPanel() {
@@ -40,14 +44,69 @@ export function setupUI() {
     rightPanel.appendChild(createCanvasGroup());
     rightPanel.appendChild(createControlsGroup());
 
-    document.body.appendChild(rightPanel);
+    mainWrapper.appendChild(rightPanel);
+  }
+
+  function setupCenterControls() {
+    centerControlsWrapper = document.createElement('div');
+    centerControlsWrapper.classList.add('center-controls', 'has-left-indent');
+
+    // Show/hide UI button
+    let toggleUIButton = document.createElement('button');
+    toggleUIButton.setAttribute('aria-label', 'Hide UI');
+    toggleUIButton.setAttribute('aria-pressed', false);
+    toggleUIButton.classList.add('toggle-ui-button');
+    toggleUIButton.innerHTML = `
+      <span class="fas fa-eye" aria-hidden="true"></span>
+      <span class="fas fa-eye-slash" aria-hidden="true"></span>
+      <span class="hide">Hide UI</span>
+      <span class="show">Show UI</span>
+    `;
+
+    toggleUIButton.addEventListener('click', () => {
+      let isPressed = toggleUIButton.getAttribute('aria-pressed') === 'true' ? true : false;
+
+      if(isPressed) {
+        toggleUIButton.setAttribute('aria-pressed', false);
+      } else {
+        toggleUIButton.setAttribute('aria-pressed', true);
+      }
+
+      toggleUI();
+    });
+
+    // About button
+    let aboutButton = document.createElement('button');
+    aboutButton.classList.add('help-button');
+    aboutButton.setAttribute('title', 'Learn more about this app');
+    aboutButton.innerHTML = '<span class="fas fa-question" aria-hidden="true"></span><span class="sr-only">Learn more about this app</span>';
+
+    aboutButton.addEventListener('click', () => {
+
+    })
+
+    // Github link
+    let githubLink = document.createElement('a');
+    githubLink.setAttribute('href', 'https://github.com/jasonwebb/cellular-automata-explorer');
+    githubLink.setAttribute('target', '_blank');
+    githubLink.setAttribute('title', 'See the source code on Github');
+    githubLink.classList.add('github-link');
+    githubLink.innerHTML = '<span class="fab fa-github" aria-hidden="true"></span><span class="sr-only">See the source code on Github</span>';
+
+    centerControlsWrapper.appendChild(toggleUIButton);
+    centerControlsWrapper.appendChild(aboutButton);
+    centerControlsWrapper.appendChild(githubLink);
+
+    mainWrapper.appendChild(centerControlsWrapper);
   }
 
 export function toggleUI() {
   if(isUIVisible) {
     hideUI();
+    centerControlsWrapper.classList.remove('has-left-indent');
   } else {
     showUI();
+    centerControlsWrapper.classList.add('has-left-indent');
   }
 }
 
