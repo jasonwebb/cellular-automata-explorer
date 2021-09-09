@@ -23,7 +23,7 @@ export function createNeighborhoodGroup() {
 
     // Range (number)
     group.appendChild(
-      createSlider('Range', 1, 10, 1, variables.activeRule.range, (e) => {
+      createSlider('Range', variables.neighborhood.range.min, variables.neighborhood.range.max, variables.neighborhood.range.stepSize, variables.activeRule.range, (e) => {
         variables.activeRule.range = e.target.value;
         simulationUniforms.range.value = variables.activeRule.range;
         window.dispatchEvent(new Event('rebuildUI'));

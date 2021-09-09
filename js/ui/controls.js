@@ -14,8 +14,8 @@ export function createControlsGroup() {
 
     // Speed slider
     group.appendChild(
-      createSlider('Speed', 0.01, 1.0, .01, variables.speedMultiplier, (e) => {
-        variables.speedMultiplier = 100 * (1 - e.target.value) + 0 * e.target.value;
+      createSlider('Speed', variables.controls.speed.min, variables.controls.speed.max, variables.controls.speed.stepSize, variables.speedMultiplier, (e) => {
+        variables.speedMultiplier = e.target.value;
       })
     );
 

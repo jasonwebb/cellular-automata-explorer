@@ -10,7 +10,7 @@ export function createCanvasGroup() {
 
   // Width slider
   group.appendChild(
-    createSlider('Width', 1, variables.canvas.width.max, 1, variables.canvas.width.value, (e) => {
+    createSlider('Width', variables.canvas.width.min, variables.canvas.width.max, variables.canvas.width.stepSize, variables.canvas.width.value, (e) => {
       variables.canvas.width.value = e.target.value;
       resetTextureSizes();
     })
@@ -18,7 +18,7 @@ export function createCanvasGroup() {
 
   // Height slider
   group.appendChild(
-    createSlider('Height', 1, variables.canvas.height.max, 1, variables.canvas.height.value, (e) => {
+    createSlider('Height', variables.canvas.height.min, variables.canvas.height.max, variables.canvas.height.stepSize, variables.canvas.height.value, (e) => {
       variables.canvas.height.value = e.target.value;
       resetTextureSizes();
     })
@@ -63,7 +63,7 @@ export function createCanvasGroup() {
 
   // Scale slider
   group.appendChild(
-    createSlider('Scale', .1, 5, .01, variables.canvas.scale.value, (e) => {
+    createSlider('Scale', variables.canvas.scale.min, variables.canvas.scale.max, variables.canvas.scale.stepSize, variables.canvas.scale.value, (e) => {
       variables.canvas.scale.value = 1/e.target.value;
 
       simulationUniforms.resolution.value = new THREE.Vector2(

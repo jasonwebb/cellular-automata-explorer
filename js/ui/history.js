@@ -25,7 +25,7 @@ export function createHistoryGroup() {
     if(variables.activeRule.historyEnabled) {
       // Number of generations (history) slider
       group.appendChild(
-        createSlider('Number of generations', 1, 255, 1, variables.activeRule.stateCount, (e) => {
+        createSlider('Number of generations', variables.history.numberOfGenerations.min, variables.history.numberOfGenerations.max, variables.history.numberOfGenerations.stepSize, variables.activeRule.stateCount, (e) => {
           variables.activeRule.stateCount =  2 + e.target.value;
           simulationUniforms.stateCount.value = variables.activeRule.stateCount;
 
