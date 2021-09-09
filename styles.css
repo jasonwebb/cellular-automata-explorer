@@ -195,6 +195,11 @@ canvas {
       -webkit-appearance: none;
     }
 
+      .panel .slider input[type="range"][disabled] {
+        opacity: .4;
+        cursor: not-allowed;
+      }
+
       .panel .slider input[type="range"]:before {
         position: absolute;
         top: 4px;
@@ -206,8 +211,8 @@ canvas {
         background-color: var(--border-color);
       }
 
-        .panel .slider input[type="range"]:hover:before,
-        .panel .slider input[type="range"]:focus:before {
+        .panel .slider input[type="range"]:not([disabled]):hover:before,
+        .panel .slider input[type="range"]:not([disabled]):focus:before {
           background-color: var(--border-color--active);
         }
 
@@ -275,8 +280,13 @@ canvas {
       font-family: 'Courier New', Courier, monospace;
     }
 
-      .panel .slider .value:hover,
-      .panel .slider .value:focus {
+      .panel .slider .value[disabled] {
+        opacity: .5;
+        cursor: not-allowed;
+      }
+
+      .panel .slider .value:not([disabled]):hover,
+      .panel .slider .value:not([disabled]):focus {
         border: 1px solid var(--border-color--active);
         color: rgba(255,255,255,1);
       }
