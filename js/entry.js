@@ -145,5 +145,5 @@ function update() {
   // Run again when the next frame starts
   setTimeout(() => {
     requestAnimationFrame(update);
-  }, variables.speedMultiplier);
+  }, 100 * (1 - variables.controls.speed.value) + 0 * variables.controls.speed.value);
 }
