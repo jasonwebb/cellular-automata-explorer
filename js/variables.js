@@ -120,7 +120,6 @@ export default {
     }
   },
   isPaused: false,
-  speedMultiplier: 1.0,
   activePattern: 'Rectangle',
   activeRule: {
     birth: null,
