@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import { displayUniforms } from "./uniforms";
 
 export let colors = [
-  [0, 78, 51],     // state 0 color
-  [255, 220, 170]  // state 1 color
+  [26,50,122],     // state 0 color
+  [255,255,255]  // state 1 color
 ]
 
 export function setColors() {
