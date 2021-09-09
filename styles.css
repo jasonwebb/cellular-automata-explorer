@@ -496,7 +496,7 @@ canvas {
 /** Center buttons and links */
 .center-controls {
   position: absolute;
-  left: 20px;
+  left: 10px;
   top: 10px;
   z-index: 100;
   transition: left .2s ease-in-out;
@@ -507,7 +507,7 @@ canvas {
   }
 
   .center-controls .toggle-ui-button {
-    background-color: black;
+    background: none;
     border: 1px solid var(--border-color);
     padding: 5px 15px;
     border-radius: 100px;
