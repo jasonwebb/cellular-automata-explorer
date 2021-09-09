@@ -41,6 +41,24 @@
   <canvas id="buffer-canvas" style="display: none;"></canvas>
   <img id="buffer-image" style="display: none;" alt="">
 
+  <div id="help-dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="help-dialog-heading">
+    <div class="content">
+      <button class="close-button">
+        <span class="fas fa-times" aria-hidden="true"></span>
+        <span class="sr-only">Close</span>
+      </button>
+
+      <h1 id="help-dialog-heading">About Cellular Automata Explorer</h1>
+
+      <ul>
+        <li><code>Space</code> - pause/play</li>
+        <li><code>r</code> - restart</li>
+        <li><code>u</code> - show/hide the UI</li>
+        <li><code>h</code> - show this help panel</li>
+      </ul>
+    </div>
+  </div>
+
   <script src="dist/ca.bundle.js"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 //  KEYBOARD CONTROLS
 //==============================================================
 
+import { showHelpDialog } from './helpDialog';
 import { drawPattern } from './patterns';
 import { setupRenderTargets } from './renderTargets';
 import { toggleUI } from './ui';
@@ -23,6 +24,10 @@ export function setupKeyboard() {
 
       case 'u':
         toggleUI();
+        break;
+
+      case 'h':
+        showHelpDialog();
         break;
     }
   });

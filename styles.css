@@ -571,3 +571,64 @@ canvas {
     .center-controls .github-link:focus {
       color: white;
     }
+
+.dialog {
+  display: none;
+
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 200;
+  background-color: rgba(0,0,0,.7);
+
+  justify-content: center;
+  align-items: center;
+}
+
+  .dialog.is-visible {
+    display: flex;
+  }
+
+  .dialog .content {
+    position: relative;
+    padding: 30px 40px;
+
+    background-color: black;
+    color: rgba(255,255,255,.8);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: 0 0 50px rgba(0,0,0,.4);
+  }
+
+    .dialog .content .close-button {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+
+      background: none;
+      border: 0;
+      padding: 0;
+
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      opacity: .6;
+    }
+
+    .dialog .content .close-button:hover,
+    .dialog .content .close-button:focus {
+      opacity: 1;
+      outline-offset: 2px;
+    }
+
+    .dialog .content h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .dialog .content h1 .fas {
+      opacity: .5;
+    }

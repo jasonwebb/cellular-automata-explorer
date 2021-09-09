@@ -12,6 +12,7 @@ import { setupKeyboard } from './keyboard';
 import { setupMouse } from './mouse';
 import { setColors } from './colors';
 import { setupUI } from './ui';
+import { setupHelpDialog } from './helpDialog';
 
 export let scene, camera, renderer, mesh;
 export let canvas;
@@ -21,6 +22,7 @@ setupUI();
 setup();
 setupKeyboard();
 setupMouse();
+setupHelpDialog();
 update();
 
 //==============================================================

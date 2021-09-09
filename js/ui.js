@@ -9,6 +9,7 @@ import { createColorsGroup } from './ui/colors';
 import { createSurvivalGroup } from './ui/survival';
 import { createPatternGroup } from './ui/pattern';
 import { createCanvasGroup } from './ui/canvas';
+import { showHelpDialog } from './helpDialog';
 
 let mainWrapper;
 let leftPanel, rightPanel, centerControlsWrapper;
@@ -81,9 +82,7 @@ export function setupUI() {
     aboutButton.setAttribute('title', 'Learn more about this app');
     aboutButton.innerHTML = '<span class="fas fa-question" aria-hidden="true"></span><span class="sr-only">Learn more about this app</span>';
 
-    aboutButton.addEventListener('click', () => {
-
-    })
+    aboutButton.addEventListener('click', showHelpDialog);
 
     // Github link
     let githubLink = document.createElement('a');
