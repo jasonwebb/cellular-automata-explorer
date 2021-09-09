@@ -1,7 +1,7 @@
 import { createGroup, createRow, createButton, createToggleButton, createSlider, createCheckbox, createSeperator } from './components';
 import { drawPattern } from '../patterns';
 import { setupRenderTargets } from '../renderTargets';
-import globals from '../globals';
+import variables from '../variables';
 
 export function createControlsGroup() {
   let group = createGroup('Controls');
@@ -14,8 +14,8 @@ export function createControlsGroup() {
 
     // Speed slider
     group.appendChild(
-      createSlider('Speed', 0.001, 2.0, .1, globals.speedMultiplier, (e) => {
-        globals.speedMultiplier = e.target.value;
+      createSlider('Speed', 0.01, 1.0, .01, variables.speedMultiplier, (e) => {
+        variables.speedMultiplier = 100 * (1 - e.target.value) + 0 * e.target.value;
       })
     );
 
@@ -28,8 +28,8 @@ export function createControlsGroup() {
       <span class="fas fa-play" aria-hidden="true"></span>
       <span class="text pause">Pause</span>
       <span class="text play">Play</span>
-    `, globals.isPaused, () => {
-      globals.isPaused = !globals.isPaused;
+    `, variables.isPaused, () => {
+      variables.isPaused = !variables.isPaused;
     });
 
       pauseButton.querySelector('button').setAttribute('aria-label', 'Pause');

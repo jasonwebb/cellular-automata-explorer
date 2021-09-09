@@ -115,7 +115,7 @@ function setup() {
 //  - Main program loop, runs once per frame no matter what.
 //==============================================================
 function update() {
-  if(!globals.isPaused) {
+  if(!variables.isPaused) {
     // Activate the simulation shaders
     mesh.material = simulationMaterial;
 
@@ -141,5 +141,7 @@ function update() {
   }
 
   // Run again when the next frame starts
-  requestAnimationFrame(update);
+  setTimeout(() => {
+    requestAnimationFrame(update);
+  }, variables.speedMultiplier);
 }

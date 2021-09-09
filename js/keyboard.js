@@ -5,14 +5,14 @@
 import { drawPattern } from './patterns';
 import { setupRenderTargets } from './renderTargets';
 import { toggleUI } from './ui';
-import globals from './globals';
+import variables from './variables';
 
 export function setupKeyboard() {
   window.addEventListener('keydown', function(e) {
     switch(e.key) {
       case ' ':
         e.preventDefault();
-        globals.isPaused = !globals.isPaused;
+        variables.isPaused = !variables.isPaused;
         window.dispatchEvent(new Event('rebuildUI'));
         break;
 
