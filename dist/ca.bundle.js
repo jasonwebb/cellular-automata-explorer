@@ -173,8 +173,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 let colors = [
-  [0, 78, 51],     // state 0 color
-  [255, 220, 170]  // state 1 color
+  [26,50,122],     // state 0 color
+  [255,255,255]  // state 1 color
 ]
 
 function setColors() {
@@ -322,14 +322,14 @@ function setup() {
 
   // Set the rule that the shader should run
 
-  Object(_rules__WEBPACK_IMPORTED_MODULE_7__["setRule"])('23/3');  // Conway's Life
+  Object(_rules__WEBPACK_IMPORTED_MODULE_7__["setRuleFromString"])('23/3');  // Conway's Life
 
   // setTimeout(() => {
-  //   setRule('345/2/50');  // Generations - Burst
+  //   setRuleFromString('345/2/50');  // Generations - Burst
   // }, 2000);
 
   // setTimeout(() => {
-  //   setRule('45678/2478/250');  // Generations - Burst
+  //   setRuleFromString('45678/2478/250');  // Generations - Burst
   // }, 5000);
 
   // Set up and render the first frame
@@ -438,10 +438,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupKeyboard", function() { return setupKeyboard; });
 /* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
 /* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
-/* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./globals */ "./js/globals.js");
+/* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ui */ "./js/ui.js");
+/* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./globals */ "./js/globals.js");
 //==============================================================
 //  KEYBOARD CONTROLS
 //==============================================================
+
 
 
 
@@ -452,12 +454,17 @@ function setupKeyboard() {
     switch(e.key) {
       case ' ':
         e.preventDefault();
-        _globals__WEBPACK_IMPORTED_MODULE_2__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_2__["default"].isPaused;
+        _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused;
+        window.dispatchEvent(new Event('rebuildUI'));
         break;
 
       case 'r':
         Object(_renderTargets__WEBPACK_IMPORTED_MODULE_1__["setupRenderTargets"])();
         Object(_patterns__WEBPACK_IMPORTED_MODULE_0__["drawPattern"])();
+        break;
+
+      case 'u':
+        Object(_ui__WEBPACK_IMPORTED_MODULE_2__["toggleUI"])();
         break;
     }
   });
@@ -586,6 +593,7 @@ function setupMouse() {
   mouseFollower.style.position = 'absolute';
   mouseFollower.style.border = '1px solid white';
   mouseFollower.style.borderRadius = '1000px';
+  mouseFollower.style.boxShadow = '0 0 0 2px rgba(0,0,0,.4)'
   mouseFollower.style.pointerEvents = 'none';
   document.body.append(mouseFollower);
 
@@ -604,8 +612,8 @@ function setupMouse() {
   // If dragging, pass the mouse coordinates into the shader.
   _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mousemove', (e) => {
     if(mouseDown) {
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = e.offsetX / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value;
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = 1 - e.offsetY / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value;
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = e.offsetX / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value;
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = 1 - e.offsetY / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value;
     } else {
       _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = -1;
       _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = -1;
@@ -686,12 +694,12 @@ __webpack_require__.r(__webpack_exports__);
 let bufferImage, bufferCanvas, bufferCanvasCtx;
 
 const InitialPatternTypes = [
+  'None',
   'Circle',
   'Rectangle',
   'Text',
   'Image',
-  'Random',
-  'Empty',
+  'Random'
 ];
 
 function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].activePattern) {
@@ -704,16 +712,16 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].a
 
   // Clear the invisible canvas
   bufferCanvasCtx.fillStyle = '#000';
-  bufferCanvasCtx.fillRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value);
+  bufferCanvasCtx.fillRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value);
 
   // Build initial simulation texture data and pass it on to the render targets
-  const centerX = (_variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value) / 2,
-        centerY = (_variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value) / 2;
+  const centerX = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value / 2,
+        centerY = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value / 2
 
   switch(type) {
     case 'Circle':
       bufferCanvasCtx.beginPath();
-      bufferCanvasCtx.arc(centerX, centerY, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.circle.diameter.value/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value, 0, Math.PI*2);
+      bufferCanvasCtx.arc(centerX, centerY, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.circle.diameter.value / 2, 0, Math.PI*2);
       bufferCanvasCtx.fillStyle = '#fff';
       bufferCanvasCtx.fill();
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
@@ -727,10 +735,10 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].a
       bufferCanvasCtx.translate(-centerX, -centerY);
 
       bufferCanvasCtx.fillRect(
-        centerX - _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.width.value/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
-        centerY - _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.height.value/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
-        _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
-        _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value
+        centerX - (_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.width.value / 2),
+        centerY - (_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.height.value / 2),
+        _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.width.value,
+        _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.rectangle.height.value
       );
 
       bufferCanvasCtx.resetTransform();
@@ -740,7 +748,7 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].a
     case 'Text':
       bufferCanvasCtx.fillStyle = '#fff';
       bufferCanvasCtx.font = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.text.fontWeight.value + ' ' +
-                             _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.text.size.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value + 'px ' +
+                             _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.text.size.value + 'px ' +
                              _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.text.activeFontFace;
       bufferCanvasCtx.textAlign = 'center';
 
@@ -770,7 +778,7 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].a
       break;
 
     case 'Random':
-      let pixels = bufferCanvasCtx.getImageData(0, 0, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value);
+      let pixels = bufferCanvasCtx.getImageData(0, 0, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value);
 
       for(let i=0; i<pixels.data.length; i+=4) {
         pixels.data[i] = Math.random() < _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.random.density.value ? 255 : 0;
@@ -780,8 +788,8 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].a
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
 
-    case 'Empty':
-      bufferCanvasCtx.clearRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value);
+    case 'None':
+      bufferCanvasCtx.clearRect(0, 0, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value);
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
   }
@@ -791,8 +799,8 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].a
     // Put the initial data into a texture format that ThreeJS can pass into the render targets
     let texture = new three__WEBPACK_IMPORTED_MODULE_0__["DataTexture"](
       initialData,
-      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
-      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
+      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value,
+      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value,
       three__WEBPACK_IMPORTED_MODULE_0__["RGBAFormat"],
       three__WEBPACK_IMPORTED_MODULE_0__["FloatType"]
     );
@@ -877,8 +885,8 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].a
   function convertPixelsToTextureData() {
     let pixels = bufferCanvasCtx.getImageData(
       0, 0,
-      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value,
-      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.scale.value
+      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value,
+      _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value
     ).data;
 
     let data = new Float32Array(pixels.length);
@@ -929,6 +937,103 @@ __webpack_require__.r(__webpack_exports__);
     'Serviettes': '/234',
     'Stains': '235678/3678',
     'WalledCities': '2345/45678'
+  },
+  'Generations': {
+    'Banners': '2367/3457/5',
+    'BelZhab': '23/23/8',
+    'BelZhab Sediment': '145678/23/8',
+    'Bloomerang': '234/34678/24',
+    'Bombers': '345/24/25',
+    'Brain 6': '6/246/3',
+    'Brian\'s Brain': '/2/3',
+    'Burst': '0235678/3468/9',
+    'BurstII': '235678/3468/9',
+    'Caterpillars': '124567/378/4',
+    'Chenille': '05678/24567/6',
+    'Circuit Genesis': '2345/1234/8',
+    'Cooties': '23/2/8',
+    'Ebb&Flow': '012478/36/18',
+    'Ebb&Flow II': '012468/37/18',
+    'Faders': '2/2/25',
+    'Fireworks': '2/13/21',
+    'Flaming Starbows': '347/23/8',
+    'Frogs': '12/34/3',
+    'Frozen spirals': '356/23/6',
+    'Glisserati': '035678/245678/7',
+    'Glissergy': '035678/245678/5',
+    'Lava': '12345/45678/8',
+    'Lines': '012345/458/3',
+    'LivingOn TheEdge': '345/3/6',
+    'Meteor Guns': '01245678/3/8',
+    'Nova': '45678/2478/25',
+    'OrthoGo': '3/2/4',
+    'Praire on fire': '345/34/6',
+    'RainZha': '2/23/8',
+    'Rake': '3467/2678/6',
+    'SediMental': '45678/25678/4',
+    'Snake': '03467/25/6',
+    'SoftFreeze': '13458/38/6',
+    'Spirals': '2/234/5',
+    'Star Wars': '345/2/4',
+    'Sticks': '3456/2/6',
+    'Swirl': '23/34/8',
+    'ThrillGrill': '1234/34/48',
+    'Transers': '345/26/5',
+    'TransersII': '0345/26/6',
+    'Wanderers': '345/34678/5',
+    'Worms': '3467/25/6',
+    'Xtasy': '1456/2356/16'
+  },
+  'Larger than Life': {
+    'Bugs': {
+      birth: [34,35,36,37,38,39,40,41,42,43,44,45],
+      survival: [34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58],
+      includeCenter: true,
+      range: 5
+    },
+    'Bugsmovie': {
+      birth: [123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170],
+      survival: [123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223],
+      range: 10,
+      includeCenter: true
+    },
+    'Globe': {
+      birth: [123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170],
+      survival: [163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223],
+      range: 8,
+      includeCenter: false
+    },
+    'Gnarl': {
+      birth: [1],
+      survival: [1],
+      neighborhoodType: 1
+    },
+    'Majority': {
+      birth: [41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81],
+      survival: [41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81],
+      range: 4,
+      includeCenter: true
+    },
+    'Majorly': {
+      birth: [113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225],
+      survival: [113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225],
+      range: 7,
+      includeCenter: true
+    },
+    'ModernArt': {
+      birth: [3],
+      survival: [2,3],
+      range: 10,
+      includeCenter: true,
+      historyEnabled: true,
+      stateCount: 255
+    },
+    'Waffle': {
+      birth: [75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170],
+      survival: [100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200],
+      range: 7,
+      includeCenter: true
+    }
   }
 });
 
@@ -987,12 +1092,14 @@ function setupRenderTargets() {
 /*!*********************!*\
   !*** ./js/rules.js ***!
   \*********************/
-/*! exports provided: NeighborhoodTypes, setRule, passNeighborCountsToShader */
+/*! exports provided: NeighborhoodTypes, setRuleFromData, setRuleFromString, setRule, passNeighborCountsToShader */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "NeighborhoodTypes", function() { return NeighborhoodTypes; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setRuleFromData", function() { return setRuleFromData; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setRuleFromString", function() { return setRuleFromString; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setRule", function() { return setRule; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "passNeighborCountsToShader", function() { return passNeighborCountsToShader; });
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
@@ -1001,19 +1108,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
 /* harmony import */ var _presets__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./presets */ "./js/presets.js");
 /* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
-/**********************
- Structure of object returned by the parser:
- {
-   birth: array,
-   neighbourhoodRange: int,
-   neighbourhoodType: string ('moore' | ...),
-   process: function(),
-   ruleFormat: string ('life' | 'extended-life' | 'generations' | ...),
-   ruleString: string,
-   stateCount: int,
-   survival: array
- }
-***********************/
 
 
 
@@ -1026,36 +1120,20 @@ const NeighborhoodTypes = {
   'von Neumann': 1
 };
 
-function setRule(ruleString) {
-  let rule = cellular_automata_rule_parser__WEBPACK_IMPORTED_MODULE_1__(ruleString);
-
-  if(rule == null) {
-    console.log("Couldn't parse: " + ruleString);
-    return;
-  }
-
-  // Convert the rule format to a number and pass to the shader
-  let ruleFormatNumber = 0;   // default to Life format
-
-  switch(rule.ruleFormat) {
-    case 'life':          ruleFormatNumber = 0; break;
-    case 'extended-life': ruleFormatNumber = 1; break;
-    case 'generations':   ruleFormatNumber = 2; break;
-  }
-
+function setRuleFromData(ruleData) {
   // Capture the rule information in a globally-available object to display in the UI
-  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.ruleString = ruleString;
-  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.ruleFormat = ruleFormatNumber;
-  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.stateCount = rule.stateCount || 2;
-  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth = rule.birth;
-  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival = rule.survival;
-  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.neighborhoodType = rule.neighborhoodType || NeighborhoodTypes['Moore'];
-  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.range = rule.neighborhoodRange || 1;
-  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.includeCenter = false;
-  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.historyEnabled = rule.ruleFormat === 'generations' ? true : false;
-  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.cyclicEnabled = true;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.ruleString = ruleData.ruleString || '';
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.ruleFormat = ruleData.ruleFormatNumber || 0;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.stateCount = ruleData.stateCount || 2;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth = ruleData.birth || [3];
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival = ruleData.survival || [2,3];
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.neighborhoodType = ruleData.neighborhoodType || NeighborhoodTypes['Moore'];
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.range = ruleData.range || 1;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.includeCenter = ruleData.includeCenter || false;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.historyEnabled = ruleData.historyEnabled || ruleData.ruleFormatNumber === 2 ? true : false;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.cyclicEnabled = ruleData.cyclicEnabled || true;
 
-  // Pass all the rule information to the shader
+  // Pass all the rule information to the frag shader
   _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].ruleFormat.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.ruleFormat;
   _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].stateCount.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.stateCount;
   _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].neighborhoodType.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.neighborhoodType;
@@ -1067,7 +1145,7 @@ function setRule(ruleString) {
 
   // Select the appropriate preset in the Rule panel, if it matches.
   Object.keys(_presets__WEBPACK_IMPORTED_MODULE_3__["default"]).forEach((family) => {
-    const key = Object.keys(_presets__WEBPACK_IMPORTED_MODULE_3__["default"][family]).find(key => _presets__WEBPACK_IMPORTED_MODULE_3__["default"][family][key] === ruleString);
+    const key = Object.keys(_presets__WEBPACK_IMPORTED_MODULE_3__["default"][family]).find(key => _presets__WEBPACK_IMPORTED_MODULE_3__["default"][family][key] === ruleData.ruleString);
 
     if(key !== undefined) {
       let presetsDropdown = document.getElementById('input-0');
@@ -1087,26 +1165,88 @@ function setRule(ruleString) {
   });
 
   // Fire a custom event to let the UI know it needs to update
-  window.dispatchEvent(new Event('ruleUpdated'));
+  window.dispatchEvent(new Event('rebuildUI'));
 }
 
-  function passNeighborCountsToShader() {
-    // Pass the total numbers of birth and survival counts to the shader
-    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].birthCountsLength.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth.length;
-    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].survivalCountsLength.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival.length;
+/**********************
+  Set the active rule from a string using kchapelier's cellular-automata-rule-parser package (https://github.com/kchapelier/cellular-automata-rule-parser)
 
-    // Convert the birth and survival arrays into a single DataTexture and pass it into the shader
-    const longestLength = Math.max(_variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth.length, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival.length);
-    let data = new Float32Array(longestLength * 4);  // RGBA = 4 channels
+  This package only supports Life, Larger than Life, and Generations rule families (along with a few other, more esoteric ones). See the README in the package's repo for format documentation.
 
-    for(let i=0; i<longestLength; i++) {
-      data[i * 4] = i < _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth.length ? _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth[i] / 255 : 0;            // encode birth into R channel
-      data[i * 4 + 1] = i < _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival.length ? _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival[i] / 255 : 0;  // encode survival into G channel
-    }
-
-    // Pass the birth and survival data to the shader as a data texture
-    _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].birthAndSurvivalCounts.value = new three__WEBPACK_IMPORTED_MODULE_0__["DataTexture"](data, longestLength, 1, three__WEBPACK_IMPORTED_MODULE_0__["RGBAFormat"], three__WEBPACK_IMPORTED_MODULE_0__["FloatType"]);
+  Structure of object returned by the parser:
+  {
+    birth: array,
+    neighbourhoodRange: int,
+    neighbourhoodType: string ('moore' | ...),
+    process: function(),
+    ruleFormat: string ('life' | 'extended-life' | 'generations' | ...),
+    ruleString: string,
+    stateCount: int,
+    survival: array
   }
+***********************/
+function setRuleFromString(ruleString) {
+  let rule = cellular_automata_rule_parser__WEBPACK_IMPORTED_MODULE_1__(ruleString);
+
+  if(rule == null) {
+    console.log("Couldn't parse: " + ruleString);
+    return;
+  }
+
+  // Convert the rule format to a number so it can be passed to the frag shader more easily
+  let ruleFormatNumber = 0;   // default to Life format
+
+  switch(rule.ruleFormat) {
+    case 'life':          ruleFormatNumber = 0; break;
+    case 'extended-life': ruleFormatNumber = 1; break;
+    case 'generations':   ruleFormatNumber = 2; break;
+  }
+
+  // Capture the parsed rule data in a custom object and pass it onto the core rule setting function
+  let ruleData = {};
+  ruleData.ruleString = ruleString;
+  ruleData.ruleFormat = ruleFormatNumber;
+  ruleData.stateCount = rule.stateCount || 2;
+  ruleData.birth = rule.birth;
+  ruleData.survival = rule.survival;
+  ruleData.neighborhoodType = rule.neighborhoodType || NeighborhoodTypes['Moore'];
+  ruleData.range = rule.neighborhoodRange || 1;
+  ruleData.historyEnabled = rule.stateCount > 2 ? true : false;
+
+  setRuleFromData(ruleData);
+}
+
+/**********************
+  Abstraction for parsing either rule strings or objects containing rule data
+***********************/
+function setRule(ruleInput) {
+  if(typeof ruleInput === 'string') {
+    setRuleFromString(ruleInput);
+  } else {
+    setRuleFromData(ruleInput);
+  }
+}
+
+/**********************
+  Abstracted utility function for converting the birth/survival counts from arrays to DataTextures so they can be passed to the frag shader. Called in this file, and in ./ui/rules.js
+***********************/
+function passNeighborCountsToShader() {
+  // Pass the total numbers of birth and survival counts to the shader
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].birthCountsLength.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth.length;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].survivalCountsLength.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival.length;
+
+  // Convert the birth and survival arrays into a single DataTexture and pass it into the shader
+  const longestLength = Math.max(_variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth.length, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival.length);
+  let data = new Float32Array(longestLength * 4);  // RGBA = 4 channels
+
+  for(let i=0; i<longestLength; i++) {
+    data[i * 4] = i < _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth.length ? _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.birth[i] / 255 : 0;            // encode birth into R channel
+    data[i * 4 + 1] = i < _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival.length ? _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.survival[i] / 255 : 0;  // encode survival into G channel
+  }
+
+  // Pass the birth and survival data to the shader as a data texture
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].birthAndSurvivalCounts.value = new three__WEBPACK_IMPORTED_MODULE_0__["DataTexture"](data, longestLength, 1, three__WEBPACK_IMPORTED_MODULE_0__["RGBAFormat"], three__WEBPACK_IMPORTED_MODULE_0__["FloatType"]);
+}
 
 /***/ }),
 
@@ -1114,12 +1254,16 @@ function setRule(ruleString) {
 /*!******************!*\
   !*** ./js/ui.js ***!
   \******************/
-/*! exports provided: setupUI */
+/*! exports provided: isUIVisible, setupUI, toggleUI, hideUI, showUI */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isUIVisible", function() { return isUIVisible; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupUI", function() { return setupUI; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toggleUI", function() { return toggleUI; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideUI", function() { return hideUI; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showUI", function() { return showUI; });
 /* harmony import */ var _ui_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ui/components */ "./js/ui/components.js");
 /* harmony import */ var _ui_history__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ui/history */ "./js/ui/history.js");
 /* harmony import */ var _ui_birth__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ui/birth */ "./js/ui/birth.js");
@@ -1142,10 +1286,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-let leftPanel, rightPanel;
+let mainWrapper;
+let leftPanel, rightPanel, centerControlsWrapper;
+let isUIVisible = true;
 
 function setupUI() {
+  mainWrapper = document.querySelector('main');
+
   setupLeftPanel();
+  setupCenterControls();
   setupRightPanel();
 }
 
@@ -1159,7 +1308,7 @@ function setupUI() {
     leftPanel.appendChild(Object(_ui_neighborhood__WEBPACK_IMPORTED_MODULE_5__["createNeighborhoodGroup"])());
     leftPanel.appendChild(Object(_ui_history__WEBPACK_IMPORTED_MODULE_1__["createHistoryGroup"])());
 
-    document.body.appendChild(leftPanel);
+    mainWrapper.appendChild(leftPanel);
   }
 
   function setupRightPanel() {
@@ -1171,7 +1320,82 @@ function setupUI() {
     rightPanel.appendChild(Object(_ui_canvas__WEBPACK_IMPORTED_MODULE_9__["createCanvasGroup"])());
     rightPanel.appendChild(Object(_ui_controls__WEBPACK_IMPORTED_MODULE_3__["createControlsGroup"])());
 
-    document.body.appendChild(rightPanel);
+    mainWrapper.appendChild(rightPanel);
+  }
+
+  function setupCenterControls() {
+    centerControlsWrapper = document.createElement('div');
+    centerControlsWrapper.classList.add('center-controls', 'has-left-indent');
+
+    // Show/hide UI button
+    let toggleUIButton = document.createElement('button');
+    toggleUIButton.setAttribute('aria-label', 'Hide UI');
+    toggleUIButton.setAttribute('aria-pressed', false);
+    toggleUIButton.classList.add('toggle-ui-button');
+    toggleUIButton.innerHTML = `
+      <span class="fas fa-eye" aria-hidden="true"></span>
+      <span class="fas fa-eye-slash" aria-hidden="true"></span>
+      <span class="hide">Hide UI</span>
+      <span class="show">Show UI</span>
+    `;
+
+    toggleUIButton.addEventListener('click', () => {
+      let isPressed = toggleUIButton.getAttribute('aria-pressed') === 'true' ? true : false;
+
+      if(isPressed) {
+        toggleUIButton.setAttribute('aria-pressed', false);
+      } else {
+        toggleUIButton.setAttribute('aria-pressed', true);
+      }
+
+      toggleUI();
+    });
+
+    // About button
+    let aboutButton = document.createElement('button');
+    aboutButton.classList.add('help-button');
+    aboutButton.setAttribute('title', 'Learn more about this app');
+    aboutButton.innerHTML = '<span class="fas fa-question" aria-hidden="true"></span><span class="sr-only">Learn more about this app</span>';
+
+    aboutButton.addEventListener('click', () => {
+
+    })
+
+    // Github link
+    let githubLink = document.createElement('a');
+    githubLink.setAttribute('href', 'https://github.com/jasonwebb/cellular-automata-explorer');
+    githubLink.setAttribute('target', '_blank');
+    githubLink.setAttribute('title', 'See the source code on Github');
+    githubLink.classList.add('github-link');
+    githubLink.innerHTML = '<span class="fab fa-github" aria-hidden="true"></span><span class="sr-only">See the source code on Github</span>';
+
+    centerControlsWrapper.appendChild(toggleUIButton);
+    centerControlsWrapper.appendChild(aboutButton);
+    centerControlsWrapper.appendChild(githubLink);
+
+    mainWrapper.appendChild(centerControlsWrapper);
+  }
+
+function toggleUI() {
+  if(isUIVisible) {
+    hideUI();
+    centerControlsWrapper.classList.remove('has-left-indent');
+  } else {
+    showUI();
+    centerControlsWrapper.classList.add('has-left-indent');
+  }
+}
+
+  function hideUI() {
+    leftPanel.classList.add('is-hidden');
+    rightPanel.classList.add('is-hidden');
+    isUIVisible = false;
+  }
+
+  function showUI() {
+    leftPanel.classList.remove('is-hidden');
+    rightPanel.classList.remove('is-hidden');
+    isUIVisible = true;
   }
 
 /***/ }),
@@ -1211,75 +1435,85 @@ function createBirthGroup() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createCanvasGroup", function() { return createCanvasGroup; });
-/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
-/* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../entry */ "./js/entry.js");
-/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../uniforms */ "./js/uniforms.js");
-/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
+/* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../entry */ "./js/entry.js");
+/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../uniforms */ "./js/uniforms.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
+
+
 
 
 
 
 
 function createCanvasGroup() {
-  let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Canvas');
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_1__["createGroup"])('Canvas');
 
   // Width slider
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Width', 1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.width.max, 1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.width.value, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.width.value = e.target.value;
-      Object(_entry__WEBPACK_IMPORTED_MODULE_1__["resetTextureSizes"])();
+    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Width', 1, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.max, 1, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value = e.target.value;
+      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
     })
   );
 
   // Height slider
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Height', 1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.height.max, 1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.height.value, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.height.value = e.target.value;
-      Object(_entry__WEBPACK_IMPORTED_MODULE_1__["resetTextureSizes"])();
+    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Height', 1, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.max, 1, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value = e.target.value;
+      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
     })
   );
 
   // Maximized checkbox
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Maximized', _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.maximized, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.maximized = e.target.checked;
+    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createCheckbox"])('Maximized', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized = e.target.checked;
 
-      if(_variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.maximized) {
-        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.unmaximizedSize.width = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.width.value;
-        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.unmaximizedSize.height = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.height.value;
+      if(_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized) {
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.width = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value;
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.height = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value;
       } else {
-        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.width.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.unmaximizedSize.width;
-        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.height.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.unmaximizedSize.height;
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.width;
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.height;
       }
 
-      Object(_entry__WEBPACK_IMPORTED_MODULE_1__["resetTextureSizes"])();
+      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
     })
   );
 
-    group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSeperator"])() );
+    group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSeperator"])() );
 
   // Edge wrapping (X) checkbox
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Wrap X', _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.x, () => {
-      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.x = !_variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.x;
-      _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].wrapping.value.x = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.x;
+    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createCheckbox"])('Wrap X', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x, () => {
+      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x = !_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x;
+      _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].wrapping.value.x = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x;
     })
   );
 
   // Edge wrapping (Y) checkbox
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Wrap Y', _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.y, () => {
-      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.y = !_variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.y;
-      _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].wrapping.value.y = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.wrap.y;
+    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createCheckbox"])('Wrap Y', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y, () => {
+      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y = !_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y;
+      _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].wrapping.value.y = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y;
     })
   );
 
-    group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSeperator"])() );
+    group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSeperator"])() );
 
   // Scale slider
   group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Scale', .1, 3, .1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.scale.value, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].canvas.scale.value = 3 - e.target.value;
+    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Scale', .1, 5, .01, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value, (e) => {
+      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value = 1/e.target.value;
+
+      _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].resolution.value = new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value,
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value
+      );
+
+      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
     })
   );
 
@@ -1311,7 +1545,7 @@ function createColorsGroup() {
   // TODO: add dropdown for color palette presets
 
   // Color pickers - one per state
-  window.addEventListener('ruleUpdated', () => {
+  window.addEventListener('rebuildUI', () => {
     let fieldset = group.querySelector('fieldset');
 
     if(fieldset != null) {
@@ -1705,7 +1939,7 @@ function createCountCheckboxFieldset(type) {
   fieldset.appendChild(legend);
 
   // Build and check the checkboxes based on the active rule whenever it is set
-  window.addEventListener('ruleUpdated', () => {
+  window.addEventListener('rebuildUI', () => {
     let checkboxes = [];
 
     // Remove any checkboxes that were previously added to the group
@@ -1951,46 +2185,53 @@ __webpack_require__.r(__webpack_exports__);
 function createControlsGroup() {
   let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Controls');
 
-  // Speed slider
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Speed', 0.1, 2.0, .1, 1.0, () => {
-      console.log('speed changed');
-    })
-  );
+  window.addEventListener('rebuildUI', () => {
+    // Get rid of any previously-added components
+    group.querySelectorAll('.component, .row').forEach((component) => {
+      component.remove();
+    });
 
-  // Row for laying out buttons horizontally
-  let buttonRow = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createRow"])();
+    // Speed slider
+    group.appendChild(
+      Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Speed', 0.001, 2.0, .1, _globals__WEBPACK_IMPORTED_MODULE_3__["default"].speedMultiplier, (e) => {
+        _globals__WEBPACK_IMPORTED_MODULE_3__["default"].speedMultiplier = e.target.value;
+      })
+    );
 
-  // Pause button
-  let pauseButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createToggleButton"])(`
-    <span class="fas fa-pause" aria-hidden="true"></span>
-    <span class="fas fa-play" aria-hidden="true"></span>
-    <span class="text pause">Pause</span>
-    <span class="text play">Play</span>
-  `, _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused, () => {
-    _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused;
+    // Row for laying out buttons horizontally
+    let buttonRow = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createRow"])();
+
+    // Pause button
+    let pauseButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createToggleButton"])(`
+      <span class="fas fa-pause" aria-hidden="true"></span>
+      <span class="fas fa-play" aria-hidden="true"></span>
+      <span class="text pause">Pause</span>
+      <span class="text play">Play</span>
+    `, _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused, () => {
+      _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused;
+    });
+
+      pauseButton.querySelector('button').setAttribute('aria-label', 'Pause');
+
+    // Restart button
+    let restartButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])(`
+      <span class="fas fa-sync-alt" aria-hidden="true"></span>
+      <span class="text">Restart</span>
+    `, false, () => {
+      Object(_renderTargets__WEBPACK_IMPORTED_MODULE_2__["setupRenderTargets"])();
+      Object(_patterns__WEBPACK_IMPORTED_MODULE_1__["drawPattern"])();
+    });
+
+    pauseButton.classList.add('is-control-button');
+    restartButton.classList.add('is-control-button');
+
+    pauseButton.querySelector('button').setAttribute('id', 'pause-button');
+    restartButton.querySelector('button').setAttribute('id', 'restart-button');
+
+    buttonRow.appendChild(pauseButton);
+    buttonRow.appendChild(restartButton);
+    group.appendChild(buttonRow);
   });
-
-    pauseButton.querySelector('button').setAttribute('aria-label', 'Pause');
-
-  // Restart button
-  let restartButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])(`
-    <span class="fas fa-sync-alt" aria-hidden="true"></span>
-    <span class="text">Restart</span>
-  `, false, () => {
-    Object(_renderTargets__WEBPACK_IMPORTED_MODULE_2__["setupRenderTargets"])();
-    Object(_patterns__WEBPACK_IMPORTED_MODULE_1__["drawPattern"])();
-  });
-
-  pauseButton.classList.add('is-control-button');
-  restartButton.classList.add('is-control-button');
-
-  pauseButton.querySelector('button').setAttribute('id', 'pause-button');
-  restartButton.querySelector('button').setAttribute('id', 'restart-button');
-
-  buttonRow.appendChild(pauseButton);
-  buttonRow.appendChild(restartButton);
-  group.appendChild(buttonRow);
 
   return group;
 }
@@ -2017,7 +2258,7 @@ __webpack_require__.r(__webpack_exports__);
 function createHistoryGroup() {
   let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('History');
 
-  window.addEventListener('ruleUpdated', () => {
+  window.addEventListener('rebuildUI', () => {
     // Get rid of any previously-added components
     group.querySelectorAll('.component').forEach((component) => {
       component.remove();
@@ -2030,14 +2271,14 @@ function createHistoryGroup() {
         _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].historyEnabled.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled;
         _uniforms__WEBPACK_IMPORTED_MODULE_1__["displayUniforms"].historyEnabled.value = _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].historyEnabled.value;
 
-        window.dispatchEvent(new Event('ruleUpdated'));
+        window.dispatchEvent(new Event('rebuildUI'));
       })
     );
 
     if(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled) {
       // Number of generations (history) slider
       group.appendChild(
-        Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Number of generations', 1, 500, 1, 1, (e) => {
+        Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Number of generations', 1, 255, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.stateCount, (e) => {
           _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.stateCount =  2 + e.target.value;
           _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].stateCount.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.stateCount;
 
@@ -2056,11 +2297,13 @@ function createHistoryGroup() {
 
       // Cyclic checkbox
       group.appendChild(
-        Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Cyclic', true, (e) => {
+        Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Cyclic', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.cyclicEnabled, (e) => {
           _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.cyclicEnabled = e.target.checked;
           _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].cyclicEnabled.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.cyclicEnabled;
         })
       );
+
+      // TODO: add "max cycles"
     }
   });
 
@@ -2091,32 +2334,39 @@ __webpack_require__.r(__webpack_exports__);
 function createNeighborhoodGroup() {
   let group = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createGroup"])('Neighborhood');
 
-  // Type (Moore or von Neumann)
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Type', Object.keys(_rules__WEBPACK_IMPORTED_MODULE_2__["NeighborhoodTypes"]), null, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.neighborhoodType = _rules__WEBPACK_IMPORTED_MODULE_2__["NeighborhoodTypes"][e.target.value];
-      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].neighborhoodType.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.neighborhoodType;
-      window.dispatchEvent(new Event('ruleUpdated'));
-    })
-  );
+  window.addEventListener('rebuildUI', () => {
+    // Get rid of any previously-added components
+    group.querySelectorAll('.component').forEach((component) => {
+      component.remove();
+    });
 
-  // Range (number)
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Range', 1, 10, 1, 1, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range = e.target.value;
-      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].range.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range;
-      window.dispatchEvent(new Event('ruleUpdated'));
-    })
-  );
+    // Type (Moore or von Neumann)
+    group.appendChild(
+      Object(_components__WEBPACK_IMPORTED_MODULE_0__["createDropdown"])('Type', Object.keys(_rules__WEBPACK_IMPORTED_MODULE_2__["NeighborhoodTypes"]), _rules__WEBPACK_IMPORTED_MODULE_2__["NeighborhoodTypes"][_variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.neighborhoodType], (e) => {
+        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.neighborhoodType = _rules__WEBPACK_IMPORTED_MODULE_2__["NeighborhoodTypes"][e.target.value];
+        _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].neighborhoodType.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.neighborhoodType;
+        window.dispatchEvent(new Event('rebuildUI'));
+      })
+    );
 
-  // Include center (checkbox)
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Include center', false, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.includeCenter = e.target.checked;
-      _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].includeCenter.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.includeCenter;
-      window.dispatchEvent(new Event('ruleUpdated'));
-    })
-  );
+    // Range (number)
+    group.appendChild(
+      Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Range', 1, 10, 1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range, (e) => {
+        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range = e.target.value;
+        _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].range.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range;
+        window.dispatchEvent(new Event('rebuildUI'));
+      })
+    );
+
+    // Include center (checkbox)
+    group.appendChild(
+      Object(_components__WEBPACK_IMPORTED_MODULE_0__["createCheckbox"])('Include center', _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.includeCenter, (e) => {
+        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.includeCenter = e.target.checked;
+        _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].includeCenter.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.includeCenter;
+        window.dispatchEvent(new Event('rebuildUI'));
+      })
+    );
+  });
 
   return group;
 }
@@ -2158,7 +2408,7 @@ function createPatternGroup() {
       component.remove();
     });
 
-    if(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activePattern != 'Empty') {
+    if(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activePattern != 'None') {
       group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSeperator"])() );
     }
 
@@ -2274,8 +2524,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
 /* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../rules */ "./js/rules.js");
 /* harmony import */ var _presets__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../presets */ "./js/presets.js");
-/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
-
 
 
 
@@ -2301,34 +2549,6 @@ function createRulesGroup() {
           Object(_rules__WEBPACK_IMPORTED_MODULE_1__["setRule"])(_presets__WEBPACK_IMPORTED_MODULE_2__["default"][family][e.target.value]);
         }
       }
-    })
-  );
-
-    group.appendChild(Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSeperator"])());
-
-  // Text input for the rule string
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createTextInput"])('Rule', '', (e) => {
-      console.log('rule text changed');
-    })
-  );
-
-    // Set the rule when the user presses 'Enter' while on the text input
-    group.querySelector('.text-input input').addEventListener('keydown', (e) => {
-      if(e.key === 'Enter') {
-        Object(_rules__WEBPACK_IMPORTED_MODULE_1__["setRule"])(group.querySelector('.text-input input').value);
-      }
-    })
-
-    // Show the current rule string in this text input anytime it changes
-    window.addEventListener('ruleUpdated', () => {
-      group.querySelector('.text-input input').value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.ruleString;
-    });
-
-  // Button to manually set a custom rule typed into the text input
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])('Set rule', true, () => {
-      Object(_rules__WEBPACK_IMPORTED_MODULE_1__["setRule"])(group.querySelector('.text-input input').value);
     })
   );
 
