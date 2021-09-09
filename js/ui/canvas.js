@@ -1,7 +1,9 @@
+import * as THREE from 'three';
+
 import { createGroup, createSlider, createCheckbox, createSeperator } from './components';
 import { resetTextureSizes } from '../entry';
 import { simulationUniforms } from '../uniforms';
-import variables from '../variables'
+import variables from '../variables';
 
 export function createCanvasGroup() {
   let group = createGroup('Canvas');
@@ -61,8 +63,15 @@ export function createCanvasGroup() {
 
   // Scale slider
   group.appendChild(
-    createSlider('Scale', .1, 3, .1, variables.canvas.scale.value, (e) => {
-      variables.canvas.scale.value = 3 - e.target.value;
+    createSlider('Scale', .1, 5, .01, variables.canvas.scale.value, (e) => {
+      variables.canvas.scale.value = 1/e.target.value;
+
+      simulationUniforms.resolution.value = new THREE.Vector2(
+        variables.canvas.width.value * variables.canvas.scale.value,
+        variables.canvas.height.value * variables.canvas.scale.value
+      );
+
+      resetTextureSizes();
     })
   );
 
