@@ -10,6 +10,17 @@ export const NeighborhoodTypes = {
   'von Neumann': 1
 };
 
+/**********************
+  Abstraction for parsing either rule strings or objects containing rule data
+***********************/
+export function setRule(ruleInput) {
+  if(typeof ruleInput === 'string') {
+    setRuleFromString(ruleInput);
+  } else {
+    setRuleFromData(ruleInput);
+  }
+}
+
 export function setRuleFromData(ruleData) {
   // Capture the rule information in a globally-available object to display in the UI
   variables.activeRule.ruleString = ruleData.ruleString || '';
@@ -29,6 +40,8 @@ export function setRuleFromData(ruleData) {
   simulationUniforms.neighborhoodType.value = variables.activeRule.neighborhoodType;
   simulationUniforms.range.value = variables.activeRule.range;
   simulationUniforms.includeCenter.value = variables.activeRule.includeCenter;
+  simulationUniforms.historyEnabled.value = variables.activeRule.historyEnabled;
+  simulationUniforms.cyclicEnabled.value = variables.activeRule.cyclicEnabled;
 
   // Encode the birth and survival arrays into a texture and pass to the shader
   passNeighborCountsToShader();
@@ -104,17 +117,6 @@ export function setRuleFromString(ruleString) {
   ruleData.historyEnabled = rule.stateCount > 2 ? true : false;
 
   setRuleFromData(ruleData);
-}
-
-/**********************
-  Abstraction for parsing either rule strings or objects containing rule data
-***********************/
-export function setRule(ruleInput) {
-  if(typeof ruleInput === 'string') {
-    setRuleFromString(ruleInput);
-  } else {
-    setRuleFromData(ruleInput);
-  }
 }
 
 /**********************
