@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as parser from 'cellular-automata-rule-parser';
 
-import { simulationUniforms } from './uniforms';
+import { simulationUniforms, displayUniforms } from './uniforms';
 import presets from './presets';
 import variables from './variables';
 
@@ -31,10 +31,10 @@ export function setRuleFromData(ruleData) {
   variables.activeRule.neighborhoodType = ruleData.neighborhoodType || NeighborhoodTypes['Moore'];
   variables.activeRule.range = ruleData.range || 1;
   variables.activeRule.includeCenter = ruleData.includeCenter || false;
-  variables.activeRule.historyEnabled = ruleData.historyEnabled || ruleData.ruleFormatNumber === 2 ? true : false;
+  variables.activeRule.historyEnabled = ruleData.historyEnabled ? true : false;
   variables.activeRule.cyclicEnabled = ruleData.cyclicEnabled || true;
 
-  // Pass all the rule information to the frag shader
+  // Pass all the rule information to the simulation frag shader
   simulationUniforms.ruleFormat.value = variables.activeRule.ruleFormat;
   simulationUniforms.stateCount.value = variables.activeRule.stateCount;
   simulationUniforms.neighborhoodType.value = variables.activeRule.neighborhoodType;
@@ -42,6 +42,9 @@ export function setRuleFromData(ruleData) {
   simulationUniforms.includeCenter.value = variables.activeRule.includeCenter;
   simulationUniforms.historyEnabled.value = variables.activeRule.historyEnabled;
   simulationUniforms.cyclicEnabled.value = variables.activeRule.cyclicEnabled;
+
+  // Pass any relevant rule information to the display shader for rendering
+  displayUniforms.historyEnabled.value = simulationUniforms.historyEnabled.value;
 
   // Encode the birth and survival arrays into a texture and pass to the shader
   passNeighborCountsToShader();
