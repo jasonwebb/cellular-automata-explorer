@@ -672,3 +672,18 @@ canvas {
       border-color: white;
       outline-offset: 4px;
     }
+
+  #seizure-warning-dialog label {
+    margin-left: 20px;
+  }
+
+    #seizure-warning-dialog label input {
+      vertical-align: middle;
+    }
+
+    #seizure-warning-dialog label span {
+      margin-left: 5px;
+      font-size: 14px;
+      opacity: .7;
+      vertical-align: middle;
+    }

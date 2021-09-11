@@ -22,26 +22,37 @@ let bufferCanvas;
 //==============================================================
 //  SEIZURE WARNING
 //==============================================================
-// Show the warning and wait for the user to hit the Okay button
-const seizureWarningPromise = new Promise((resolve) => {
-  setupSeizureWarningDialog();
-  showSeizureWarningDialog();
+// Only show the warning if the "don't ask again" checkbox has not been used previously
+if(!window.localStorage.getItem('skipWarning')) {
+  // Show the warning and wait for the user to hit the Okay button
+  const seizureWarningPromise = new Promise((resolve) => {
+    setupSeizureWarningDialog();
+    showSeizureWarningDialog();
 
-  document.getElementById('seizure-warning-dialog').querySelector('button').addEventListener('click', () => {
-    resolve();
+    document.getElementById('seizure-warning-dialog').querySelector('button').addEventListener('click', () => {
+      resolve();
+    });
   });
-});
 
-// When the Okay button is activated, start up the app
-seizureWarningPromise.then((resolved) => {
+  // When the Okay button is activated, start up the app
+  seizureWarningPromise.then((resolved) => {
+    initialize();
+  });
+} else {
+  initialize();
+}
+
+//==============================================================
+//  INITIALIZE APP
+//==============================================================
+function initialize() {
   setupUI();
   setup();
   setupKeyboard();
   setupMouse();
   setupHelpDialog();
   update();
-});
-
+}
 
 //==============================================================
 //  SETUP (scene, camera, display mesh, etc)
