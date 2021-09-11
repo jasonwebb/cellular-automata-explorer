@@ -1,5 +1,3 @@
-import variables from "./variables";
-
 let warningDialog, okayButton,
     keyboardListener;
 
@@ -13,7 +11,6 @@ export function setupSeizureWarningDialog() {
 }
 
 export function showSeizureWarningDialog() {
-  variables.isPaused = true;
   warningDialog.classList.add('is-visible');
   okayButton.focus();
 
@@ -25,7 +22,8 @@ export function showSeizureWarningDialog() {
 }
 
 export function hideSeizureWarningDialog() {
-  variables.isPaused = false;
   warningDialog.classList.remove('is-visible');
   document.body.focus();
+
+  warningDialog.removeEventListener('keydown', keyboardListener);
 }

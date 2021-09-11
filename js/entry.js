@@ -19,15 +19,29 @@ export let scene, camera, renderer, mesh;
 export let canvas;
 let bufferCanvas;
 
-setupSeizureWarningDialog();
-showSeizureWarningDialog();
+//==============================================================
+//  SEIZURE WARNING
+//==============================================================
+// Show the warning and wait for the user to hit the Okay button
+const seizureWarningPromise = new Promise((resolve) => {
+  setupSeizureWarningDialog();
+  showSeizureWarningDialog();
 
-setupUI();
-setup();
-setupKeyboard();
-setupMouse();
-setupHelpDialog();
-update();
+  document.getElementById('seizure-warning-dialog').querySelector('button').addEventListener('click', () => {
+    resolve();
+  });
+});
+
+// When the Okay button is activated, start up the app
+seizureWarningPromise.then((resolved) => {
+  setupUI();
+  setup();
+  setupKeyboard();
+  setupMouse();
+  setupHelpDialog();
+  update();
+});
+
 
 //==============================================================
 //  SETUP (scene, camera, display mesh, etc)

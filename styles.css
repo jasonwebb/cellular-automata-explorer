@@ -601,9 +601,7 @@ canvas {
 
     background-color: black;
     color: rgba(255,255,255,.8);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    box-shadow: 0 0 50px rgba(0,0,0,.4);
+    border: 1px solid rgba(255,255,255,.3);
   }
 
     .dialog .content .close-button {
@@ -660,11 +658,17 @@ canvas {
     cursor: pointer;
     color: white;
     padding: 10px 20px;
+    margin-top: 10px;
     margin-bottom: 10px;
     font-size: 16px;
+    font-weight: bold;
   }
 
     #seizure-warning-dialog button:hover,
     #seizure-warning-dialog button:focus {
-      border-color: var(--border-color--active);
+      background-color: white;
+      color: black;
+      font-weight: bold;
+      border-color: white;
+      outline-offset: 4px;
     }
