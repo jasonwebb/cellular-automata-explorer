@@ -30,8 +30,10 @@ export function showHelpDialog() {
       hideHelpDialog();
     } else if(e.key == 'Tab') {
       if(document.activeElement == lastFocusableElement && !e.shiftKey) {
+        e.preventDefault();
         firstFocusableElement.focus();
       } else if(document.activeElement == firstFocusableElement && e.shiftKey) {
+        e.preventDefault();
         lastFocusableElement.focus();
       }
     }
