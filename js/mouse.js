@@ -6,10 +6,10 @@ import { simulationUniforms } from './uniforms';
 import { canvas } from './entry';
 import variables from './variables';
 
-let mouseFollower;
+let mouseFollower, mouseDown;
 
 export function setupMouse() {
-  let mouseDown = false
+  mouseDown = false;
 
   // Create a floating circle that follows the mouse cursor to indicate the current size of the brush
   mouseFollower = document.createElement('div');
@@ -26,25 +26,21 @@ export function setupMouse() {
 
   // Begin drag, fill indicator circle white
   canvas.addEventListener('mousedown', (e) => {
-    mouseDown = true;
-    mouseFollower.style.backgroundColor = 'rgba(255,255,255,.2)';
+    if(e.button == 0) {
+      mouseDown = true;
+      mouseFollower.style.backgroundColor = 'rgba(255,255,255,.2)';
+
+      alignMouseFollower(e);
+    }
   });
 
   // End drag, make indicator circle transparent
   canvas.addEventListener('mouseup', (e) => {
     mouseDown = false;
     mouseFollower.style.backgroundColor = 'rgba(255,255,255,0)';
-  });
 
-  // If dragging, pass the mouse coordinates into the shader.
-  canvas.addEventListener('mousemove', (e) => {
-    if(mouseDown) {
-      simulationUniforms.mousePosition.value.x = e.offsetX / variables.canvas.width.value;
-      simulationUniforms.mousePosition.value.y = 1 - e.offsetY / variables.canvas.height.value;
-    } else {
-      simulationUniforms.mousePosition.value.x = -1;
-      simulationUniforms.mousePosition.value.y = -1;
-    }
+    simulationUniforms.mousePosition.value.x = -1;
+    simulationUniforms.mousePosition.value.y = -1;
   });
 
   // Adjust brush radius using the mouse wheel
@@ -58,24 +54,34 @@ export function setupMouse() {
     }
   });
 
-  // Keep the indicator circle aligned with the mouse. Putting the listener on the canvas element caused flickering, but this method is nice and smooth.
+  // Keep the indicator circle aligned with the mouse as it moves.
   window.addEventListener('mousemove', (e) => {
-    const newX = e.clientX,
-          newY = e.clientY,
-          leftSide = window.innerWidth/2 - canvas.width/2,
-          rightSide = window.innerWidth/2 + canvas.width/2,
-          topSide = window.innerHeight/2 - canvas.height/2,
-          bottomSide = window.innerHeight/2 + canvas.height/2;
+    alignMouseFollower(e);
+  });
+}
 
-    // Only align the indicator circle with the mouse inside the <canvas> element
-    if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
-      mouseFollower.style.display = 'block';
-      mouseFollower.style.top = (e.clientY - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
-      mouseFollower.style.left = (e.clientX - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
-    } else {
-      mouseFollower.style.display = 'none';
+function alignMouseFollower(e = null) {
+  const newX = e.clientX,
+      newY = e.clientY,
+      leftSide = window.innerWidth/2 - canvas.width/2,
+      rightSide = window.innerWidth/2 + canvas.width/2,
+      topSide = window.innerHeight/2 - canvas.height/2,
+      bottomSide = window.innerHeight/2 + canvas.height/2;
+
+  // Only align the indicator circle with the mouse inside the <canvas> element
+  if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
+    mouseFollower.style.display = 'block';
+    mouseFollower.style.top = (e.clientY - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
+    mouseFollower.style.left = (e.clientX - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
+
+    // If the left mouse button is down, pass the mouse's X/Y position to the frag shader
+    if(mouseDown) {
+      simulationUniforms.mousePosition.value.x = e.offsetX / variables.canvas.width.value;
+      simulationUniforms.mousePosition.value.y = 1 - e.offsetY / variables.canvas.height.value;
     }
-  })
+  } else {
+    mouseFollower.style.display = 'none';
+  }
 }
 
 export function setBrushSize(e = null) {
@@ -84,8 +90,5 @@ export function setBrushSize(e = null) {
   mouseFollower.style.height = (simulationUniforms.brushRadius.value * 2 * (1/variables.canvas.scale.value)) + 'px';
 
   // Realign the brush indicator circle with the mouse cursor
-  if(e != null) {
-    mouseFollower.style.top = (e.clientY - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
-    mouseFollower.style.left = (e.clientX - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
-  }
+  alignMouseFollower(e);
 }
