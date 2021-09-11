@@ -13,10 +13,14 @@ import { setupMouse } from './mouse';
 import { setColors } from './colors';
 import { setupUI } from './ui';
 import { setupHelpDialog } from './helpDialog';
+import { setupSeizureWarningDialog, showSeizureWarningDialog } from './seizureWarningDialog';
 
 export let scene, camera, renderer, mesh;
 export let canvas;
 let bufferCanvas;
+
+setupSeizureWarningDialog();
+showSeizureWarningDialog();
 
 setupUI();
 setup();

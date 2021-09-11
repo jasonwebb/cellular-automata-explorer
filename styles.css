@@ -572,6 +572,9 @@ canvas {
       color: white;
     }
 
+/*******************
+  Modal dialogs
+********************/
 .dialog {
   display: none;
 
@@ -593,7 +596,8 @@ canvas {
 
   .dialog .content {
     position: relative;
-    padding: 30px 40px;
+    padding: 20px 30px;
+    max-width: 600px;
 
     background-color: black;
     color: rgba(255,255,255,.8);
@@ -631,4 +635,36 @@ canvas {
 
     .dialog .content h1 .fas {
       opacity: .5;
+    }
+
+  /** Seizure warning dialog ****************/
+  #seizure-warning-dialog .content {
+    max-width: 550px;
+  }
+
+  #seizure-warning-dialog h1 {
+    color: rgb(255,50,50);
+    text-align: center;
+    font-size: 28px;
+  }
+
+  #seizure-warning-dialog p {
+    margin: 20px 0;
+    color: rgb(255,255,255,.7);
+    line-height: 24px;
+  }
+
+  #seizure-warning-dialog button {
+    background: none;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    color: white;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+
+    #seizure-warning-dialog button:hover,
+    #seizure-warning-dialog button:focus {
+      border-color: var(--border-color--active);
     }
