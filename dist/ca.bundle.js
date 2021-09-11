@@ -280,15 +280,40 @@ let scene, camera, renderer, mesh;
 let canvas;
 let bufferCanvas;
 
-Object(_seizureWarningDialog__WEBPACK_IMPORTED_MODULE_13__["setupSeizureWarningDialog"])();
-Object(_seizureWarningDialog__WEBPACK_IMPORTED_MODULE_13__["showSeizureWarningDialog"])();
+//==============================================================
+//  SEIZURE WARNING
+//==============================================================
+// Only show the warning if the "don't ask again" checkbox has not been used previously
+if(!window.localStorage.getItem('skipWarning')) {
+  // Show the warning and wait for the user to hit the Okay button
+  const seizureWarningPromise = new Promise((resolve) => {
+    Object(_seizureWarningDialog__WEBPACK_IMPORTED_MODULE_13__["setupSeizureWarningDialog"])();
+    Object(_seizureWarningDialog__WEBPACK_IMPORTED_MODULE_13__["showSeizureWarningDialog"])();
 
-Object(_ui__WEBPACK_IMPORTED_MODULE_11__["setupUI"])();
-setup();
-Object(_keyboard__WEBPACK_IMPORTED_MODULE_8__["setupKeyboard"])();
-Object(_mouse__WEBPACK_IMPORTED_MODULE_9__["setupMouse"])();
-Object(_helpDialog__WEBPACK_IMPORTED_MODULE_12__["setupHelpDialog"])();
-update();
+    document.getElementById('seizure-warning-dialog').querySelector('button').addEventListener('click', () => {
+      resolve();
+    });
+  });
+
+  // When the Okay button is activated, start up the app
+  seizureWarningPromise.then((resolved) => {
+    initialize();
+  });
+} else {
+  initialize();
+}
+
+//==============================================================
+//  INITIALIZE APP
+//==============================================================
+function initialize() {
+  Object(_ui__WEBPACK_IMPORTED_MODULE_11__["setupUI"])();
+  setup();
+  Object(_keyboard__WEBPACK_IMPORTED_MODULE_8__["setupKeyboard"])();
+  Object(_mouse__WEBPACK_IMPORTED_MODULE_9__["setupMouse"])();
+  Object(_helpDialog__WEBPACK_IMPORTED_MODULE_12__["setupHelpDialog"])();
+  update();
+}
 
 //==============================================================
 //  SETUP (scene, camera, display mesh, etc)
@@ -479,8 +504,10 @@ function showHelpDialog() {
       hideHelpDialog();
     } else if(e.key == 'Tab') {
       if(document.activeElement == lastFocusableElement && !e.shiftKey) {
+        e.preventDefault();
         firstFocusableElement.focus();
       } else if(document.activeElement == firstFocusableElement && e.shiftKey) {
+        e.preventDefault();
         lastFocusableElement.focus();
       }
     }
@@ -1350,37 +1377,48 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupSeizureWarningDialog", function() { return setupSeizureWarningDialog; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showSeizureWarningDialog", function() { return showSeizureWarningDialog; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideSeizureWarningDialog", function() { return hideSeizureWarningDialog; });
-/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
-
-
-let warningDialog, okayButton,
-    keyboardListener;
+let warningDialog, okayButton, dontAskCheckbox,
+    keyboardListener, firstFocusableElement, lastFocusableElement
 
 function setupSeizureWarningDialog() {
   warningDialog = document.getElementById('seizure-warning-dialog');
   okayButton = warningDialog.querySelector('button');
+  dontAskCheckbox = warningDialog.querySelector('label input[type="checkbox"]');
+
+  firstFocusableElement = okayButton;
+  lastFocusableElement = dontAskCheckbox
 
   okayButton.addEventListener('click', () => {
+    if(dontAskCheckbox.checked) {
+      window.localStorage.setItem('skipWarning', true);
+    }
+
     hideSeizureWarningDialog();
   });
 }
 
 function showSeizureWarningDialog() {
-  _variables__WEBPACK_IMPORTED_MODULE_0__["default"].isPaused = true;
   warningDialog.classList.add('is-visible');
   okayButton.focus();
 
   keyboardListener = warningDialog.addEventListener('keydown', (e) => {
     if(e.key == 'Tab') {
-      e.preventDefault();
+      if(document.activeElement == lastFocusableElement && !e.shiftKey) {
+        e.preventDefault();
+        firstFocusableElement.focus();
+      } else if(document.activeElement == firstFocusableElement && e.shiftKey) {
+        e.preventDefault();
+        lastFocusableElement.focus();
+      }
     }
   });
 }
 
 function hideSeizureWarningDialog() {
-  _variables__WEBPACK_IMPORTED_MODULE_0__["default"].isPaused = false;
   warningDialog.classList.remove('is-visible');
   document.body.focus();
+
+  warningDialog.removeEventListener('keydown', keyboardListener);
 }
 
 /***/ }),
