@@ -113,8 +113,9 @@ export default {
     },
     random: {
       density: {
-        min: .01,
-        max: 1.0,
+        min: .0001,
+        max: .2,
+        stepSize: .001,
         value: .2
       }
     }

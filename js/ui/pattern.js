@@ -107,7 +107,7 @@ export function createPatternGroup() {
       case 'Random':
         // Density
         group.appendChild(
-          createSlider('Density', variables.patterns.random.density.min, variables.patterns.random.density.max, .01, variables.patterns.random.density.value, (e) => {
+          createSlider('Density', variables.patterns.random.density.min, variables.patterns.random.density.max, variables.patterns.random.density.stepSize, variables.patterns.random.density.value, (e) => {
             variables.patterns.random.density.value = e.target.value;
           })
         );
