@@ -4,6 +4,7 @@ import { createGroup, createSlider, createCheckbox, createSeperator } from './co
 import { resetTextureSizes } from '../entry';
 import { simulationUniforms } from '../uniforms';
 import variables from '../variables';
+import { setBrushSize } from '../mouse';
 
 export function createCanvasGroup() {
   let group = createGroup('Canvas');
@@ -92,6 +93,7 @@ export function createCanvasGroup() {
     group.appendChild(
       createSlider('Scale', variables.canvas.scale.min, variables.canvas.scale.max, variables.canvas.scale.stepSize, variables.canvas.scale.value, (e) => {
         variables.canvas.scale.value = 1/e.target.value;
+        setBrushSize();
 
         simulationUniforms.resolution.value = new THREE.Vector2(
           variables.canvas.width.value * variables.canvas.scale.value,

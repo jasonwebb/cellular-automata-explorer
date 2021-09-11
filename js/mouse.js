@@ -6,11 +6,13 @@ import { simulationUniforms } from './uniforms';
 import { canvas } from './entry';
 import variables from './variables';
 
+let mouseFollower;
+
 export function setupMouse() {
   let mouseDown = false
 
   // Create a floating circle that follows the mouse cursor to indicate the current size of the brush
-  let mouseFollower = document.createElement('div');
+  mouseFollower = document.createElement('div');
   mouseFollower.classList.add('mouse-follower');
   mouseFollower.style.content = '';
   mouseFollower.style.width = (simulationUniforms.brushRadius.value * 2) + 'px';
@@ -52,14 +54,7 @@ export function setupMouse() {
     // Only change the brush radius if it's within these hardcoded limits
     if(simulationUniforms.brushRadius.value + wheelStep > 5 && simulationUniforms.brushRadius.value + wheelStep < 100) {
       simulationUniforms.brushRadius.value += wheelStep;
-
-      // Resize the brush indicator circle
-      mouseFollower.style.width = (simulationUniforms.brushRadius.value * 2) + 'px';
-      mouseFollower.style.height = (simulationUniforms.brushRadius.value * 2) + 'px';
-
-      // Realign the brush indicator circle with the mouse cursor
-      mouseFollower.style.top = (e.clientY - simulationUniforms.brushRadius.value) + 'px';
-      mouseFollower.style.left = (e.clientX - simulationUniforms.brushRadius.value) + 'px';
+      setBrushSize(e);
     }
   });
 
@@ -75,10 +70,22 @@ export function setupMouse() {
     // Only align the indicator circle with the mouse inside the <canvas> element
     if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
       mouseFollower.style.display = 'block';
-      mouseFollower.style.top = (e.clientY - simulationUniforms.brushRadius.value) + 'px';
-      mouseFollower.style.left = (e.clientX - simulationUniforms.brushRadius.value) + 'px';
+      mouseFollower.style.top = (e.clientY - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
+      mouseFollower.style.left = (e.clientX - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
     } else {
       mouseFollower.style.display = 'none';
     }
   })
+}
+
+export function setBrushSize(e = null) {
+  // Resize the brush indicator circle
+  mouseFollower.style.width = (simulationUniforms.brushRadius.value * 2 * (1/variables.canvas.scale.value)) + 'px';
+  mouseFollower.style.height = (simulationUniforms.brushRadius.value * 2 * (1/variables.canvas.scale.value)) + 'px';
+
+  // Realign the brush indicator circle with the mouse cursor
+  if(e != null) {
+    mouseFollower.style.top = (e.clientY - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
+    mouseFollower.style.left = (e.clientX - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
+  }
 }
