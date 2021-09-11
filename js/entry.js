@@ -14,7 +14,7 @@ import { setColors } from './colors';
 import { setupUI } from './ui';
 import { setupHelpDialog } from './helpDialog';
 import { setupSeizureWarningDialog, showSeizureWarningDialog } from './seizureWarningDialog';
-import { incrementGenerationCount } from './ui/analysis';
+import { updateGenerationCount, updateStats } from './ui/analysis';
 
 export let scene, camera, renderer, mesh;
 export let canvas;
@@ -161,7 +161,7 @@ function update() {
 
       globals.currentRenderTargetIndex = nextRenderTargetIndex;
 
-      incrementGenerationCount();
+      updateGenerationCount(1);
     }
 
     // Activate the display shaders
@@ -173,6 +173,9 @@ function update() {
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
   }
+
+  // Update the stats (like the FPS counter)
+  updateStats();
 
   // Run again when the next frame starts
   setTimeout(() => {

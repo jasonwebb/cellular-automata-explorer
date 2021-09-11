@@ -1,6 +1,9 @@
+import fps from 'fps';
+
 import { createGroup, createTextDisplay } from './components';
 
-let totalGenerations, totalGenerationsTextDisplay;
+let totalGenerations, totalGenerationsTextDisplay,
+    ticker, fpsTextDisplay;
 
 export function createAnalysisGroup() {
   let group = createGroup('Analysis');
@@ -14,12 +17,25 @@ export function createAnalysisGroup() {
     createTextDisplay('Total generations', totalGenerations)
   );
 
-  // TODO: FPS
+  // FPS count
+  fpsTextDisplay = group.appendChild(
+    createTextDisplay('FPS', 0)
+  );
+
+  ticker = fps({ every: 60 });
+
+  ticker.on('data', (framerate) => {
+    fpsTextDisplay.querySelector('.value').innerHTML = String(Math.round(framerate));
+  });
 
   return group;
 }
 
-  export function incrementGenerationCount() {
-    totalGenerations++;
+  export function updateGenerationCount(increment) {
+    totalGenerations += increment;
     totalGenerationsTextDisplay.querySelector('.value').innerHTML = totalGenerations;
+  }
+
+  export function updateStats() {
+    ticker.tick();
   }
