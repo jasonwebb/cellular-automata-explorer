@@ -11,8 +11,9 @@ import { createPatternGroup } from './ui/pattern';
 import { createCanvasGroup } from './ui/canvas';
 import { showHelpDialog } from './helpDialog';
 
-let mainWrapper;
-let leftPanel, rightPanel, centerControlsWrapper;
+let mainWrapper,
+    leftPanel, rightPanel, centerControlsWrapper,
+    toggleUIButton;
 export let isUIVisible = true;
 
 export function setupUI() {
@@ -53,7 +54,7 @@ export function setupUI() {
     centerControlsWrapper.classList.add('center-controls', 'has-left-indent');
 
     // Show/hide UI button
-    let toggleUIButton = document.createElement('button');
+    toggleUIButton = document.createElement('button');
     toggleUIButton.setAttribute('aria-label', 'Hide UI');
     toggleUIButton.setAttribute('aria-pressed', false);
     toggleUIButton.classList.add('toggle-ui-button');
@@ -65,14 +66,6 @@ export function setupUI() {
     `;
 
     toggleUIButton.addEventListener('click', () => {
-      let isPressed = toggleUIButton.getAttribute('aria-pressed') === 'true' ? true : false;
-
-      if(isPressed) {
-        toggleUIButton.setAttribute('aria-pressed', false);
-      } else {
-        toggleUIButton.setAttribute('aria-pressed', true);
-      }
-
       toggleUI();
     });
 
@@ -102,10 +95,8 @@ export function setupUI() {
 export function toggleUI() {
   if(isUIVisible) {
     hideUI();
-    centerControlsWrapper.classList.remove('has-left-indent');
   } else {
     showUI();
-    centerControlsWrapper.classList.add('has-left-indent');
   }
 }
 
@@ -113,10 +104,16 @@ export function toggleUI() {
     leftPanel.classList.add('is-hidden');
     rightPanel.classList.add('is-hidden');
     isUIVisible = false;
+
+    centerControlsWrapper.classList.remove('has-left-indent');
+    toggleUIButton.setAttribute('aria-pressed', true);
   }
 
   export function showUI() {
     leftPanel.classList.remove('is-hidden');
     rightPanel.classList.remove('is-hidden');
     isUIVisible = true;
+
+    centerControlsWrapper.classList.add('has-left-indent');
+    toggleUIButton.setAttribute('aria-pressed', false);
   }
