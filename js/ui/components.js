@@ -553,3 +553,23 @@ export function createTextarea(labelText, initialValue, numRows, listener) {
 
   return component;
 }
+
+/*******************************
+  Text display
+  - Displays a string
+********************************/
+export function createTextDisplay(labelText, initialValue) {
+  let component = document.createElement('div');
+  component.classList.add('component', 'text-display');
+
+  let prefix = document.createTextNode(labelText + ': ')
+
+  let value = document.createElement('span');
+  value.classList.add('value');
+  value.innerHTML = initialValue;
+
+  component.appendChild(prefix);
+  component.appendChild(value);
+
+  return component;
+}

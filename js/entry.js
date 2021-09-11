@@ -14,6 +14,7 @@ import { setColors } from './colors';
 import { setupUI } from './ui';
 import { setupHelpDialog } from './helpDialog';
 import { setupSeizureWarningDialog, showSeizureWarningDialog } from './seizureWarningDialog';
+import { incrementGenerationCount } from './ui/analysis';
 
 export let scene, camera, renderer, mesh;
 export let canvas;
@@ -159,6 +160,8 @@ function update() {
       renderer.render(scene, camera);                                                             // run the simulation shader on that texture
 
       globals.currentRenderTargetIndex = nextRenderTargetIndex;
+
+      incrementGenerationCount();
     }
 
     // Activate the display shaders

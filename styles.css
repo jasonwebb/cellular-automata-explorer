@@ -493,6 +493,17 @@ canvas {
       text-decoration: underline;
     }
 
+  /** Text display components just show a string and a value with no interactive elements. */
+  .panel .text-display {
+    font-weight: bold;
+    opacity: .9;
+  }
+
+    .panel .text-display .value {
+      margin-left: 5px;
+      font-weight: normal;
+    }
+
 /** Center buttons and links */
 .center-controls {
   position: absolute;

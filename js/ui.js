@@ -10,6 +10,7 @@ import { createSurvivalGroup } from './ui/survival';
 import { createPatternGroup } from './ui/pattern';
 import { createCanvasGroup } from './ui/canvas';
 import { showHelpDialog } from './helpDialog';
+import { createAnalysisGroup } from './ui/analysis';
 
 let mainWrapper,
     leftPanel, rightPanel, centerControlsWrapper,
@@ -33,6 +34,7 @@ export function setupUI() {
     leftPanel.appendChild(createSurvivalGroup());
     leftPanel.appendChild(createNeighborhoodGroup());
     leftPanel.appendChild(createHistoryGroup());
+    leftPanel.appendChild(createAnalysisGroup());
 
     mainWrapper.appendChild(leftPanel);
   }
