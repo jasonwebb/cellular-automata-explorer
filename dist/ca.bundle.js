@@ -257,6 +257,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mouse__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./mouse */ "./js/mouse.js");
 /* harmony import */ var _colors__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./colors */ "./js/colors.js");
 /* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./ui */ "./js/ui.js");
+/* harmony import */ var _helpDialog__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./helpDialog */ "./js/helpDialog.js");
+/* harmony import */ var _seizureWarningDialog__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./seizureWarningDialog */ "./js/seizureWarningDialog.js");
+
+
 
 
 
@@ -276,10 +280,14 @@ let scene, camera, renderer, mesh;
 let canvas;
 let bufferCanvas;
 
+Object(_seizureWarningDialog__WEBPACK_IMPORTED_MODULE_13__["setupSeizureWarningDialog"])();
+Object(_seizureWarningDialog__WEBPACK_IMPORTED_MODULE_13__["showSeizureWarningDialog"])();
+
 Object(_ui__WEBPACK_IMPORTED_MODULE_11__["setupUI"])();
 setup();
 Object(_keyboard__WEBPACK_IMPORTED_MODULE_8__["setupKeyboard"])();
 Object(_mouse__WEBPACK_IMPORTED_MODULE_9__["setupMouse"])();
+Object(_helpDialog__WEBPACK_IMPORTED_MODULE_12__["setupHelpDialog"])();
 update();
 
 //==============================================================
@@ -374,7 +382,7 @@ function setup() {
 //  - Main program loop, runs once per frame no matter what.
 //==============================================================
 function update() {
-  if(!_globals__WEBPACK_IMPORTED_MODULE_1__["default"].isPaused) {
+  if(!_variables__WEBPACK_IMPORTED_MODULE_2__["default"].isPaused) {
     // Activate the simulation shaders
     mesh.material = _materials__WEBPACK_IMPORTED_MODULE_5__["simulationMaterial"];
 
@@ -400,7 +408,9 @@ function update() {
   }
 
   // Run again when the next frame starts
-  requestAnimationFrame(update);
+  setTimeout(() => {
+    requestAnimationFrame(update);
+  }, 100 * (1 - _variables__WEBPACK_IMPORTED_MODULE_2__["default"].controls.speed.value) + 0 * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].controls.speed.value);
 }
 
 /***/ }),
@@ -418,11 +428,70 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-  isPaused: false,
   pingPongSteps: 1,
   currentRenderTargetIndex: 0,
   clock: new three__WEBPACK_IMPORTED_MODULE_0__["Clock"]()
 });
+
+/***/ }),
+
+/***/ "./js/helpDialog.js":
+/*!**************************!*\
+  !*** ./js/helpDialog.js ***!
+  \**************************/
+/*! exports provided: setupHelpDialog, showHelpDialog, hideHelpDialog */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupHelpDialog", function() { return setupHelpDialog; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showHelpDialog", function() { return showHelpDialog; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideHelpDialog", function() { return hideHelpDialog; });
+
+let helpDialogTriggerButton,
+    helpDialog, closeButton, dialogContent,
+    firstFocusableElement, lastFocusableElement,
+    keyboardListener;
+
+function setupHelpDialog() {
+  helpDialogTriggerButton = document.querySelector('.help-button');
+  helpDialog = document.getElementById('help-dialog');
+  closeButton = helpDialog.querySelector('.close-button');
+  dialogContent = helpDialog.querySelector('.content');
+  firstFocusableElement = closeButton;
+  lastFocusableElement = closeButton;
+
+  closeButton.addEventListener('click', hideHelpDialog);
+
+  helpDialog.addEventListener('click', (e) => {
+    if(!dialogContent.contains(e.target)) {
+      hideHelpDialog();
+    }
+  });
+}
+
+function showHelpDialog() {
+  helpDialog.classList.add('is-visible');
+  closeButton.focus();
+
+  keyboardListener = dialogContent.addEventListener('keydown', (e) => {
+    if(e.key == 'Escape') {
+      hideHelpDialog();
+    } else if(e.key == 'Tab') {
+      if(document.activeElement == lastFocusableElement && !e.shiftKey) {
+        firstFocusableElement.focus();
+      } else if(document.activeElement == firstFocusableElement && e.shiftKey) {
+        lastFocusableElement.focus();
+      }
+    }
+  });
+}
+
+function hideHelpDialog() {
+  dialogContent.removeEventListener('keydown', keyboardListener);
+  helpDialog.classList.remove('is-visible');
+  helpDialogTriggerButton.focus();
+}
 
 /***/ }),
 
@@ -436,13 +505,15 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupKeyboard", function() { return setupKeyboard; });
-/* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
-/* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
-/* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ui */ "./js/ui.js");
-/* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./globals */ "./js/globals.js");
+/* harmony import */ var _helpDialog__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./helpDialog */ "./js/helpDialog.js");
+/* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
+/* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
+/* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ui */ "./js/ui.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
 //==============================================================
 //  KEYBOARD CONTROLS
 //==============================================================
+
 
 
 
@@ -454,17 +525,21 @@ function setupKeyboard() {
     switch(e.key) {
       case ' ':
         e.preventDefault();
-        _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused;
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].isPaused = !_variables__WEBPACK_IMPORTED_MODULE_4__["default"].isPaused;
         window.dispatchEvent(new Event('rebuildUI'));
         break;
 
       case 'r':
-        Object(_renderTargets__WEBPACK_IMPORTED_MODULE_1__["setupRenderTargets"])();
-        Object(_patterns__WEBPACK_IMPORTED_MODULE_0__["drawPattern"])();
+        Object(_renderTargets__WEBPACK_IMPORTED_MODULE_2__["setupRenderTargets"])();
+        Object(_patterns__WEBPACK_IMPORTED_MODULE_1__["drawPattern"])();
         break;
 
       case 'u':
-        Object(_ui__WEBPACK_IMPORTED_MODULE_2__["toggleUI"])();
+        Object(_ui__WEBPACK_IMPORTED_MODULE_3__["toggleUI"])();
+        break;
+
+      case 'h':
+        Object(_helpDialog__WEBPACK_IMPORTED_MODULE_0__["showHelpDialog"])();
         break;
     }
   });
@@ -564,12 +639,13 @@ passthroughMaterial.blending = three__WEBPACK_IMPORTED_MODULE_0__["NoBlending"];
 /*!*********************!*\
   !*** ./js/mouse.js ***!
   \*********************/
-/*! exports provided: setupMouse */
+/*! exports provided: setupMouse, setBrushSize */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupMouse", function() { return setupMouse; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setBrushSize", function() { return setBrushSize; });
 /* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
 /* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entry */ "./js/entry.js");
 /* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
@@ -581,11 +657,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+let mouseFollower;
+
 function setupMouse() {
   let mouseDown = false
 
   // Create a floating circle that follows the mouse cursor to indicate the current size of the brush
-  let mouseFollower = document.createElement('div');
+  mouseFollower = document.createElement('div');
   mouseFollower.classList.add('mouse-follower');
   mouseFollower.style.content = '';
   mouseFollower.style.width = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2) + 'px';
@@ -627,14 +705,7 @@ function setupMouse() {
     // Only change the brush radius if it's within these hardcoded limits
     if(_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value + wheelStep > 5 && _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value + wheelStep < 100) {
       _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value += wheelStep;
-
-      // Resize the brush indicator circle
-      mouseFollower.style.width = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2) + 'px';
-      mouseFollower.style.height = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2) + 'px';
-
-      // Realign the brush indicator circle with the mouse cursor
-      mouseFollower.style.top = (e.clientY - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) + 'px';
-      mouseFollower.style.left = (e.clientX - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) + 'px';
+      setBrushSize(e);
     }
   });
 
@@ -650,12 +721,24 @@ function setupMouse() {
     // Only align the indicator circle with the mouse inside the <canvas> element
     if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
       mouseFollower.style.display = 'block';
-      mouseFollower.style.top = (e.clientY - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) + 'px';
-      mouseFollower.style.left = (e.clientX - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) + 'px';
+      mouseFollower.style.top = (e.clientY - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+      mouseFollower.style.left = (e.clientX - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
     } else {
       mouseFollower.style.display = 'none';
     }
   })
+}
+
+function setBrushSize(e = null) {
+  // Resize the brush indicator circle
+  mouseFollower.style.width = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2 * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+  mouseFollower.style.height = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2 * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+
+  // Realign the brush indicator circle with the mouse cursor
+  if(e != null) {
+    mouseFollower.style.top = (e.clientY - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+    mouseFollower.style.left = (e.clientX - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+  }
 }
 
 /***/ }),
@@ -1092,15 +1175,15 @@ function setupRenderTargets() {
 /*!*********************!*\
   !*** ./js/rules.js ***!
   \*********************/
-/*! exports provided: NeighborhoodTypes, setRuleFromData, setRuleFromString, setRule, passNeighborCountsToShader */
+/*! exports provided: NeighborhoodTypes, setRule, setRuleFromData, setRuleFromString, passNeighborCountsToShader */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "NeighborhoodTypes", function() { return NeighborhoodTypes; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setRule", function() { return setRule; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setRuleFromData", function() { return setRuleFromData; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setRuleFromString", function() { return setRuleFromString; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setRule", function() { return setRule; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "passNeighborCountsToShader", function() { return passNeighborCountsToShader; });
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
 /* harmony import */ var cellular_automata_rule_parser__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! cellular-automata-rule-parser */ "./node_modules/cellular-automata-rule-parser/index.js");
@@ -1120,6 +1203,17 @@ const NeighborhoodTypes = {
   'von Neumann': 1
 };
 
+/**********************
+  Abstraction for parsing either rule strings or objects containing rule data
+***********************/
+function setRule(ruleInput) {
+  if(typeof ruleInput === 'string') {
+    setRuleFromString(ruleInput);
+  } else {
+    setRuleFromData(ruleInput);
+  }
+}
+
 function setRuleFromData(ruleData) {
   // Capture the rule information in a globally-available object to display in the UI
   _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.ruleString = ruleData.ruleString || '';
@@ -1130,15 +1224,20 @@ function setRuleFromData(ruleData) {
   _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.neighborhoodType = ruleData.neighborhoodType || NeighborhoodTypes['Moore'];
   _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.range = ruleData.range || 1;
   _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.includeCenter = ruleData.includeCenter || false;
-  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.historyEnabled = ruleData.historyEnabled || ruleData.ruleFormatNumber === 2 ? true : false;
+  _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.historyEnabled = ruleData.historyEnabled ? true : false;
   _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.cyclicEnabled = ruleData.cyclicEnabled || true;
 
-  // Pass all the rule information to the frag shader
+  // Pass all the rule information to the simulation frag shader
   _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].ruleFormat.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.ruleFormat;
   _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].stateCount.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.stateCount;
   _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].neighborhoodType.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.neighborhoodType;
   _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].range.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.range;
   _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].includeCenter.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.includeCenter;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].historyEnabled.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.historyEnabled;
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].cyclicEnabled.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].activeRule.cyclicEnabled;
+
+  // Pass any relevant rule information to the display shader for rendering
+  _uniforms__WEBPACK_IMPORTED_MODULE_2__["displayUniforms"].historyEnabled.value = _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].historyEnabled.value;
 
   // Encode the birth and survival arrays into a texture and pass to the shader
   passNeighborCountsToShader();
@@ -1217,17 +1316,6 @@ function setRuleFromString(ruleString) {
 }
 
 /**********************
-  Abstraction for parsing either rule strings or objects containing rule data
-***********************/
-function setRule(ruleInput) {
-  if(typeof ruleInput === 'string') {
-    setRuleFromString(ruleInput);
-  } else {
-    setRuleFromData(ruleInput);
-  }
-}
-
-/**********************
   Abstracted utility function for converting the birth/survival counts from arrays to DataTextures so they can be passed to the frag shader. Called in this file, and in ./ui/rules.js
 ***********************/
 function passNeighborCountsToShader() {
@@ -1246,6 +1334,53 @@ function passNeighborCountsToShader() {
 
   // Pass the birth and survival data to the shader as a data texture
   _uniforms__WEBPACK_IMPORTED_MODULE_2__["simulationUniforms"].birthAndSurvivalCounts.value = new three__WEBPACK_IMPORTED_MODULE_0__["DataTexture"](data, longestLength, 1, three__WEBPACK_IMPORTED_MODULE_0__["RGBAFormat"], three__WEBPACK_IMPORTED_MODULE_0__["FloatType"]);
+}
+
+/***/ }),
+
+/***/ "./js/seizureWarningDialog.js":
+/*!************************************!*\
+  !*** ./js/seizureWarningDialog.js ***!
+  \************************************/
+/*! exports provided: setupSeizureWarningDialog, showSeizureWarningDialog, hideSeizureWarningDialog */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupSeizureWarningDialog", function() { return setupSeizureWarningDialog; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showSeizureWarningDialog", function() { return showSeizureWarningDialog; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideSeizureWarningDialog", function() { return hideSeizureWarningDialog; });
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
+
+
+let warningDialog, okayButton,
+    keyboardListener;
+
+function setupSeizureWarningDialog() {
+  warningDialog = document.getElementById('seizure-warning-dialog');
+  okayButton = warningDialog.querySelector('button');
+
+  okayButton.addEventListener('click', () => {
+    hideSeizureWarningDialog();
+  });
+}
+
+function showSeizureWarningDialog() {
+  _variables__WEBPACK_IMPORTED_MODULE_0__["default"].isPaused = true;
+  warningDialog.classList.add('is-visible');
+  okayButton.focus();
+
+  keyboardListener = warningDialog.addEventListener('keydown', (e) => {
+    if(e.key == 'Tab') {
+      e.preventDefault();
+    }
+  });
+}
+
+function hideSeizureWarningDialog() {
+  _variables__WEBPACK_IMPORTED_MODULE_0__["default"].isPaused = false;
+  warningDialog.classList.remove('is-visible');
+  document.body.focus();
 }
 
 /***/ }),
@@ -1274,6 +1409,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ui_survival__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./ui/survival */ "./js/ui/survival.js");
 /* harmony import */ var _ui_pattern__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./ui/pattern */ "./js/ui/pattern.js");
 /* harmony import */ var _ui_canvas__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./ui/canvas */ "./js/ui/canvas.js");
+/* harmony import */ var _helpDialog__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./helpDialog */ "./js/helpDialog.js");
+
 
 
 
@@ -1357,9 +1494,7 @@ function setupUI() {
     aboutButton.setAttribute('title', 'Learn more about this app');
     aboutButton.innerHTML = '<span class="fas fa-question" aria-hidden="true"></span><span class="sr-only">Learn more about this app</span>';
 
-    aboutButton.addEventListener('click', () => {
-
-    })
+    aboutButton.addEventListener('click', _helpDialog__WEBPACK_IMPORTED_MODULE_10__["showHelpDialog"]);
 
     // Github link
     let githubLink = document.createElement('a');
@@ -1440,6 +1575,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../entry */ "./js/entry.js");
 /* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../uniforms */ "./js/uniforms.js");
 /* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
+/* harmony import */ var _mouse__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../mouse */ "./js/mouse.js");
+
 
 
 
@@ -1450,72 +1587,101 @@ __webpack_require__.r(__webpack_exports__);
 function createCanvasGroup() {
   let group = Object(_components__WEBPACK_IMPORTED_MODULE_1__["createGroup"])('Canvas');
 
-  // Width slider
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Width', 1, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.max, 1, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value = e.target.value;
-      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
-    })
-  );
+  window.addEventListener('rebuildUI', () => {
+    // Get rid of any previously-added components
+    group.querySelectorAll('.component, hr').forEach((component) => {
+      component.remove();
+    });
 
-  // Height slider
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Height', 1, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.max, 1, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value = e.target.value;
-      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
-    })
-  );
+    // Width slider
+    let widthSlider = Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Width', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.min, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.max, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.stepSize, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value, (e) => {
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value = e.target.value;
+        Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+      });
 
-  // Maximized checkbox
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createCheckbox"])('Maximized', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized = e.target.checked;
+    if(_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized) {
+      widthSlider.querySelectorAll('input').forEach((element) => {
+        element.setAttribute('disabled','');
+      });
+    } else {
+      widthSlider.querySelectorAll('input').forEach((element) => {
+        element.removeAttribute('disabled');
+      });
+    }
 
-      if(_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized) {
-        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.width = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value;
-        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.height = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value;
-      } else {
-        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.width;
-        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.height;
-      }
+    group.appendChild(widthSlider);
 
-      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
-    })
-  );
+    // Height slider
+    let heightSlider = Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Height', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.min, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.max, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.stepSize, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value, (e) => {
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value = e.target.value;
+        Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+      });
 
-    group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSeperator"])() );
+    if(_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized) {
+      heightSlider.querySelectorAll('input').forEach((element) => {
+        element.setAttribute('disabled','');
+      });
+    } else {
+      heightSlider.querySelectorAll('input').forEach((element) => {
+        element.removeAttribute('disabled');
+      });
+    }
 
-  // Edge wrapping (X) checkbox
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createCheckbox"])('Wrap X', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x, () => {
-      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x = !_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x;
-      _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].wrapping.value.x = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x;
-    })
-  );
+    group.appendChild(heightSlider);
 
-  // Edge wrapping (Y) checkbox
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createCheckbox"])('Wrap Y', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y, () => {
-      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y = !_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y;
-      _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].wrapping.value.y = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y;
-    })
-  );
+    // Maximized checkbox
+    group.appendChild(
+      Object(_components__WEBPACK_IMPORTED_MODULE_1__["createCheckbox"])('Maximized', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized, (e) => {
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized = e.target.checked;
 
-    group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSeperator"])() );
+        if(_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized) {
+          _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.width = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value;
+          _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.height = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value;
+        } else {
+          _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.width;
+          _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.height;
+        }
 
-  // Scale slider
-  group.appendChild(
-    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Scale', .1, 5, .01, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value, (e) => {
-      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value = 1/e.target.value;
+        Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+        window.dispatchEvent(new Event('rebuildUI'));
+      })
+    );
 
-      _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].resolution.value = new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](
-        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value,
-        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value
-      );
+      group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSeperator"])() );
 
-      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
-    })
-  );
+    // Edge wrapping (X) checkbox
+    group.appendChild(
+      Object(_components__WEBPACK_IMPORTED_MODULE_1__["createCheckbox"])('Wrap X', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x, () => {
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x = !_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x;
+        _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].wrapping.value.x = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.x;
+      })
+    );
+
+    // Edge wrapping (Y) checkbox
+    group.appendChild(
+      Object(_components__WEBPACK_IMPORTED_MODULE_1__["createCheckbox"])('Wrap Y', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y, () => {
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y = !_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y;
+        _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].wrapping.value.y = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.wrap.y;
+      })
+    );
+
+      group.appendChild( Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSeperator"])() );
+
+    // Scale slider
+    group.appendChild(
+      Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Scale', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.min, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.max, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.stepSize, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value, (e) => {
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value = 1/e.target.value;
+        Object(_mouse__WEBPACK_IMPORTED_MODULE_5__["setBrushSize"])();
+
+        _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].resolution.value = new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](
+          _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value,
+          _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value
+        );
+
+        Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+      })
+    );
+  });
 
   return group;
 }
@@ -2176,7 +2342,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
 /* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../patterns */ "./js/patterns.js");
 /* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../renderTargets */ "./js/renderTargets.js");
-/* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../globals */ "./js/globals.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
 
 
 
@@ -2193,8 +2359,8 @@ function createControlsGroup() {
 
     // Speed slider
     group.appendChild(
-      Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Speed', 0.001, 2.0, .1, _globals__WEBPACK_IMPORTED_MODULE_3__["default"].speedMultiplier, (e) => {
-        _globals__WEBPACK_IMPORTED_MODULE_3__["default"].speedMultiplier = e.target.value;
+      Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Speed', _variables__WEBPACK_IMPORTED_MODULE_3__["default"].controls.speed.min, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].controls.speed.max, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].controls.speed.stepSize, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].controls.speed.value, (e) => {
+        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].controls.speed.value = e.target.value;
       })
     );
 
@@ -2207,8 +2373,8 @@ function createControlsGroup() {
       <span class="fas fa-play" aria-hidden="true"></span>
       <span class="text pause">Pause</span>
       <span class="text play">Play</span>
-    `, _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused, () => {
-      _globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused = !_globals__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused;
+    `, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused, () => {
+      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused = !_variables__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused;
     });
 
       pauseButton.querySelector('button').setAttribute('aria-label', 'Pause');
@@ -2278,7 +2444,7 @@ function createHistoryGroup() {
     if(_variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.historyEnabled) {
       // Number of generations (history) slider
       group.appendChild(
-        Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Number of generations', 1, 255, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.stateCount, (e) => {
+        Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Number of generations', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].history.numberOfGenerations.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].history.numberOfGenerations.max, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].history.numberOfGenerations.stepSize, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.stateCount, (e) => {
           _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.stateCount =  2 + e.target.value;
           _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].stateCount.value = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].activeRule.stateCount;
 
@@ -2351,7 +2517,7 @@ function createNeighborhoodGroup() {
 
     // Range (number)
     group.appendChild(
-      Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Range', 1, 10, 1, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range, (e) => {
+      Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Range', _variables__WEBPACK_IMPORTED_MODULE_3__["default"].neighborhood.range.min, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].neighborhood.range.max, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].neighborhood.range.stepSize, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range, (e) => {
         _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range = e.target.value;
         _uniforms__WEBPACK_IMPORTED_MODULE_1__["simulationUniforms"].range.value = _variables__WEBPACK_IMPORTED_MODULE_3__["default"].activeRule.range;
         window.dispatchEvent(new Event('rebuildUI'));
@@ -2416,7 +2582,7 @@ function createPatternGroup() {
       case 'Circle':
         // Diameter slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Diameter', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.value, (e) => {
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Diameter', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.max, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.stepSize, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.value, (e) => {
             _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.circle.diameter.value = e.target.value;
           })
         );
@@ -2426,21 +2592,21 @@ function createPatternGroup() {
       case 'Rectangle':
         // Width slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Width', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.value, (e) => {
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Width', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.max, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.stepSize, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.value, (e) => {
             _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.width.value = e.target.value;
           })
         );
 
         // Height slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Height', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.value, (e) => {
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Height', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.max, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.stepSize, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.value, (e) => {
             _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.height.value = e.target.value;
           })
         );
 
         // Rotation slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Rotation', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.value, (e) => {
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Rotation', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.max, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.stepSize, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.value, (e) => {
             _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.rectangle.rotation.value = e.target.value;
           })
         );
@@ -2464,21 +2630,21 @@ function createPatternGroup() {
 
         // Font weight - slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Font weight', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.max, 100, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.value, (e) => {
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Font weight', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.max, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.stepSize, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.value, (e) => {
             _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.fontWeight.value = e.target.value;
           })
         );
 
         // Size - slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Font size', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.value, (e) => {
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Font size', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.max, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.stepSize, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.value, (e) => {
             _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.value = e.target.value;
           })
         );
 
         // Rotation - slider
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Rotation', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.rotation.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.rotation.max, 1, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.rotation.value, (e) => {
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Rotation', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.rotation.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.rotation.max, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.size.stepSize, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.rotation.value, (e) => {
             _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.text.rotation.value = e.target.value;
           })
         );
@@ -2713,15 +2879,33 @@ let passthroughUniforms = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
+  neighborhood: {
+    range: {
+      min: 1,
+      max: 10,
+      stepSize: 1,
+      value: 1
+    }
+  },
+  history: {
+    numberOfGenerations: {
+      min: 1,
+      max: 255,
+      stepSize: 1,
+      value: 2
+    }
+  },
   canvas: {
     width: {
       min: 1,
       max: window.innerWidth,
+      stepSize: 1,
       value: 900
     },
     height: {
       min: 1,
       max: window.innerHeight,
+      stepSize: 1,
       value: 900
     },
     maximized: false,
@@ -2736,14 +2920,24 @@ __webpack_require__.r(__webpack_exports__);
     scale: {
       min: .01,
       max: 5,
+      stepSize: .01,
       value: 1
     },
+  },
+  controls: {
+    speed: {
+      min: .01,
+      max: 1.0,
+      stepSize: .01,
+      value: 1.0
+    }
   },
   patterns: {
     circle: {
       diameter: {
         min: 1,
         max: 900,
+        stepSize: 1,
         value: 200
       }
     },
@@ -2751,16 +2945,19 @@ __webpack_require__.r(__webpack_exports__);
       width: {
         min: 1,
         max: 900,
+        stepSize: 1,
         value: 400
       },
       height: {
         min: 1,
         max: 900,
+        stepSize: 1,
         value: 400
       },
       rotation: {
         min: 0,
         max: 360,
+        stepSize: 1,
         value: 0
       }
     },
@@ -2778,16 +2975,19 @@ __webpack_require__.r(__webpack_exports__);
       fontWeight: {
         min: 100,
         max: 900,
+        stepSize: 100,
         value: 700
       },
       size: {
         min: 1,
         max: 200,
+        stepSize: 1,
         value: 100
       },
       rotation: {
         min: 0,
         max: 360,
+        stepSize: 1,
         value: 0
       }
     },
@@ -2799,6 +2999,7 @@ __webpack_require__.r(__webpack_exports__);
       }
     }
   },
+  isPaused: false,
   activePattern: 'Rectangle',
   activeRule: {
     birth: null,
