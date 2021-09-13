@@ -259,6 +259,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./ui */ "./js/ui.js");
 /* harmony import */ var _helpDialog__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./helpDialog */ "./js/helpDialog.js");
 /* harmony import */ var _seizureWarningDialog__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./seizureWarningDialog */ "./js/seizureWarningDialog.js");
+/* harmony import */ var _ui_analysis__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./ui/analysis */ "./js/ui/analysis.js");
+
 
 
 
@@ -420,6 +422,8 @@ function update() {
       renderer.render(scene, camera);                                                             // run the simulation shader on that texture
 
       _globals__WEBPACK_IMPORTED_MODULE_1__["default"].currentRenderTargetIndex = nextRenderTargetIndex;
+
+      Object(_ui_analysis__WEBPACK_IMPORTED_MODULE_14__["updateGenerationCount"])(1);
     }
 
     // Activate the display shaders
@@ -431,6 +435,9 @@ function update() {
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
   }
+
+  // Update the stats (like the FPS counter)
+  Object(_ui_analysis__WEBPACK_IMPORTED_MODULE_14__["updateStats"])();
 
   // Run again when the next frame starts
   setTimeout(() => {
@@ -684,10 +691,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-let mouseFollower;
+let mouseFollower, mouseDown;
 
 function setupMouse() {
-  let mouseDown = false
+  mouseDown = false;
 
   // Create a floating circle that follows the mouse cursor to indicate the current size of the brush
   mouseFollower = document.createElement('div');
@@ -704,25 +711,21 @@ function setupMouse() {
 
   // Begin drag, fill indicator circle white
   _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mousedown', (e) => {
-    mouseDown = true;
-    mouseFollower.style.backgroundColor = 'rgba(255,255,255,.2)';
+    if(e.button == 0) {
+      mouseDown = true;
+      mouseFollower.style.backgroundColor = 'rgba(255,255,255,.2)';
+
+      alignMouseFollower(e);
+    }
   });
 
   // End drag, make indicator circle transparent
   _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mouseup', (e) => {
     mouseDown = false;
     mouseFollower.style.backgroundColor = 'rgba(255,255,255,0)';
-  });
 
-  // If dragging, pass the mouse coordinates into the shader.
-  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mousemove', (e) => {
-    if(mouseDown) {
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = e.offsetX / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value;
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = 1 - e.offsetY / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value;
-    } else {
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = -1;
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = -1;
-    }
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = -1;
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = -1;
   });
 
   // Adjust brush radius using the mouse wheel
@@ -736,24 +739,36 @@ function setupMouse() {
     }
   });
 
-  // Keep the indicator circle aligned with the mouse. Putting the listener on the canvas element caused flickering, but this method is nice and smooth.
+  // Keep the indicator circle aligned with the mouse as it moves.
   window.addEventListener('mousemove', (e) => {
-    const newX = e.clientX,
-          newY = e.clientY,
-          leftSide = window.innerWidth/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
-          rightSide = window.innerWidth/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
-          topSide = window.innerHeight/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2,
-          bottomSide = window.innerHeight/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2;
+    alignMouseFollower(e);
+  });
+}
 
-    // Only align the indicator circle with the mouse inside the <canvas> element
-    if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
-      mouseFollower.style.display = 'block';
-      mouseFollower.style.top = (e.clientY - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
-      mouseFollower.style.left = (e.clientX - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
-    } else {
-      mouseFollower.style.display = 'none';
+function alignMouseFollower(e = null) {
+  const mouseX = e != null ? e.clientX : 0,
+        mouseY = e != null ? e.clientY : 0,
+        newX = mouseX,
+        newY = mouseY,
+        leftSide = window.innerWidth/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
+        rightSide = window.innerWidth/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
+        topSide = window.innerHeight/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2,
+        bottomSide = window.innerHeight/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2;
+
+  // Only align the indicator circle with the mouse inside the <canvas> element
+  if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
+    mouseFollower.style.display = 'block';
+    mouseFollower.style.top = (mouseY - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+    mouseFollower.style.left = (mouseX - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+
+    // If the left mouse button is down, pass the mouse's X/Y position to the frag shader
+    if(mouseDown) {
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = e.offsetX / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value;
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = 1 - e.offsetY / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value;
     }
-  })
+  } else {
+    mouseFollower.style.display = 'none';
+  }
 }
 
 function setBrushSize(e = null) {
@@ -762,10 +777,7 @@ function setBrushSize(e = null) {
   mouseFollower.style.height = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2 * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
 
   // Realign the brush indicator circle with the mouse cursor
-  if(e != null) {
-    mouseFollower.style.top = (e.clientY - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
-    mouseFollower.style.left = (e.clientX - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
-  }
+  alignMouseFollower(e);
 }
 
 /***/ }),
@@ -1448,6 +1460,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ui_pattern__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./ui/pattern */ "./js/ui/pattern.js");
 /* harmony import */ var _ui_canvas__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./ui/canvas */ "./js/ui/canvas.js");
 /* harmony import */ var _helpDialog__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./helpDialog */ "./js/helpDialog.js");
+/* harmony import */ var _ui_analysis__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./ui/analysis */ "./js/ui/analysis.js");
 
 
 
@@ -1461,8 +1474,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-let mainWrapper;
-let leftPanel, rightPanel, centerControlsWrapper;
+
+let mainWrapper,
+    leftPanel, rightPanel, centerControlsWrapper,
+    toggleUIButton;
 let isUIVisible = true;
 
 function setupUI() {
@@ -1482,6 +1497,7 @@ function setupUI() {
     leftPanel.appendChild(Object(_ui_survival__WEBPACK_IMPORTED_MODULE_7__["createSurvivalGroup"])());
     leftPanel.appendChild(Object(_ui_neighborhood__WEBPACK_IMPORTED_MODULE_5__["createNeighborhoodGroup"])());
     leftPanel.appendChild(Object(_ui_history__WEBPACK_IMPORTED_MODULE_1__["createHistoryGroup"])());
+    leftPanel.appendChild(Object(_ui_analysis__WEBPACK_IMPORTED_MODULE_11__["createAnalysisGroup"])());
 
     mainWrapper.appendChild(leftPanel);
   }
@@ -1503,7 +1519,7 @@ function setupUI() {
     centerControlsWrapper.classList.add('center-controls', 'has-left-indent');
 
     // Show/hide UI button
-    let toggleUIButton = document.createElement('button');
+    toggleUIButton = document.createElement('button');
     toggleUIButton.setAttribute('aria-label', 'Hide UI');
     toggleUIButton.setAttribute('aria-pressed', false);
     toggleUIButton.classList.add('toggle-ui-button');
@@ -1515,14 +1531,6 @@ function setupUI() {
     `;
 
     toggleUIButton.addEventListener('click', () => {
-      let isPressed = toggleUIButton.getAttribute('aria-pressed') === 'true' ? true : false;
-
-      if(isPressed) {
-        toggleUIButton.setAttribute('aria-pressed', false);
-      } else {
-        toggleUIButton.setAttribute('aria-pressed', true);
-      }
-
       toggleUI();
     });
 
@@ -1552,10 +1560,8 @@ function setupUI() {
 function toggleUI() {
   if(isUIVisible) {
     hideUI();
-    centerControlsWrapper.classList.remove('has-left-indent');
   } else {
     showUI();
-    centerControlsWrapper.classList.add('has-left-indent');
   }
 }
 
@@ -1563,12 +1569,77 @@ function toggleUI() {
     leftPanel.classList.add('is-hidden');
     rightPanel.classList.add('is-hidden');
     isUIVisible = false;
+
+    centerControlsWrapper.classList.remove('has-left-indent');
+    toggleUIButton.setAttribute('aria-pressed', true);
   }
 
   function showUI() {
     leftPanel.classList.remove('is-hidden');
     rightPanel.classList.remove('is-hidden');
     isUIVisible = true;
+
+    centerControlsWrapper.classList.add('has-left-indent');
+    toggleUIButton.setAttribute('aria-pressed', false);
+  }
+
+/***/ }),
+
+/***/ "./js/ui/analysis.js":
+/*!***************************!*\
+  !*** ./js/ui/analysis.js ***!
+  \***************************/
+/*! exports provided: createAnalysisGroup, updateGenerationCount, updateStats */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createAnalysisGroup", function() { return createAnalysisGroup; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateGenerationCount", function() { return updateGenerationCount; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateStats", function() { return updateStats; });
+/* harmony import */ var fps__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fps */ "./node_modules/fps/index.js");
+/* harmony import */ var fps__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fps__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components */ "./js/ui/components.js");
+
+
+
+
+let totalGenerations, totalGenerationsTextDisplay,
+    ticker, fpsTextDisplay;
+
+function createAnalysisGroup() {
+  let group = Object(_components__WEBPACK_IMPORTED_MODULE_1__["createGroup"])('Analysis');
+
+  // TODO: bar chart showing distribution of states
+
+  // Total generation count
+  totalGenerations = 0;
+
+  totalGenerationsTextDisplay = group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createTextDisplay"])('Total generations', totalGenerations)
+  );
+
+  // FPS count
+  fpsTextDisplay = group.appendChild(
+    Object(_components__WEBPACK_IMPORTED_MODULE_1__["createTextDisplay"])('FPS', 0)
+  );
+
+  ticker = fps__WEBPACK_IMPORTED_MODULE_0___default()({ every: 60 });
+
+  ticker.on('data', (framerate) => {
+    fpsTextDisplay.querySelector('.value').innerHTML = String(Math.round(framerate));
+  });
+
+  return group;
+}
+
+  function updateGenerationCount(increment) {
+    totalGenerations += increment;
+    totalGenerationsTextDisplay.querySelector('.value').innerHTML = totalGenerations;
+  }
+
+  function updateStats() {
+    ticker.tick();
   }
 
 /***/ }),
@@ -1788,7 +1859,7 @@ function createColorsGroup() {
 /*!*****************************!*\
   !*** ./js/ui/components.js ***!
   \*****************************/
-/*! exports provided: createPanel, createGroup, createSeperator, createRow, createDropdown, createButton, createToggleButton, createSlider, createCheckbox, createCountCheckboxFieldset, createColorPicker, createTextInput, createTextarea */
+/*! exports provided: createPanel, createGroup, createSeperator, createRow, createDropdown, createButton, createToggleButton, createSlider, createCheckbox, createCountCheckboxFieldset, createColorPicker, createTextInput, createTextarea, createTextDisplay */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1806,6 +1877,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createColorPicker", function() { return createColorPicker; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createTextInput", function() { return createTextInput; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createTextarea", function() { return createTextarea; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createTextDisplay", function() { return createTextDisplay; });
 /* harmony import */ var _colors__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../colors */ "./js/colors.js");
 /* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../rules */ "./js/rules.js");
 /* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
@@ -2365,6 +2437,26 @@ function createTextarea(labelText, initialValue, numRows, listener) {
   return component;
 }
 
+/*******************************
+  Text display
+  - Displays a string
+********************************/
+function createTextDisplay(labelText, initialValue) {
+  let component = document.createElement('div');
+  component.classList.add('component', 'text-display');
+
+  let prefix = document.createTextNode(labelText + ': ')
+
+  let value = document.createElement('span');
+  value.classList.add('value');
+  value.innerHTML = initialValue;
+
+  component.appendChild(prefix);
+  component.appendChild(value);
+
+  return component;
+}
+
 /***/ }),
 
 /***/ "./js/ui/controls.js":
@@ -2699,7 +2791,7 @@ function createPatternGroup() {
       case 'Random':
         // Density
         group.appendChild(
-          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Density', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.max, .01, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.value, (e) => {
+          Object(_components__WEBPACK_IMPORTED_MODULE_0__["createSlider"])('Density', _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.min, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.max, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.stepSize, _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.value, (e) => {
             _variables__WEBPACK_IMPORTED_MODULE_2__["default"].patterns.random.density.value = e.target.value;
           })
         );
@@ -3031,8 +3123,9 @@ __webpack_require__.r(__webpack_exports__);
     },
     random: {
       density: {
-        min: .01,
-        max: 1.0,
+        min: .0001,
+        max: .2,
+        stepSize: .001,
         value: .2
       }
     }
@@ -3724,6 +3817,605 @@ utils.appendRangeToObjectWithProbability = function (min, max, probability, obje
 };
 
 module.exports = utils;
+
+/***/ }),
+
+/***/ "./node_modules/events/events.js":
+/*!***************************************!*\
+  !*** ./node_modules/events/events.js ***!
+  \***************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+
+var R = typeof Reflect === 'object' ? Reflect : null
+var ReflectApply = R && typeof R.apply === 'function'
+  ? R.apply
+  : function ReflectApply(target, receiver, args) {
+    return Function.prototype.apply.call(target, receiver, args);
+  }
+
+var ReflectOwnKeys
+if (R && typeof R.ownKeys === 'function') {
+  ReflectOwnKeys = R.ownKeys
+} else if (Object.getOwnPropertySymbols) {
+  ReflectOwnKeys = function ReflectOwnKeys(target) {
+    return Object.getOwnPropertyNames(target)
+      .concat(Object.getOwnPropertySymbols(target));
+  };
+} else {
+  ReflectOwnKeys = function ReflectOwnKeys(target) {
+    return Object.getOwnPropertyNames(target);
+  };
+}
+
+function ProcessEmitWarning(warning) {
+  if (console && console.warn) console.warn(warning);
+}
+
+var NumberIsNaN = Number.isNaN || function NumberIsNaN(value) {
+  return value !== value;
+}
+
+function EventEmitter() {
+  EventEmitter.init.call(this);
+}
+module.exports = EventEmitter;
+module.exports.once = once;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._eventsCount = 0;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+var defaultMaxListeners = 10;
+
+function checkListener(listener) {
+  if (typeof listener !== 'function') {
+    throw new TypeError('The "listener" argument must be of type Function. Received type ' + typeof listener);
+  }
+}
+
+Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
+  enumerable: true,
+  get: function() {
+    return defaultMaxListeners;
+  },
+  set: function(arg) {
+    if (typeof arg !== 'number' || arg < 0 || NumberIsNaN(arg)) {
+      throw new RangeError('The value of "defaultMaxListeners" is out of range. It must be a non-negative number. Received ' + arg + '.');
+    }
+    defaultMaxListeners = arg;
+  }
+});
+
+EventEmitter.init = function() {
+
+  if (this._events === undefined ||
+      this._events === Object.getPrototypeOf(this)._events) {
+    this._events = Object.create(null);
+    this._eventsCount = 0;
+  }
+
+  this._maxListeners = this._maxListeners || undefined;
+};
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
+  if (typeof n !== 'number' || n < 0 || NumberIsNaN(n)) {
+    throw new RangeError('The value of "n" is out of range. It must be a non-negative number. Received ' + n + '.');
+  }
+  this._maxListeners = n;
+  return this;
+};
+
+function _getMaxListeners(that) {
+  if (that._maxListeners === undefined)
+    return EventEmitter.defaultMaxListeners;
+  return that._maxListeners;
+}
+
+EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
+  return _getMaxListeners(this);
+};
+
+EventEmitter.prototype.emit = function emit(type) {
+  var args = [];
+  for (var i = 1; i < arguments.length; i++) args.push(arguments[i]);
+  var doError = (type === 'error');
+
+  var events = this._events;
+  if (events !== undefined)
+    doError = (doError && events.error === undefined);
+  else if (!doError)
+    return false;
+
+  // If there is no 'error' event listener then throw.
+  if (doError) {
+    var er;
+    if (args.length > 0)
+      er = args[0];
+    if (er instanceof Error) {
+      // Note: The comments on the `throw` lines are intentional, they show
+      // up in Node's output if this results in an unhandled exception.
+      throw er; // Unhandled 'error' event
+    }
+    // At least give some kind of context to the user
+    var err = new Error('Unhandled error.' + (er ? ' (' + er.message + ')' : ''));
+    err.context = er;
+    throw err; // Unhandled 'error' event
+  }
+
+  var handler = events[type];
+
+  if (handler === undefined)
+    return false;
+
+  if (typeof handler === 'function') {
+    ReflectApply(handler, this, args);
+  } else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      ReflectApply(listeners[i], this, args);
+  }
+
+  return true;
+};
+
+function _addListener(target, type, listener, prepend) {
+  var m;
+  var events;
+  var existing;
+
+  checkListener(listener);
+
+  events = target._events;
+  if (events === undefined) {
+    events = target._events = Object.create(null);
+    target._eventsCount = 0;
+  } else {
+    // To avoid recursion in the case that type === "newListener"! Before
+    // adding it to the listeners, first emit "newListener".
+    if (events.newListener !== undefined) {
+      target.emit('newListener', type,
+                  listener.listener ? listener.listener : listener);
+
+      // Re-assign `events` because a newListener handler could have caused the
+      // this._events to be assigned to a new object
+      events = target._events;
+    }
+    existing = events[type];
+  }
+
+  if (existing === undefined) {
+    // Optimize the case of one listener. Don't need the extra array object.
+    existing = events[type] = listener;
+    ++target._eventsCount;
+  } else {
+    if (typeof existing === 'function') {
+      // Adding the second element, need to change to array.
+      existing = events[type] =
+        prepend ? [listener, existing] : [existing, listener];
+      // If we've already got an array, just append.
+    } else if (prepend) {
+      existing.unshift(listener);
+    } else {
+      existing.push(listener);
+    }
+
+    // Check for listener leak
+    m = _getMaxListeners(target);
+    if (m > 0 && existing.length > m && !existing.warned) {
+      existing.warned = true;
+      // No error code for this since it is a Warning
+      // eslint-disable-next-line no-restricted-syntax
+      var w = new Error('Possible EventEmitter memory leak detected. ' +
+                          existing.length + ' ' + String(type) + ' listeners ' +
+                          'added. Use emitter.setMaxListeners() to ' +
+                          'increase limit');
+      w.name = 'MaxListenersExceededWarning';
+      w.emitter = target;
+      w.type = type;
+      w.count = existing.length;
+      ProcessEmitWarning(w);
+    }
+  }
+
+  return target;
+}
+
+EventEmitter.prototype.addListener = function addListener(type, listener) {
+  return _addListener(this, type, listener, false);
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.prependListener =
+    function prependListener(type, listener) {
+      return _addListener(this, type, listener, true);
+    };
+
+function onceWrapper() {
+  if (!this.fired) {
+    this.target.removeListener(this.type, this.wrapFn);
+    this.fired = true;
+    if (arguments.length === 0)
+      return this.listener.call(this.target);
+    return this.listener.apply(this.target, arguments);
+  }
+}
+
+function _onceWrap(target, type, listener) {
+  var state = { fired: false, wrapFn: undefined, target: target, type: type, listener: listener };
+  var wrapped = onceWrapper.bind(state);
+  wrapped.listener = listener;
+  state.wrapFn = wrapped;
+  return wrapped;
+}
+
+EventEmitter.prototype.once = function once(type, listener) {
+  checkListener(listener);
+  this.on(type, _onceWrap(this, type, listener));
+  return this;
+};
+
+EventEmitter.prototype.prependOnceListener =
+    function prependOnceListener(type, listener) {
+      checkListener(listener);
+      this.prependListener(type, _onceWrap(this, type, listener));
+      return this;
+    };
+
+// Emits a 'removeListener' event if and only if the listener was removed.
+EventEmitter.prototype.removeListener =
+    function removeListener(type, listener) {
+      var list, events, position, i, originalListener;
+
+      checkListener(listener);
+
+      events = this._events;
+      if (events === undefined)
+        return this;
+
+      list = events[type];
+      if (list === undefined)
+        return this;
+
+      if (list === listener || list.listener === listener) {
+        if (--this._eventsCount === 0)
+          this._events = Object.create(null);
+        else {
+          delete events[type];
+          if (events.removeListener)
+            this.emit('removeListener', type, list.listener || listener);
+        }
+      } else if (typeof list !== 'function') {
+        position = -1;
+
+        for (i = list.length - 1; i >= 0; i--) {
+          if (list[i] === listener || list[i].listener === listener) {
+            originalListener = list[i].listener;
+            position = i;
+            break;
+          }
+        }
+
+        if (position < 0)
+          return this;
+
+        if (position === 0)
+          list.shift();
+        else {
+          spliceOne(list, position);
+        }
+
+        if (list.length === 1)
+          events[type] = list[0];
+
+        if (events.removeListener !== undefined)
+          this.emit('removeListener', type, originalListener || listener);
+      }
+
+      return this;
+    };
+
+EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
+
+EventEmitter.prototype.removeAllListeners =
+    function removeAllListeners(type) {
+      var listeners, events, i;
+
+      events = this._events;
+      if (events === undefined)
+        return this;
+
+      // not listening for removeListener, no need to emit
+      if (events.removeListener === undefined) {
+        if (arguments.length === 0) {
+          this._events = Object.create(null);
+          this._eventsCount = 0;
+        } else if (events[type] !== undefined) {
+          if (--this._eventsCount === 0)
+            this._events = Object.create(null);
+          else
+            delete events[type];
+        }
+        return this;
+      }
+
+      // emit removeListener for all listeners on all events
+      if (arguments.length === 0) {
+        var keys = Object.keys(events);
+        var key;
+        for (i = 0; i < keys.length; ++i) {
+          key = keys[i];
+          if (key === 'removeListener') continue;
+          this.removeAllListeners(key);
+        }
+        this.removeAllListeners('removeListener');
+        this._events = Object.create(null);
+        this._eventsCount = 0;
+        return this;
+      }
+
+      listeners = events[type];
+
+      if (typeof listeners === 'function') {
+        this.removeListener(type, listeners);
+      } else if (listeners !== undefined) {
+        // LIFO order
+        for (i = listeners.length - 1; i >= 0; i--) {
+          this.removeListener(type, listeners[i]);
+        }
+      }
+
+      return this;
+    };
+
+function _listeners(target, type, unwrap) {
+  var events = target._events;
+
+  if (events === undefined)
+    return [];
+
+  var evlistener = events[type];
+  if (evlistener === undefined)
+    return [];
+
+  if (typeof evlistener === 'function')
+    return unwrap ? [evlistener.listener || evlistener] : [evlistener];
+
+  return unwrap ?
+    unwrapListeners(evlistener) : arrayClone(evlistener, evlistener.length);
+}
+
+EventEmitter.prototype.listeners = function listeners(type) {
+  return _listeners(this, type, true);
+};
+
+EventEmitter.prototype.rawListeners = function rawListeners(type) {
+  return _listeners(this, type, false);
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  if (typeof emitter.listenerCount === 'function') {
+    return emitter.listenerCount(type);
+  } else {
+    return listenerCount.call(emitter, type);
+  }
+};
+
+EventEmitter.prototype.listenerCount = listenerCount;
+function listenerCount(type) {
+  var events = this._events;
+
+  if (events !== undefined) {
+    var evlistener = events[type];
+
+    if (typeof evlistener === 'function') {
+      return 1;
+    } else if (evlistener !== undefined) {
+      return evlistener.length;
+    }
+  }
+
+  return 0;
+}
+
+EventEmitter.prototype.eventNames = function eventNames() {
+  return this._eventsCount > 0 ? ReflectOwnKeys(this._events) : [];
+};
+
+function arrayClone(arr, n) {
+  var copy = new Array(n);
+  for (var i = 0; i < n; ++i)
+    copy[i] = arr[i];
+  return copy;
+}
+
+function spliceOne(list, index) {
+  for (; index + 1 < list.length; index++)
+    list[index] = list[index + 1];
+  list.pop();
+}
+
+function unwrapListeners(arr) {
+  var ret = new Array(arr.length);
+  for (var i = 0; i < ret.length; ++i) {
+    ret[i] = arr[i].listener || arr[i];
+  }
+  return ret;
+}
+
+function once(emitter, name) {
+  return new Promise(function (resolve, reject) {
+    function errorListener(err) {
+      emitter.removeListener(name, resolver);
+      reject(err);
+    }
+
+    function resolver() {
+      if (typeof emitter.removeListener === 'function') {
+        emitter.removeListener('error', errorListener);
+      }
+      resolve([].slice.call(arguments));
+    };
+
+    eventTargetAgnosticAddListener(emitter, name, resolver, { once: true });
+    if (name !== 'error') {
+      addErrorHandlerIfEventEmitter(emitter, errorListener, { once: true });
+    }
+  });
+}
+
+function addErrorHandlerIfEventEmitter(emitter, handler, flags) {
+  if (typeof emitter.on === 'function') {
+    eventTargetAgnosticAddListener(emitter, 'error', handler, flags);
+  }
+}
+
+function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
+  if (typeof emitter.on === 'function') {
+    if (flags.once) {
+      emitter.once(name, listener);
+    } else {
+      emitter.on(name, listener);
+    }
+  } else if (typeof emitter.addEventListener === 'function') {
+    // EventTarget does not have `error` event semantics like Node
+    // EventEmitters, we do not listen for `error` events here.
+    emitter.addEventListener(name, function wrapListener(arg) {
+      // IE does not have builtin `{ once: true }` support so we
+      // have to do it manually.
+      if (flags.once) {
+        emitter.removeEventListener(name, wrapListener);
+      }
+      listener(arg);
+    });
+  } else {
+    throw new TypeError('The "emitter" argument must be of type EventEmitter. Received type ' + typeof emitter);
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/fps/index.js":
+/*!***********************************!*\
+  !*** ./node_modules/fps/index.js ***!
+  \***********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var EventEmitter = __webpack_require__(/*! events */ "./node_modules/events/events.js").EventEmitter
+  , inherits = __webpack_require__(/*! inherits */ "./node_modules/fps/node_modules/inherits/inherits.js")
+
+module.exports = fps
+
+// Try use performance.now(), otherwise try
+// +new Date.
+var now = (
+  (function(){ return this }()).performance &&
+  'function' === typeof performance.now
+) ? function() { return performance.now() }
+  : Date.now || function() { return +new Date }
+
+function fps(opts) {
+  if (!(this instanceof fps)) return new fps(opts)
+  EventEmitter.call(this)
+
+  opts = opts || {}
+  this.last = now()
+  this.rate = 0
+  this.time = 0
+  this.decay = opts.decay || 1
+  this.every = opts.every || 1
+  this.ticks = 0
+}
+inherits(fps, EventEmitter)
+
+fps.prototype.tick = function() {
+  var time = now()
+    , diff = time - this.last
+    , fps = diff
+
+  this.ticks += 1
+  this.last = time
+  this.time += (fps - this.time) * this.decay
+  this.rate = 1000 / this.time
+  if (!(this.ticks % this.every)) this.emit('data', this.rate)
+}
+
+
+
+/***/ }),
+
+/***/ "./node_modules/fps/node_modules/inherits/inherits.js":
+/*!************************************************************!*\
+  !*** ./node_modules/fps/node_modules/inherits/inherits.js ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = inherits
+
+function inherits (c, p, proto) {
+  proto = proto || {}
+  var e = {}
+  ;[c.prototype, proto].forEach(function (s) {
+    Object.getOwnPropertyNames(s).forEach(function (k) {
+      e[k] = Object.getOwnPropertyDescriptor(s, k)
+    })
+  })
+  c.prototype = Object.create(p.prototype, e)
+  c.super = p
+}
+
+//function Child () {
+//  Child.super.call(this)
+//  console.error([this
+//                ,this.constructor
+//                ,this.constructor === Child
+//                ,this.constructor.super === Parent
+//                ,Object.getPrototypeOf(this) === Child.prototype
+//                ,Object.getPrototypeOf(Object.getPrototypeOf(this))
+//                 === Parent.prototype
+//                ,this instanceof Child
+//                ,this instanceof Parent])
+//}
+//function Parent () {}
+//inherits(Child, Parent)
+//new Child
+
 
 /***/ }),
 

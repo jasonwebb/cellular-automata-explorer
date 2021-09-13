@@ -61,18 +61,20 @@ export function setupMouse() {
 }
 
 function alignMouseFollower(e = null) {
-  const newX = e.clientX,
-      newY = e.clientY,
-      leftSide = window.innerWidth/2 - canvas.width/2,
-      rightSide = window.innerWidth/2 + canvas.width/2,
-      topSide = window.innerHeight/2 - canvas.height/2,
-      bottomSide = window.innerHeight/2 + canvas.height/2;
+  const mouseX = e != null ? e.clientX : 0,
+        mouseY = e != null ? e.clientY : 0,
+        newX = mouseX,
+        newY = mouseY,
+        leftSide = window.innerWidth/2 - canvas.width/2,
+        rightSide = window.innerWidth/2 + canvas.width/2,
+        topSide = window.innerHeight/2 - canvas.height/2,
+        bottomSide = window.innerHeight/2 + canvas.height/2;
 
   // Only align the indicator circle with the mouse inside the <canvas> element
   if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
     mouseFollower.style.display = 'block';
-    mouseFollower.style.top = (e.clientY - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
-    mouseFollower.style.left = (e.clientX - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
+    mouseFollower.style.top = (mouseY - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
+    mouseFollower.style.left = (mouseX - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
 
     // If the left mouse button is down, pass the mouse's X/Y position to the frag shader
     if(mouseDown) {
