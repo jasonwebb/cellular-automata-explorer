@@ -124,14 +124,14 @@ function setup() {
 
     // Reset the resolution in the simulation code to match new container size
     simulationUniforms.resolution.value = new THREE.Vector2(
-      variables.canvas.width.value * variables.canvas.scale.value,
-      variables.canvas.height.value * variables.canvas.scale.value
+      variables.canvas.width.value * (1/variables.canvas.scale.value),
+      variables.canvas.height.value * (1/variables.canvas.scale.value)
     );
 
     // Resize the buffer canvas
     bufferCanvas = document.querySelector('#buffer-canvas');
-    bufferCanvas.width = variables.canvas.width.value * variables.canvas.scale.value;
-    bufferCanvas.height = variables.canvas.height.value * variables.canvas.scale.value;
+    bufferCanvas.width = variables.canvas.width.value * (1/variables.canvas.scale.value);
+    bufferCanvas.height = variables.canvas.height.value * (1/variables.canvas.scale.value);
   }
 
 
