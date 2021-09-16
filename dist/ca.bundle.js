@@ -234,32 +234,34 @@ function setColors() {
 /*!*********************!*\
   !*** ./js/entry.js ***!
   \*********************/
-/*! exports provided: scene, camera, renderer, mesh, canvas, resetTextureSizes */
+/*! exports provided: canvas, scene, camera, renderer, mesh, resetTextureSizes, iterate */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "canvas", function() { return canvas; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scene", function() { return scene; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "camera", function() { return camera; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderer", function() { return renderer; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mesh", function() { return mesh; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "canvas", function() { return canvas; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resetTextureSizes", function() { return resetTextureSizes; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "iterate", function() { return iterate; });
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
 /* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./globals */ "./js/globals.js");
 /* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
-/* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
+/* harmony import */ var _presets__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./presets */ "./js/presets.js");
 /* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
 /* harmony import */ var _materials__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./materials */ "./js/materials.js");
-/* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
-/* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./rules */ "./js/rules.js");
+/* harmony import */ var _seizureWarningDialog__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./seizureWarningDialog */ "./js/seizureWarningDialog.js");
+/* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./ui */ "./js/ui.js");
 /* harmony import */ var _keyboard__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./keyboard */ "./js/keyboard.js");
 /* harmony import */ var _mouse__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./mouse */ "./js/mouse.js");
-/* harmony import */ var _colors__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./colors */ "./js/colors.js");
-/* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./ui */ "./js/ui.js");
-/* harmony import */ var _helpDialog__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./helpDialog */ "./js/helpDialog.js");
-/* harmony import */ var _seizureWarningDialog__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./seizureWarningDialog */ "./js/seizureWarningDialog.js");
-/* harmony import */ var _ui_analysis__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./ui/analysis */ "./js/ui/analysis.js");
+/* harmony import */ var _helpDialog__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./helpDialog */ "./js/helpDialog.js");
+/* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
+/* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
+/* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./rules */ "./js/rules.js");
+/* harmony import */ var _colors__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./colors */ "./js/colors.js");
+/* harmony import */ var _ui_analysis__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./ui/analysis */ "./js/ui/analysis.js");
 
 
 
@@ -278,8 +280,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-let scene, camera, renderer, mesh;
-let canvas;
+
+
+
+let canvas, scene, camera, renderer, mesh;
 let bufferCanvas;
 
 //==============================================================
@@ -289,8 +293,8 @@ let bufferCanvas;
 if(!window.localStorage.getItem('skipWarning')) {
   // Show the warning and wait for the user to hit the Okay button
   const seizureWarningPromise = new Promise((resolve) => {
-    Object(_seizureWarningDialog__WEBPACK_IMPORTED_MODULE_13__["setupSeizureWarningDialog"])();
-    Object(_seizureWarningDialog__WEBPACK_IMPORTED_MODULE_13__["showSeizureWarningDialog"])();
+    Object(_seizureWarningDialog__WEBPACK_IMPORTED_MODULE_6__["setupSeizureWarningDialog"])();
+    Object(_seizureWarningDialog__WEBPACK_IMPORTED_MODULE_6__["showSeizureWarningDialog"])();
 
     document.getElementById('seizure-warning-dialog').querySelector('button').addEventListener('click', () => {
       resolve();
@@ -298,7 +302,7 @@ if(!window.localStorage.getItem('skipWarning')) {
   });
 
   // When the Okay button is activated, start up the app
-  seizureWarningPromise.then((resolved) => {
+  seizureWarningPromise.then(() => {
     initialize();
   });
 } else {
@@ -309,11 +313,11 @@ if(!window.localStorage.getItem('skipWarning')) {
 //  INITIALIZE APP
 //==============================================================
 function initialize() {
-  Object(_ui__WEBPACK_IMPORTED_MODULE_11__["setupUI"])();
+  Object(_ui__WEBPACK_IMPORTED_MODULE_7__["setupUI"])();
   setup();
   Object(_keyboard__WEBPACK_IMPORTED_MODULE_8__["setupKeyboard"])();
   Object(_mouse__WEBPACK_IMPORTED_MODULE_9__["setupMouse"])();
-  Object(_helpDialog__WEBPACK_IMPORTED_MODULE_12__["setupHelpDialog"])();
+  Object(_helpDialog__WEBPACK_IMPORTED_MODULE_10__["setupHelpDialog"])();
   update();
 }
 
@@ -344,7 +348,7 @@ function setup() {
   // Uncomment this line to see how many shader varyings your GPU supports.
   // console.log(renderer.capabilities.maxVaryings);
 
-  // Grab the <canvas> element and inject it into the DOM
+  // Grab the <canvas> element generated by the renderer and inject it into the DOM
   canvas = renderer.domElement;
   document.getElementById('container').appendChild(canvas);
 
@@ -353,26 +357,17 @@ function setup() {
   resetTextureSizes();
 
   // Set the color palette
-  Object(_colors__WEBPACK_IMPORTED_MODULE_10__["setColors"])();
+  Object(_colors__WEBPACK_IMPORTED_MODULE_14__["setColors"])();
 
   // Set the rule that the shader should run
-
-  Object(_rules__WEBPACK_IMPORTED_MODULE_7__["setRuleFromString"])('23/3');  // Conway's Life
-
-  // setTimeout(() => {
-  //   setRuleFromString('345/2/50');  // Generations - Burst
-  // }, 2000);
-
-  // setTimeout(() => {
-  //   setRuleFromString('45678/2478/250');  // Generations - Burst
-  // }, 5000);
+  Object(_rules__WEBPACK_IMPORTED_MODULE_13__["setRuleFromString"])(_presets__WEBPACK_IMPORTED_MODULE_3__["default"]['Life']['Conway\'s Game of Life']);
 
   // Set up and render the first frame
-  Object(_patterns__WEBPACK_IMPORTED_MODULE_6__["drawPattern"])();
+  Object(_patterns__WEBPACK_IMPORTED_MODULE_12__["drawPattern"])();
 }
 
   function resetTextureSizes() {
-    // Only resize the canvas and textures if they haven't been set yet or the canvas needs to always been maximized
+    // Only resize the canvas and textures if they haven't been set yet or the canvas needs to always be maximized
     if(
       !_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.maximized &&
       canvas.clientWidth == _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value &&
@@ -389,18 +384,18 @@ function setup() {
     _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value = canvas.clientHeight;
 
     // Resize render targets
-    Object(_renderTargets__WEBPACK_IMPORTED_MODULE_3__["setupRenderTargets"])();
+    Object(_renderTargets__WEBPACK_IMPORTED_MODULE_11__["setupRenderTargets"])();
 
     // Reset the resolution in the simulation code to match new container size
     _uniforms__WEBPACK_IMPORTED_MODULE_4__["simulationUniforms"].resolution.value = new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](
-      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value,
-      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value),
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)
     );
 
     // Resize the buffer canvas
     bufferCanvas = document.querySelector('#buffer-canvas');
-    bufferCanvas.width = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value;
-    bufferCanvas.height = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value;
+    bufferCanvas.width = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value);
+    bufferCanvas.height = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value);
   }
 
 
@@ -410,39 +405,43 @@ function setup() {
 //==============================================================
 function update() {
   if(!_variables__WEBPACK_IMPORTED_MODULE_2__["default"].isPaused) {
-    // Activate the simulation shaders
-    mesh.material = _materials__WEBPACK_IMPORTED_MODULE_5__["simulationMaterial"];
-
-    // Run the simulation multiple times by feeding the result of one iteration (a render target's texture) into the next render target
-    for(let i=0; i<_globals__WEBPACK_IMPORTED_MODULE_1__["default"].pingPongSteps; i++) {
-      let nextRenderTargetIndex = _globals__WEBPACK_IMPORTED_MODULE_1__["default"].currentRenderTargetIndex === 0 ? 1 : 0;
-
-      _uniforms__WEBPACK_IMPORTED_MODULE_4__["simulationUniforms"].states.value = _renderTargets__WEBPACK_IMPORTED_MODULE_3__["renderTargets"][_globals__WEBPACK_IMPORTED_MODULE_1__["default"].currentRenderTargetIndex].texture;  // grab the result of the last iteration
-      renderer.setRenderTarget(_renderTargets__WEBPACK_IMPORTED_MODULE_3__["renderTargets"][nextRenderTargetIndex]);                             // prepare to render into the next render target
-      renderer.render(scene, camera);                                                             // run the simulation shader on that texture
-
-      _globals__WEBPACK_IMPORTED_MODULE_1__["default"].currentRenderTargetIndex = nextRenderTargetIndex;
-
-      Object(_ui_analysis__WEBPACK_IMPORTED_MODULE_14__["updateGenerationCount"])(1);
-    }
-
-    // Activate the display shaders
-    _uniforms__WEBPACK_IMPORTED_MODULE_4__["displayUniforms"].time.value = _globals__WEBPACK_IMPORTED_MODULE_1__["default"].clock.getElapsedTime();
-    _uniforms__WEBPACK_IMPORTED_MODULE_4__["displayUniforms"].textureToDisplay.value = _renderTargets__WEBPACK_IMPORTED_MODULE_3__["renderTargets"][_globals__WEBPACK_IMPORTED_MODULE_1__["default"].currentRenderTargetIndex].texture;  // pass this result to the display material too
-    mesh.material = _materials__WEBPACK_IMPORTED_MODULE_5__["displayMaterial"];
-
-    // Render the latest iteration to the screen
-    renderer.setRenderTarget(null);
-    renderer.render(scene, camera);
+    iterate(_globals__WEBPACK_IMPORTED_MODULE_1__["default"].pingPongSteps);
   }
 
   // Update the stats (like the FPS counter)
-  Object(_ui_analysis__WEBPACK_IMPORTED_MODULE_14__["updateStats"])();
+  Object(_ui_analysis__WEBPACK_IMPORTED_MODULE_15__["updateStats"])();
 
   // Run again when the next frame starts
   setTimeout(() => {
     requestAnimationFrame(update);
   }, 100 * (1 - _variables__WEBPACK_IMPORTED_MODULE_2__["default"].controls.speed.value) + 0 * _variables__WEBPACK_IMPORTED_MODULE_2__["default"].controls.speed.value);
+}
+
+function iterate(steps) {
+  // Activate the simulation shaders
+  mesh.material = _materials__WEBPACK_IMPORTED_MODULE_5__["simulationMaterial"];
+
+  // Run the simulation multiple times by feeding the result of one iteration (a render target's texture) into the next render target
+  for(let i=0; i<steps; i++) {
+    let nextRenderTargetIndex = _globals__WEBPACK_IMPORTED_MODULE_1__["default"].currentRenderTargetIndex === 0 ? 1 : 0;
+
+    _uniforms__WEBPACK_IMPORTED_MODULE_4__["simulationUniforms"].states.value = _renderTargets__WEBPACK_IMPORTED_MODULE_11__["renderTargets"][_globals__WEBPACK_IMPORTED_MODULE_1__["default"].currentRenderTargetIndex].texture;  // grab the result of the last iteration
+    renderer.setRenderTarget(_renderTargets__WEBPACK_IMPORTED_MODULE_11__["renderTargets"][nextRenderTargetIndex]);                             // prepare to render into the next render target
+    renderer.render(scene, camera);                                                             // run the simulation shader on that texture
+
+    _globals__WEBPACK_IMPORTED_MODULE_1__["default"].currentRenderTargetIndex = nextRenderTargetIndex;
+
+    Object(_ui_analysis__WEBPACK_IMPORTED_MODULE_15__["updateGenerationCount"])(1);
+  }
+
+  // Activate the display shaders
+  _uniforms__WEBPACK_IMPORTED_MODULE_4__["displayUniforms"].time.value = _globals__WEBPACK_IMPORTED_MODULE_1__["default"].clock.getElapsedTime();
+  _uniforms__WEBPACK_IMPORTED_MODULE_4__["displayUniforms"].textureToDisplay.value = _renderTargets__WEBPACK_IMPORTED_MODULE_11__["renderTargets"][_globals__WEBPACK_IMPORTED_MODULE_1__["default"].currentRenderTargetIndex].texture;  // pass this result to the display material too
+  mesh.material = _materials__WEBPACK_IMPORTED_MODULE_5__["displayMaterial"];
+
+  // Render the latest iteration to the screen
+  renderer.setRenderTarget(null);
+  renderer.render(scene, camera);
 }
 
 /***/ }),
@@ -1195,8 +1194,8 @@ function setupRenderTargets() {
   for(let i=0; i<2; i++) {
     renderTargets.push(
       new three__WEBPACK_IMPORTED_MODULE_0__["WebGLRenderTarget"](
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
-        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
+        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value),
+        _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * (1/_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value),
         {
           minFilter: three__WEBPACK_IMPORTED_MODULE_0__["NearestFilter"],
           magFilter: three__WEBPACK_IMPORTED_MODULE_0__["NearestFilter"],
@@ -1751,6 +1750,7 @@ function createCanvasGroup() {
           _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.height;
         }
 
+        Object(_mouse__WEBPACK_IMPORTED_MODULE_5__["setBrushSize"])();
         Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
         window.dispatchEvent(new Event('rebuildUI'));
       })
@@ -1779,12 +1779,12 @@ function createCanvasGroup() {
     // Scale slider
     group.appendChild(
       Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Scale', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.min, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.max, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.stepSize, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value, (e) => {
-        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value = 1/e.target.value;
+        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value = e.target.value;
         Object(_mouse__WEBPACK_IMPORTED_MODULE_5__["setBrushSize"])();
 
         _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].resolution.value = new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](
-          _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value,
-          _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value
+          _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value),
+          _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value * (1/_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value)
         );
 
         Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
@@ -2473,6 +2473,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../patterns */ "./js/patterns.js");
 /* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../renderTargets */ "./js/renderTargets.js");
 /* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
+/* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../entry */ "./js/entry.js");
+
 
 
 
@@ -2494,39 +2496,89 @@ function createControlsGroup() {
       })
     );
 
-    // Row for laying out buttons horizontally
+    // Row for laying out Pause and Restart buttons horizontally
     let buttonRow = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createRow"])();
 
-    // Pause button
-    let pauseButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createToggleButton"])(`
-      <span class="fas fa-pause" aria-hidden="true"></span>
-      <span class="fas fa-play" aria-hidden="true"></span>
-      <span class="text pause">Pause</span>
-      <span class="text play">Play</span>
-    `, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused, () => {
-      _variables__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused = !_variables__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused;
-    });
+      // Pause button
+      let pauseButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createToggleButton"])(`
+        <span class="fas fa-pause" aria-hidden="true"></span>
+        <span class="fas fa-play" aria-hidden="true"></span>
+        <span class="text pause">Pause</span>
+        <span class="text play">Play</span>
+      `, _variables__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused, () => {
+        _variables__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused = !_variables__WEBPACK_IMPORTED_MODULE_3__["default"].isPaused;
+      });
 
-      pauseButton.querySelector('button').setAttribute('aria-label', 'Pause');
+        pauseButton.querySelector('button').setAttribute('aria-label', 'Pause');
 
-    // Restart button
-    let restartButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])(`
-      <span class="fas fa-sync-alt" aria-hidden="true"></span>
-      <span class="text">Restart</span>
-    `, false, () => {
-      Object(_renderTargets__WEBPACK_IMPORTED_MODULE_2__["setupRenderTargets"])();
-      Object(_patterns__WEBPACK_IMPORTED_MODULE_1__["drawPattern"])();
-    });
+      // Restart button
+      let restartButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])(`
+        <span class="fas fa-sync-alt" aria-hidden="true"></span>
+        <span class="text">Restart</span>
+      `, false, () => {
+        Object(_renderTargets__WEBPACK_IMPORTED_MODULE_2__["setupRenderTargets"])();
+        Object(_patterns__WEBPACK_IMPORTED_MODULE_1__["drawPattern"])();
+      });
 
-    pauseButton.classList.add('is-control-button');
-    restartButton.classList.add('is-control-button');
+      pauseButton.classList.add('is-control-button');
+      restartButton.classList.add('is-control-button');
 
-    pauseButton.querySelector('button').setAttribute('id', 'pause-button');
-    restartButton.querySelector('button').setAttribute('id', 'restart-button');
+      pauseButton.querySelector('button').setAttribute('id', 'pause-button');
+      restartButton.querySelector('button').setAttribute('id', 'restart-button');
 
-    buttonRow.appendChild(pauseButton);
-    buttonRow.appendChild(restartButton);
-    group.appendChild(buttonRow);
+      buttonRow.appendChild(pauseButton);
+      buttonRow.appendChild(restartButton);
+      group.appendChild(buttonRow);
+
+
+    // Row for laying out step controls horizontally
+    let stepButtonsRow = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createRow"])();
+    stepButtonsRow.classList.add('step-controls-row');
+
+      // Set of 1/10/100 buttons on the left
+      let stepNumbersWrapper = document.createElement('div');
+      stepNumbersWrapper.classList.add('step-numbers');
+
+        let stepOneButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])('+1', false, () => {
+          Object(_entry__WEBPACK_IMPORTED_MODULE_4__["iterate"])(1);
+        });
+        stepOneButton.querySelector('button').setAttribute('aria-label', 'Step 1 generation');
+        stepOneButton.querySelector('button').setAttribute('title', 'Step 1 generation');
+
+        let stepTenButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])('+10', false, () => {
+          Object(_entry__WEBPACK_IMPORTED_MODULE_4__["iterate"])(10);
+        });
+        stepTenButton.querySelector('button').setAttribute('aria-label', 'Step 10 generations');
+        stepTenButton.querySelector('button').setAttribute('title', 'Step 10 generations');
+
+        let stepHundredButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])('+100', false, () => {
+          Object(_entry__WEBPACK_IMPORTED_MODULE_4__["iterate"])(100);
+        });
+        stepHundredButton.querySelector('button').setAttribute('aria-label', 'Step 100 generations');
+        stepHundredButton.querySelector('button').setAttribute('title', 'Step 100 generations');
+
+        stepNumbersWrapper.appendChild(stepOneButton);
+        stepNumbersWrapper.appendChild(stepTenButton);
+        stepNumbersWrapper.appendChild(stepHundredButton);
+
+      // Text input and Run button on the right
+      let customStepsWrapper = document.createElement('div');
+      customStepsWrapper.classList.add('custom-steps');
+
+        let customStepTextInput = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createTextInput"])('Steps', '1000', () => {});
+        customStepTextInput.querySelector('label').classList.add('sr-only');
+
+        let customStepButton = Object(_components__WEBPACK_IMPORTED_MODULE_0__["createButton"])('Run', false, () => {
+          const steps = customStepTextInput.querySelector('input').value;
+          Object(_entry__WEBPACK_IMPORTED_MODULE_4__["iterate"])(steps);
+        });
+
+        customStepsWrapper.appendChild(customStepTextInput);
+        customStepsWrapper.appendChild(customStepButton);
+
+      stepButtonsRow.appendChild(stepNumbersWrapper);
+      stepButtonsRow.appendChild(customStepsWrapper);
+      group.appendChild(stepButtonsRow);
   });
 
   return group;
@@ -2905,8 +2957,8 @@ let simulationUniforms = {
   resolution: {
     type: 'v2',
     value: new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value,
-      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value),
+      _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * (1/_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value)
     )
   },
   mousePosition: {
