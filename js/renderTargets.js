@@ -19,8 +19,8 @@ export function setupRenderTargets() {
   for(let i=0; i<2; i++) {
     renderTargets.push(
       new THREE.WebGLRenderTarget(
-        variables.canvas.width.value * variables.canvas.scale.value,
-        variables.canvas.height.value * variables.canvas.scale.value,
+        variables.canvas.width.value * (1/variables.canvas.scale.value),
+        variables.canvas.height.value * (1/variables.canvas.scale.value),
         {
           minFilter: THREE.NearestFilter,
           magFilter: THREE.NearestFilter,

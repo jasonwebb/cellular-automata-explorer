@@ -11,8 +11,8 @@ export let simulationUniforms = {
   resolution: {
     type: 'v2',
     value: new THREE.Vector2(
-      variables.canvas.width.value * variables.canvas.scale.value,
-      variables.canvas.height.value * variables.canvas.scale.value
+      variables.canvas.width.value * (1/variables.canvas.scale.value),
+      variables.canvas.height.value * (1/variables.canvas.scale.value)
     )
   },
   mousePosition: {

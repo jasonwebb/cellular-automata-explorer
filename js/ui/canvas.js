@@ -64,6 +64,7 @@ export function createCanvasGroup() {
           variables.canvas.height.value = variables.canvas.unmaximizedSize.height;
         }
 
+        setBrushSize();
         resetTextureSizes();
         window.dispatchEvent(new Event('rebuildUI'));
       })
@@ -92,12 +93,12 @@ export function createCanvasGroup() {
     // Scale slider
     group.appendChild(
       createSlider('Scale', variables.canvas.scale.min, variables.canvas.scale.max, variables.canvas.scale.stepSize, variables.canvas.scale.value, (e) => {
-        variables.canvas.scale.value = 1/e.target.value;
+        variables.canvas.scale.value = e.target.value;
         setBrushSize();
 
         simulationUniforms.resolution.value = new THREE.Vector2(
-          variables.canvas.width.value * variables.canvas.scale.value,
-          variables.canvas.height.value * variables.canvas.scale.value
+          variables.canvas.width.value * (1/variables.canvas.scale.value),
+          variables.canvas.height.value * (1/variables.canvas.scale.value)
         );
 
         resetTextureSizes();
