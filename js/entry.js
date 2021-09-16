@@ -141,30 +141,7 @@ function setup() {
 //==============================================================
 function update() {
   if(!variables.isPaused) {
-    // Activate the simulation shaders
-    mesh.material = simulationMaterial;
-
-    // Run the simulation multiple times by feeding the result of one iteration (a render target's texture) into the next render target
-    for(let i=0; i<globals.pingPongSteps; i++) {
-      let nextRenderTargetIndex = globals.currentRenderTargetIndex === 0 ? 1 : 0;
-
-      simulationUniforms.states.value = renderTargets[globals.currentRenderTargetIndex].texture;  // grab the result of the last iteration
-      renderer.setRenderTarget(renderTargets[nextRenderTargetIndex]);                             // prepare to render into the next render target
-      renderer.render(scene, camera);                                                             // run the simulation shader on that texture
-
-      globals.currentRenderTargetIndex = nextRenderTargetIndex;
-
-      updateGenerationCount(1);
-    }
-
-    // Activate the display shaders
-    displayUniforms.time.value = globals.clock.getElapsedTime();
-    displayUniforms.textureToDisplay.value = renderTargets[globals.currentRenderTargetIndex].texture;  // pass this result to the display material too
-    mesh.material = displayMaterial;
-
-    // Render the latest iteration to the screen
-    renderer.setRenderTarget(null);
-    renderer.render(scene, camera);
+    iterate(globals.pingPongSteps);
   }
 
   // Update the stats (like the FPS counter)
@@ -174,4 +151,31 @@ function update() {
   setTimeout(() => {
     requestAnimationFrame(update);
   }, 100 * (1 - variables.controls.speed.value) + 0 * variables.controls.speed.value);
+}
+
+export function iterate(steps) {
+  // Activate the simulation shaders
+  mesh.material = simulationMaterial;
+
+  // Run the simulation multiple times by feeding the result of one iteration (a render target's texture) into the next render target
+  for(let i=0; i<steps; i++) {
+    let nextRenderTargetIndex = globals.currentRenderTargetIndex === 0 ? 1 : 0;
+
+    simulationUniforms.states.value = renderTargets[globals.currentRenderTargetIndex].texture;  // grab the result of the last iteration
+    renderer.setRenderTarget(renderTargets[nextRenderTargetIndex]);                             // prepare to render into the next render target
+    renderer.render(scene, camera);                                                             // run the simulation shader on that texture
+
+    globals.currentRenderTargetIndex = nextRenderTargetIndex;
+
+    updateGenerationCount(1);
+  }
+
+  // Activate the display shaders
+  displayUniforms.time.value = globals.clock.getElapsedTime();
+  displayUniforms.textureToDisplay.value = renderTargets[globals.currentRenderTargetIndex].texture;  // pass this result to the display material too
+  mesh.material = displayMaterial;
+
+  // Render the latest iteration to the screen
+  renderer.setRenderTarget(null);
+  renderer.render(scene, camera);
 }

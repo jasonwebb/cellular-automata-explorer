@@ -504,6 +504,73 @@ canvas {
       font-weight: normal;
     }
 
+/** Step controls row below Pause and Restart buttons in the Controls group */
+.step-controls-row {
+  justify-content: space-between;
+}
+
+  .step-controls-row .button button {
+    border: 0;
+    padding: 6px;
+    background: none;
+  }
+
+    /** +1/10/100 buttons on the left */
+    .step-controls-row .step-numbers {
+      flex: 0 1 55%;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border: 1px solid var(--border-color--alt);
+      padding: 0 10px;
+      height: 30px;
+    }
+
+      .step-controls-row .step-numbers .button {
+        flex: 1 1 auto;
+      }
+
+        .step-controls-row .step-numbers .button button {
+          vertical-align: middle;
+          width: 100%;
+        }
+
+          .step-controls-row .step-numbers .button button:hover,
+          .step-controls-row .step-numbers .button button:focus {
+            border: 0;
+            background-color: rgba(255,255,255,.1);
+          }
+
+    /** Text input and Run button on the right */
+    .step-controls-row .custom-steps {}
+
+      /** Number of steps text field */
+      .step-controls-row .custom-steps .text-input {
+        display: inline;
+      }
+
+        .step-controls-row .custom-steps .text-input input {
+          width: 55px;
+          height: 30px;
+          margin-left: 10px;
+          border-color: var(--border-color--alt);
+        }
+
+      /** Run button */
+      .step-controls-row .custom-steps .button {
+        display: inline;
+      }
+
+        .step-controls-row .custom-steps .button button {
+          background-color: rgba(255,255,255,.05);
+          border: 1px solid var(--border-color--alt);
+          border-left: 0;
+          border-radius: 0;
+          height: 30px;
+          vertical-align: middle;
+          padding: 0 10px;
+        }
+
 /** Center buttons and links */
 .center-controls {
   position: absolute;
