@@ -61,7 +61,12 @@ int getLiveNeighborCount() {
       }
 
       // Add 1 to the neighbor count if the cell is in any non-zero state.
-      total += getPreviousCellState(v_uv + vec2(1. / resolution.x * float(row), 1. / resolution.y * float(col))) >= stateStepSize ? 1 : 0;
+      total += getPreviousCellState(
+                 v_uv + vec2(
+                   1. / resolution.x * float(row),
+                   1. / resolution.y * float(col)
+                 )
+               ) >= stateStepSize ? 1 : 0;
     }
   }
 
