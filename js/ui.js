@@ -103,9 +103,14 @@ export function toggleUI() {
 }
 
   export function hideUI() {
-    leftPanel.classList.add('is-hidden');
-    rightPanel.classList.add('is-hidden');
-    isUIVisible = false;
+    leftPanel.classList.add('is-offscreen');
+    rightPanel.classList.add('is-offscreen');
+
+    setTimeout(() => {
+      leftPanel.classList.add('is-hidden');
+      rightPanel.classList.add('is-hidden');
+      isUIVisible = false;
+    }, 200);
 
     centerControlsWrapper.classList.remove('has-left-indent');
     toggleUIButton.setAttribute('aria-pressed', true);
@@ -114,7 +119,12 @@ export function toggleUI() {
   export function showUI() {
     leftPanel.classList.remove('is-hidden');
     rightPanel.classList.remove('is-hidden');
-    isUIVisible = true;
+
+    setTimeout(() => {
+      leftPanel.classList.remove('is-offscreen');
+      rightPanel.classList.remove('is-offscreen');
+      isUIVisible = true;
+    }, 1);
 
     centerControlsWrapper.classList.add('has-left-indent');
     toggleUIButton.setAttribute('aria-pressed', false);

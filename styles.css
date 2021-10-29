@@ -2,6 +2,7 @@
   --border-color: rgba(255, 255, 255, .3);
   --border-color--alt: rgba(255, 255, 255, .2);
   --border-color--active: rgba(255, 255, 255, .8);
+  --ui-animation-time: .2s;
 }
 
 * {
@@ -61,10 +62,17 @@ canvas {
   color: white;
   background-color: rgba(0,0,0,.95);
   box-shadow: 0 0 10px 3px rgba(0,0,0,.4);
+
+  transition: left var(--ui-animation-time) linear,
+              right var(--ui-animation-time) linear;
 }
 
   .panel.is-docked-left  { left: 0;  border-right: 1px solid var(--border-color); }
   .panel.is-docked-right { right: 0; border-left: 1px solid var(--border-color);  }
+
+  .panel.is-docked-left.is-offscreen { left: -275px; }
+  .panel.panel.is-docked-right.is-offscreen { right: -275px; }
+
 
   /** Groups are sets of components with a heading at the top. */
   .panel .group {
@@ -589,7 +597,7 @@ canvas {
   left: 10px;
   top: 10px;
   z-index: 100;
-  transition: left .2s ease-in-out;
+  transition: left var(--ui-animation-time) linear;
 }
 
   .center-controls.has-left-indent {
