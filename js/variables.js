@@ -18,13 +18,13 @@ export default {
   canvas: {
     width: {
       min: 1,
-      max: window.innerWidth,
+      max: window.innerWidth * window.devicePixelRatio,
       stepSize: 1,
       value: 900
     },
     height: {
       min: 1,
-      max: window.innerHeight,
+      max: window.innerHeight * window.devicePixelRatio,
       stepSize: 1,
       value: 900
     },
