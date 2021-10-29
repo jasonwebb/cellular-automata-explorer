@@ -184,6 +184,7 @@ export function setupBrushIndicator() {
         break;
 
       case 'b':
+      case 'B':
         paintKeyDown = true;
         brushIndicator.style.backgroundColor = 'rgba(255,255,255,.2)';
         break;
@@ -213,6 +214,7 @@ export function setupBrushIndicator() {
         break;
 
       case 'b':
+      case 'B':
         paintKeyDown = false;
         brushIndicator.style.backgroundColor = 'rgba(255,255,255,0)';
         simulationUniforms.brushPosition.value.x = -1;
