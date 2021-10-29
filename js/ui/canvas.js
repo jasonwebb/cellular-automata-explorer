@@ -4,7 +4,7 @@ import { createGroup, createSlider, createCheckbox, createSeperator } from './co
 import { resetTextureSizes } from '../entry';
 import { simulationUniforms } from '../uniforms';
 import variables from '../variables';
-import { setBrushSize } from '../mouse';
+import { setBrushSize } from '../brush';
 
 export function createCanvasGroup() {
   let group = createGroup('Canvas');
@@ -17,9 +17,9 @@ export function createCanvasGroup() {
 
     // Width slider
     let widthSlider = createSlider('Width', variables.canvas.width.min, variables.canvas.width.max, variables.canvas.width.stepSize, variables.canvas.width.value, (e) => {
-        variables.canvas.width.value = e.target.value;
-        resetTextureSizes();
-      });
+      variables.canvas.width.value = e.target.value;
+      resetTextureSizes();
+    });
 
     if(variables.canvas.maximized) {
       widthSlider.querySelectorAll('input').forEach((element) => {
@@ -35,9 +35,9 @@ export function createCanvasGroup() {
 
     // Height slider
     let heightSlider = createSlider('Height', variables.canvas.height.min, variables.canvas.height.max, variables.canvas.height.stepSize, variables.canvas.height.value, (e) => {
-        variables.canvas.height.value = e.target.value;
-        resetTextureSizes();
-      });
+      variables.canvas.height.value = e.target.value;
+      resetTextureSizes();
+    });
 
     if(variables.canvas.maximized) {
       heightSlider.querySelectorAll('input').forEach((element) => {

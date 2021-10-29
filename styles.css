@@ -34,6 +34,18 @@ canvas {
 }
 
 /****************************
+  Canvas keyboard controls
+*****************************/
+.canvas-wrapper {
+  position: relative;
+  z-index: 0;
+}
+
+  .canvas-wrapper canvas:focus {
+    outline-offset: 4px;
+  }
+
+/****************************
   UI
 *****************************/
 /** Panels are the highest-level wrapper. */

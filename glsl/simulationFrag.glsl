@@ -1,7 +1,7 @@
 varying vec2 v_uv;
 uniform vec2 resolution;
 
-uniform vec2 mousePosition;
+uniform vec2 brushPosition;
 uniform float brushRadius;
 
 uniform sampler2D states;
@@ -118,11 +118,11 @@ void main() {
     }
   }
 
-  // Mouse painting - force this cell to a specific state when it is close to the mouse and the left mouse button is down.
-  if(mousePosition.x > 0.0 && mousePosition.y > 0.0) {
-    float distToMouse = distance(mousePosition * resolution, v_uv * resolution);
+  // Painting - force this cell to a specific state when it is close to the brush (when active).
+  if(brushPosition.x > 0.0 && brushPosition.y > 0.0) {
+    float distToBrushCenter = distance(brushPosition * resolution, v_uv * resolution);
 
-    if(distToMouse < brushRadius) {
+    if(distToBrushCenter < brushRadius) {
       nextState = 1.;
     }
   }

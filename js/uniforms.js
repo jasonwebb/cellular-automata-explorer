@@ -15,7 +15,7 @@ export let simulationUniforms = {
       variables.canvas.height.value * (1/variables.canvas.scale.value)
     )
   },
-  mousePosition: {
+  brushPosition: {
     type: 'v2',
     value: new THREE.Vector2(-1,-1)
   },
