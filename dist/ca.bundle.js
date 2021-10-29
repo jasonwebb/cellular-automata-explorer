@@ -137,7 +137,7 @@ module.exports = "varying vec2 v_uv;\nvoid main() {\n\tv_uv = uv;\n\tgl_Position
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "varying vec2 v_uv;\nuniform vec2 resolution;\nuniform vec2 mousePosition;\nuniform float brushRadius;\nuniform sampler2D states;\nuniform int ruleFormat;\nuniform bool includeCenter;\nuniform int neighborhoodType;\nuniform int range;\nuniform int stateCount;\nuniform vec2 wrapping;\nuniform bool historyEnabled;\nuniform bool cyclicEnabled;\nuniform sampler2D birthAndSurvivalCounts;\nuniform int birthCountsLength;\nuniform int survivalCountsLength;\nvec2 texelStepSize;\nfloat stateStepSize;\nconst int LIFE = 0;\nconst int EXTENDED_LIFE = 1;\nconst int GENERATIONS = 2;\nconst int MOORE = 0;\nconst int VON_NEUMANN = 1;\nfloat getPreviousCellState(vec2 uv) {\n\tuv = vec2(bool(wrapping.x) ? mod(uv.x, 1.) : uv.x, bool(wrapping.y) ? mod(uv.y, 1.) : uv.y);\n\treturn texture2D(states, uv)[0];\n}\nfloat manhattanDistance(vec2 p1, vec2 p2) {\n\tfloat d1 = abs(p1.x - p2.x);\n\tfloat d2 = abs(p1.y - p2.y);\n\treturn d1 + d2;\n}\nint getLiveNeighborCount() {\n\tint total = 0;\n\tfor (int row = -range; row <= range; row++) {\n\t\tfor (int col = -range; col <= range; col++) {\n\t\t\tif (((!includeCenter && (row == 0)) && (col == 0)) || ((neighborhoodType == VON_NEUMANN) && (manhattanDistance(vec2(0, 0), vec2(row, col)) > float(range)))) {\n\t\t\t\tcontinue;\n\t\t\t}\n\t\t\ttotal += (getPreviousCellState(v_uv + vec2((1. / resolution.x) * float(row), (1. / resolution.y) * float(col))) >= stateStepSize ? 1 : 0);\n\t\t}\n\t}\n\treturn total;\n}\nvoid main() {\n\ttexelStepSize = 1. / resolution;\n\tstateStepSize = 1. / float(stateCount - 1);\n\tfloat currentState = getPreviousCellState(v_uv);\n\tfloat nextState = 0.;\n\tint liveNeighbors = getLiveNeighborCount();\n\tif (((ruleFormat == LIFE) || (ruleFormat == EXTENDED_LIFE)) || (ruleFormat == GENERATIONS)) {\n\t\tif (currentState == 0.) {\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < birthCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(birthCountsLength)) * float(i), 0)).r * 255.)) {\n\t\t\t\t\t\tnextState = stateStepSize;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse if (currentState >= stateStepSize) {\n\t\t\tbool willSurvive = false;\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < survivalCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(survivalCountsLength)) * float(i), 0)).g * 255.)) {\n\t\t\t\t\t\tnextState = currentState;\n\t\t\t\t\t\twillSurvive = true;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t\tif (historyEnabled && !willSurvive) {\n\t\t\t\tnextState = cyclicEnabled ? mod(currentState + stateStepSize, 1.) : clamp(currentState + stateStepSize, 0., 1.);\n\t\t\t}\n\t\t}\n\t}\n\tif ((mousePosition.x > 0.0) && (mousePosition.y > 0.0)) {\n\t\tfloat distToMouse = distance(mousePosition * resolution, v_uv * resolution);\n\t\tif (distToMouse < brushRadius) {\n\t\t\tnextState = 1.;\n\t\t}\n\t}\n\tgl_FragColor = vec4(nextState, 0., 0., 1.);\n}\n"
+module.exports = "varying vec2 v_uv;\nuniform vec2 resolution;\nuniform vec2 brushPosition;\nuniform float brushRadius;\nuniform sampler2D states;\nuniform int ruleFormat;\nuniform bool includeCenter;\nuniform int neighborhoodType;\nuniform int range;\nuniform int stateCount;\nuniform vec2 wrapping;\nuniform bool historyEnabled;\nuniform bool cyclicEnabled;\nuniform sampler2D birthAndSurvivalCounts;\nuniform int birthCountsLength;\nuniform int survivalCountsLength;\nvec2 texelStepSize;\nfloat stateStepSize;\nconst int LIFE = 0;\nconst int EXTENDED_LIFE = 1;\nconst int GENERATIONS = 2;\nconst int MOORE = 0;\nconst int VON_NEUMANN = 1;\nfloat getPreviousCellState(vec2 uv) {\n\tuv = vec2(bool(wrapping.x) ? mod(uv.x, 1.) : uv.x, bool(wrapping.y) ? mod(uv.y, 1.) : uv.y);\n\treturn texture2D(states, uv)[0];\n}\nfloat manhattanDistance(vec2 p1, vec2 p2) {\n\tfloat d1 = abs(p1.x - p2.x);\n\tfloat d2 = abs(p1.y - p2.y);\n\treturn d1 + d2;\n}\nint getLiveNeighborCount() {\n\tint total = 0;\n\tfor (int row = -range; row <= range; row++) {\n\t\tfor (int col = -range; col <= range; col++) {\n\t\t\tif (((!includeCenter && (row == 0)) && (col == 0)) || ((neighborhoodType == VON_NEUMANN) && (manhattanDistance(vec2(0, 0), vec2(row, col)) > float(range)))) {\n\t\t\t\tcontinue;\n\t\t\t}\n\t\t\ttotal += (getPreviousCellState(v_uv + vec2((1. / resolution.x) * float(row), (1. / resolution.y) * float(col))) >= stateStepSize ? 1 : 0);\n\t\t}\n\t}\n\treturn total;\n}\nvoid main() {\n\ttexelStepSize = 1. / resolution;\n\tstateStepSize = 1. / float(stateCount - 1);\n\tfloat currentState = getPreviousCellState(v_uv);\n\tfloat nextState = 0.;\n\tint liveNeighbors = getLiveNeighborCount();\n\tif (((ruleFormat == LIFE) || (ruleFormat == EXTENDED_LIFE)) || (ruleFormat == GENERATIONS)) {\n\t\tif (currentState == 0.) {\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < birthCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(birthCountsLength)) * float(i), 0)).r * 255.)) {\n\t\t\t\t\t\tnextState = stateStepSize;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\telse if (currentState >= stateStepSize) {\n\t\t\tbool willSurvive = false;\n\t\t\tfor (int i = 0; i < 9999; i++) {\n\t\t\t\tif (i < survivalCountsLength) {\n\t\t\t\t\tif (liveNeighbors == int(texture2D(birthAndSurvivalCounts, vec2((1. / float(survivalCountsLength)) * float(i), 0)).g * 255.)) {\n\t\t\t\t\t\tnextState = currentState;\n\t\t\t\t\t\twillSurvive = true;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\telse {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t\tif (historyEnabled && !willSurvive) {\n\t\t\t\tnextState = cyclicEnabled ? mod(currentState + stateStepSize, 1.) : clamp(currentState + stateStepSize, 0., 1.);\n\t\t\t}\n\t\t}\n\t}\n\tif ((brushPosition.x > 0.0) && (brushPosition.y > 0.0)) {\n\t\tfloat distToBrushCenter = distance(brushPosition * resolution, v_uv * resolution);\n\t\tif (distToBrushCenter < brushRadius) {\n\t\t\tnextState = 1.;\n\t\t}\n\t}\n\tgl_FragColor = vec4(nextState, 0., 0., 1.);\n}\n"
 
 /***/ }),
 
@@ -149,6 +149,364 @@ module.exports = "varying vec2 v_uv;\nuniform vec2 resolution;\nuniform vec2 mou
 /***/ (function(module, exports) {
 
 module.exports = "varying vec2 v_uv;\nvoid main() {\n\tv_uv = uv;\n\tgl_Position = (projectionMatrix * modelViewMatrix) * vec4(position, 1.0);\n}\n"
+
+/***/ }),
+
+/***/ "./js/brush.js":
+/*!*********************!*\
+  !*** ./js/brush.js ***!
+  \*********************/
+/*! exports provided: mouseIsMoving, setupBrushIndicator, updateBrushPositionUsingKeyboard, setBrushSize, showCrosshairs, hideCrosshairs, setBrushPosition */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mouseIsMoving", function() { return mouseIsMoving; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupBrushIndicator", function() { return setupBrushIndicator; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateBrushPositionUsingKeyboard", function() { return updateBrushPositionUsingKeyboard; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setBrushSize", function() { return setBrushSize; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showCrosshairs", function() { return showCrosshairs; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideCrosshairs", function() { return hideCrosshairs; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setBrushPosition", function() { return setBrushPosition; });
+/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
+/* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entry */ "./js/entry.js");
+/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
+//==============================================================
+//  BRUSH CONTROLS
+//==============================================================
+
+
+
+
+
+let mouseIsMoving;
+
+let canvasWrapper,
+    brushIndicator,
+    xAxisCrosshair,
+    yAxisCrosshair,
+    position = {},
+    mouseDown,
+    mouseMovementTimer,
+    paintKeyDown,
+    shiftKeyDown,
+    arrowKeysDown = {},
+    stepSize = 1, 
+    stepSizeMultiplier = 5;
+
+function setupBrushIndicator() {
+  canvasWrapper = document.querySelector('.canvas-wrapper');
+  position.x = window.innerWidth/2;
+  position.y = window.innerHeight/2;
+  mouseDown = false;
+  mouseIsMoving = false;
+  paintKeyDown = false;
+  shiftKeyDown = false;
+  arrowKeysDown = {
+    left: false,
+    right: false,
+    up: false,
+    down: false
+  };
+
+  //=================================================================
+  //  Brush indicator
+  //=================================================================
+  // Create a floating circle that follows the mouse cursor to indicate the current size of the brush
+  brushIndicator = document.createElement('div');
+  brushIndicator.classList.add('brush-indicator');
+  brushIndicator.style = `
+    display: block;
+    content: '';
+    width: ${_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2}px;
+    height: ${_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2}px;
+    position: absolute;
+    border: 1px solid white;
+    border-radius: 500px;
+    box-shadow: 0 0 0 2px rgba(0,0,0,.4);
+    pointer-events: none;
+  `;
+  canvasWrapper.append(brushIndicator);
+
+  //=================================================================
+  //  Crosshairs
+  //=================================================================
+  // Create the X axis crosshair
+  xAxisCrosshair = document.createElement('div');
+  xAxisCrosshair.classList.add('x-axis-crosshair');
+  xAxisCrosshair.setAttribute('aria-hidden', true);
+  xAxisCrosshair.style = `
+    display: none;
+    content: '';
+
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 1px;
+    z-index: 1;
+
+    border-bottom: 2px dashed white;
+    box-shadow: 0 1px 1px 0 black;
+    opacity: .7;
+  `;
+  canvasWrapper.appendChild(xAxisCrosshair);
+
+  // Create the Y axis crosshair
+  yAxisCrosshair = document.createElement('div');
+  yAxisCrosshair.classList.add('y-axis-crosshair');
+  yAxisCrosshair.setAttribute('aria-hidden', true);
+  yAxisCrosshair.style = `
+    display: none;
+    content: '';
+
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    z-index: 1;
+
+    border-right: 2px dashed white;
+    box-shadow: 1px 0 1px 0 black;
+    opacity: .7;
+  `;
+  canvasWrapper.appendChild(yAxisCrosshair);
+
+  //=================================================================
+  //  Mouse controls
+  //=================================================================
+  // Begin mouse drag, fill indicator circle white
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mousedown', (e) => {
+    if(e.button == 0) {
+      e.preventDefault();
+      mouseDown = true;
+      brushIndicator.style.backgroundColor = 'rgba(255,255,255,.2)';
+
+      alignBrushWithMouse(e);
+    }
+  });
+
+  // End mouse drag, make indicator circle transparent
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mouseup', (e) => {
+    mouseDown = false;
+    brushIndicator.style.backgroundColor = 'rgba(255,255,255,0)';
+
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = -1;
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = -1;
+  });
+
+  // Adjust brush radius using the mouse wheel
+  window.addEventListener('wheel', (e) => {
+    const wheelStep = e.deltaY/100;
+
+    // Only change the brush radius if it's within these hardcoded limits
+    if(_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value + wheelStep > 5 && _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value + wheelStep < 100) {
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value += wheelStep;
+      setBrushSize(e);
+    }
+  });
+
+  // Keep the indicator circle aligned with the mouse as it moves.
+  window.addEventListener('mousemove', (e) => {
+    mouseIsMoving = true;
+
+    clearTimeout(mouseMovementTimer);
+
+    mouseMovementTimer = setTimeout(() => {
+      mouseIsMoving = false;
+    }, 100);
+
+    alignBrushWithMouse(e);
+  });
+
+  //=================================================================
+  //  Keyboard controls
+  //=================================================================
+  // Move the crosshairs and brush circle with arrow keys
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('keydown', (e) => {
+    switch(e.key) {
+      case 'ArrowUp':
+        arrowKeysDown.up = true;
+        break;
+
+      case 'ArrowDown':
+        arrowKeysDown.down = true;
+        break;
+
+      case 'ArrowLeft':
+        arrowKeysDown.left = true;
+        break;
+
+      case 'ArrowRight':
+        arrowKeysDown.right = true;
+        break;
+
+      case 'Shift':
+        shiftKeyDown = true;
+        break;
+      
+      case 'b':
+        paintKeyDown = true;
+        brushIndicator.style.backgroundColor = 'rgba(255,255,255,.2)';
+        break;
+    }
+  });
+
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('keyup', (e) => {
+    switch(e.key) {
+      case 'ArrowUp':
+        arrowKeysDown.up = false;
+        break;
+
+      case 'ArrowDown':
+        arrowKeysDown.down = false;
+        break;
+
+      case 'ArrowLeft':
+        arrowKeysDown.left = false;
+        break;
+
+      case 'ArrowRight':
+        arrowKeysDown.right = false;
+        break;
+
+      case 'Shift':
+        shiftKeyDown = false;
+        break;
+
+      case 'b':
+        paintKeyDown = false;
+        brushIndicator.style.backgroundColor = 'rgba(255,255,255,0)';
+        _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = -1;
+        _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = -1;
+        break;
+    }
+  });
+}
+
+function updateBrushPositionUsingKeyboard() {
+  let xDelta = 0,
+      yDelta = 0;
+
+  if(arrowKeysDown.left)  { xDelta -= stepSize; }
+  if(arrowKeysDown.right) { xDelta += stepSize; }
+  if(arrowKeysDown.up)    { yDelta -= stepSize; }
+  if(arrowKeysDown.down)  { yDelta += stepSize; }
+
+  // Move faster using larger steps when Shift is pressed.
+  if(shiftKeyDown) {
+    xDelta *= stepSizeMultiplier;
+    yDelta *= stepSizeMultiplier;
+  }
+
+  let newX = position.x + xDelta,
+      newY = position.y + yDelta,
+      rightSide = _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width / window.devicePixelRatio,
+      bottomSide = _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height / window.devicePixelRatio;
+
+  // Clamp crosshairs to the canvas bounds.
+  if(newX > rightSide) { newX = rightSide; } 
+  else if(newX < 0) { newX = 0; }
+
+  if(newY > bottomSide) { newY = bottomSide; }
+  else if(newY < 0) { newY = 0; }
+
+  // Handle horizontal movement.
+  if(position.x != newX) {
+    showCrosshairs();
+    position.x = newX;
+    yAxisCrosshair.style.left = position.x + 'px';
+
+    brushIndicator.style.display = 'block';
+    brushIndicator.style.left = ((position.x - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) + 1) + 'px';
+  }
+  
+  // Handle vertical movement.
+  if(position.y != newY) {
+    showCrosshairs();
+    position.y = newY;
+    xAxisCrosshair.style.top = position.y + 'px';
+
+    brushIndicator.style.display = 'block';
+    brushIndicator.style.top = ((position.y - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) + 1) + 'px';
+  }
+
+  // If the "paint" key is down, pass the tracked X/Y position to the frag shader
+  if(paintKeyDown) {
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = position.x / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) * window.devicePixelRatio;
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = 1 - position.y / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * window.devicePixelRatio;
+  }
+}
+
+function alignBrushWithMouse(e = null) {
+  const mouseX = e != null ? e.offsetX : 0,
+        mouseY = e != null ? e.offsetY : 0,
+        newX = mouseX,
+        newY = mouseY,
+        leftSide = window.innerWidth/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
+        rightSide = window.innerWidth/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
+        topSide = window.innerHeight/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2,
+        bottomSide = window.innerHeight/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2;
+
+  // Hide the crosshairs, since they are more useful to keyboard users, and this function will only be called for mouse users.
+  hideCrosshairs();
+
+  // Only align the indicator circle with the mouse inside the <canvas> element
+  if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
+    position.x = newX;
+    position.y = newY;
+
+    xAxisCrosshair.style.top = position.y + 'px';
+    yAxisCrosshair.style.left = position.x + 'px';
+
+    brushIndicator.style.display = 'block';
+    brushIndicator.style.top = (position.y - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+    brushIndicator.style.left = (position.x - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+
+    // If the left mouse button is down, pass the mouse's X/Y position to the frag shader
+    if(mouseDown) {
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = position.x / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * window.devicePixelRatio;
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = 1 - position.y / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * window.devicePixelRatio;
+    }
+  } else {
+    brushIndicator.style.display = 'none';
+  }
+}
+
+function setBrushSize(e = null) {
+  // Resize the brush indicator circle
+  brushIndicator.style.width = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2 * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+  brushIndicator.style.height = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2 * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+
+  // Realign the brush indicator circle with the mouse cursor
+  alignBrushWithMouse(e);
+}
+
+function showCrosshairs() {
+  xAxisCrosshair.style.display = 'block';
+  yAxisCrosshair.style.display = 'block';
+}
+
+function hideCrosshairs() {
+  xAxisCrosshair.style.display = 'none';
+  yAxisCrosshair.style.display = 'none';
+}
+
+function setBrushPosition(x, y) {
+  if(!xAxisCrosshair && !yAxisCrosshair && !brushIndicator) {
+    return;
+  }
+  
+  position.x = x;
+  position.y = y;
+
+  xAxisCrosshair.style.top = position.y + 'px';
+  yAxisCrosshair.style.left = position.x + 'px';
+
+  brushIndicator.style.left = ((position.x - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) + 1) + 'px';
+  brushIndicator.style.top = ((position.y - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) + 1) + 'px';
+}
 
 /***/ }),
 
@@ -255,7 +613,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _seizureWarningDialog__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./seizureWarningDialog */ "./js/seizureWarningDialog.js");
 /* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./ui */ "./js/ui.js");
 /* harmony import */ var _keyboard__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./keyboard */ "./js/keyboard.js");
-/* harmony import */ var _mouse__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./mouse */ "./js/mouse.js");
+/* harmony import */ var _brush__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./brush */ "./js/brush.js");
 /* harmony import */ var _helpDialog__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./helpDialog */ "./js/helpDialog.js");
 /* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
 /* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
@@ -284,7 +642,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 let canvas, scene, camera, renderer, mesh;
-let bufferCanvas;
+let bufferCanvas, canvasIsFocused;
 
 //==============================================================
 //  SEIZURE WARNING
@@ -316,7 +674,7 @@ function initialize() {
   Object(_ui__WEBPACK_IMPORTED_MODULE_7__["setupUI"])();
   setup();
   Object(_keyboard__WEBPACK_IMPORTED_MODULE_8__["setupKeyboard"])();
-  Object(_mouse__WEBPACK_IMPORTED_MODULE_9__["setupMouse"])();
+  Object(_brush__WEBPACK_IMPORTED_MODULE_9__["setupBrushIndicator"])();
   Object(_helpDialog__WEBPACK_IMPORTED_MODULE_10__["setupHelpDialog"])();
   update();
 }
@@ -350,7 +708,23 @@ function setup() {
 
   // Grab the <canvas> element generated by the renderer and inject it into the DOM
   canvas = renderer.domElement;
-  document.getElementById('container').appendChild(canvas);
+  canvas.setAttribute('tabindex', 0);
+  // canvas.setAttribute('aria-label', '[description of keyboard controls]');
+
+  let canvasWrapper = document.createElement('div');
+  canvasWrapper.classList.add('canvas-wrapper');
+  canvasWrapper.appendChild(canvas);
+  document.getElementById('container').appendChild(canvasWrapper);
+
+  canvas.addEventListener('focus', () => { 
+    canvasIsFocused = true;
+    Object(_brush__WEBPACK_IMPORTED_MODULE_9__["showCrosshairs"])();
+  });
+
+  canvas.addEventListener('blur',  () => { 
+    canvasIsFocused = false;
+    Object(_brush__WEBPACK_IMPORTED_MODULE_9__["hideCrosshairs"])();
+  });
 
   // Update the renderer dimensions whenever the browser is resized
   window.addEventListener('resize', resetTextureSizes, false);
@@ -370,18 +744,18 @@ function setup() {
     // Only resize the canvas and textures if they haven't been set yet or the canvas needs to always be maximized
     if(
       !_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.maximized &&
-      canvas.clientWidth == _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value &&
-      canvas.clientHeight == _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value
+      canvas.clientWidth / window.devicePixelRatio == _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value &&
+      canvas.clientHeight / window.devicePixelRatio == _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value
     ) return;
 
     // Resize the canvas
     renderer.setSize(
-      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.maximized ? window.innerWidth : _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value,
-      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.maximized ? window.innerHeight : _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.maximized ? window.innerWidth : _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value / window.devicePixelRatio,
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.maximized ? window.innerHeight : _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value / window.devicePixelRatio
     );
 
-    _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value = canvas.clientWidth;
-    _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value = canvas.clientHeight;
+    _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value = canvas.clientWidth * window.devicePixelRatio;
+    _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value = canvas.clientHeight * window.devicePixelRatio;
 
     // Resize render targets
     Object(_renderTargets__WEBPACK_IMPORTED_MODULE_11__["setupRenderTargets"])();
@@ -396,6 +770,12 @@ function setup() {
     bufferCanvas = document.querySelector('#buffer-canvas');
     bufferCanvas.width = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value);
     bufferCanvas.height = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value);
+
+    // Move the brush to the center to make sure it's within the new canvas bounds
+    Object(_brush__WEBPACK_IMPORTED_MODULE_9__["setBrushPosition"])(
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value/2 / window.devicePixelRatio, 
+      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value/2 / window.devicePixelRatio
+    );
   }
 
 
@@ -406,6 +786,10 @@ function setup() {
 function update() {
   if(!_variables__WEBPACK_IMPORTED_MODULE_2__["default"].isPaused) {
     iterate(_globals__WEBPACK_IMPORTED_MODULE_1__["default"].pingPongSteps);
+  }
+
+  if(!_brush__WEBPACK_IMPORTED_MODULE_9__["mouseIsMoving"] && canvasIsFocused) {
+    Object(_brush__WEBPACK_IMPORTED_MODULE_9__["updateBrushPositionUsingKeyboard"])();
   }
 
   // Update the stats (like the FPS counter)
@@ -665,119 +1049,6 @@ const passthroughMaterial = new three__WEBPACK_IMPORTED_MODULE_0__["ShaderMateri
   fragmentShader: _glsl_passthroughFrag_glsl__WEBPACK_IMPORTED_MODULE_6___default.a,
 });
 passthroughMaterial.blending = three__WEBPACK_IMPORTED_MODULE_0__["NoBlending"];
-
-/***/ }),
-
-/***/ "./js/mouse.js":
-/*!*********************!*\
-  !*** ./js/mouse.js ***!
-  \*********************/
-/*! exports provided: setupMouse, setBrushSize */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupMouse", function() { return setupMouse; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setBrushSize", function() { return setBrushSize; });
-/* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
-/* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entry */ "./js/entry.js");
-/* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
-//==============================================================
-//  MOUSE CONTROLS
-//==============================================================
-
-
-
-
-
-let mouseFollower, mouseDown;
-
-function setupMouse() {
-  mouseDown = false;
-
-  // Create a floating circle that follows the mouse cursor to indicate the current size of the brush
-  mouseFollower = document.createElement('div');
-  mouseFollower.classList.add('mouse-follower');
-  mouseFollower.style.content = '';
-  mouseFollower.style.width = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2) + 'px';
-  mouseFollower.style.height = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2) + 'px';
-  mouseFollower.style.position = 'absolute';
-  mouseFollower.style.border = '1px solid white';
-  mouseFollower.style.borderRadius = '1000px';
-  mouseFollower.style.boxShadow = '0 0 0 2px rgba(0,0,0,.4)'
-  mouseFollower.style.pointerEvents = 'none';
-  document.body.append(mouseFollower);
-
-  // Begin drag, fill indicator circle white
-  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mousedown', (e) => {
-    if(e.button == 0) {
-      mouseDown = true;
-      mouseFollower.style.backgroundColor = 'rgba(255,255,255,.2)';
-
-      alignMouseFollower(e);
-    }
-  });
-
-  // End drag, make indicator circle transparent
-  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mouseup', (e) => {
-    mouseDown = false;
-    mouseFollower.style.backgroundColor = 'rgba(255,255,255,0)';
-
-    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = -1;
-    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = -1;
-  });
-
-  // Adjust brush radius using the mouse wheel
-  window.addEventListener('wheel', (e) => {
-    const wheelStep = e.deltaY/100;
-
-    // Only change the brush radius if it's within these hardcoded limits
-    if(_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value + wheelStep > 5 && _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value + wheelStep < 100) {
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value += wheelStep;
-      setBrushSize(e);
-    }
-  });
-
-  // Keep the indicator circle aligned with the mouse as it moves.
-  window.addEventListener('mousemove', (e) => {
-    alignMouseFollower(e);
-  });
-}
-
-function alignMouseFollower(e = null) {
-  const mouseX = e != null ? e.clientX : 0,
-        mouseY = e != null ? e.clientY : 0,
-        newX = mouseX,
-        newY = mouseY,
-        leftSide = window.innerWidth/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
-        rightSide = window.innerWidth/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
-        topSide = window.innerHeight/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2,
-        bottomSide = window.innerHeight/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2;
-
-  // Only align the indicator circle with the mouse inside the <canvas> element
-  if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
-    mouseFollower.style.display = 'block';
-    mouseFollower.style.top = (mouseY - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
-    mouseFollower.style.left = (mouseX - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
-
-    // If the left mouse button is down, pass the mouse's X/Y position to the frag shader
-    if(mouseDown) {
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.x = e.offsetX / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value;
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].mousePosition.value.y = 1 - e.offsetY / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value;
-    }
-  } else {
-    mouseFollower.style.display = 'none';
-  }
-}
-
-function setBrushSize(e = null) {
-  // Resize the brush indicator circle
-  mouseFollower.style.width = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2 * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
-  mouseFollower.style.height = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2 * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
-
-  // Realign the brush indicator circle with the mouse cursor
-  alignMouseFollower(e);
-}
 
 /***/ }),
 
@@ -1565,9 +1836,14 @@ function toggleUI() {
 }
 
   function hideUI() {
-    leftPanel.classList.add('is-hidden');
-    rightPanel.classList.add('is-hidden');
-    isUIVisible = false;
+    leftPanel.classList.add('is-offscreen');
+    rightPanel.classList.add('is-offscreen');
+
+    setTimeout(() => {
+      leftPanel.classList.add('is-hidden');
+      rightPanel.classList.add('is-hidden');
+      isUIVisible = false;
+    }, 200);
 
     centerControlsWrapper.classList.remove('has-left-indent');
     toggleUIButton.setAttribute('aria-pressed', true);
@@ -1576,7 +1852,12 @@ function toggleUI() {
   function showUI() {
     leftPanel.classList.remove('is-hidden');
     rightPanel.classList.remove('is-hidden');
-    isUIVisible = true;
+
+    setTimeout(() => {
+      leftPanel.classList.remove('is-offscreen');
+      rightPanel.classList.remove('is-offscreen');
+      isUIVisible = true;
+    }, 1);
 
     centerControlsWrapper.classList.add('has-left-indent');
     toggleUIButton.setAttribute('aria-pressed', false);
@@ -1683,7 +1964,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../entry */ "./js/entry.js");
 /* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../uniforms */ "./js/uniforms.js");
 /* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../variables */ "./js/variables.js");
-/* harmony import */ var _mouse__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../mouse */ "./js/mouse.js");
+/* harmony import */ var _brush__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../brush */ "./js/brush.js");
 
 
 
@@ -1703,9 +1984,9 @@ function createCanvasGroup() {
 
     // Width slider
     let widthSlider = Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Width', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.min, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.max, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.stepSize, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value, (e) => {
-        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value = e.target.value;
-        Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
-      });
+      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value = e.target.value;
+      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+    });
 
     if(_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized) {
       widthSlider.querySelectorAll('input').forEach((element) => {
@@ -1721,9 +2002,9 @@ function createCanvasGroup() {
 
     // Height slider
     let heightSlider = Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Height', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.min, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.max, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.stepSize, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value, (e) => {
-        _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value = e.target.value;
-        Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
-      });
+      _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value = e.target.value;
+      Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
+    });
 
     if(_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.maximized) {
       heightSlider.querySelectorAll('input').forEach((element) => {
@@ -1750,7 +2031,7 @@ function createCanvasGroup() {
           _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.height;
         }
 
-        Object(_mouse__WEBPACK_IMPORTED_MODULE_5__["setBrushSize"])();
+        Object(_brush__WEBPACK_IMPORTED_MODULE_5__["setBrushSize"])();
         Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
         window.dispatchEvent(new Event('rebuildUI'));
       })
@@ -1780,7 +2061,7 @@ function createCanvasGroup() {
     group.appendChild(
       Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Scale', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.min, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.max, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.stepSize, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value, (e) => {
         _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value = e.target.value;
-        Object(_mouse__WEBPACK_IMPORTED_MODULE_5__["setBrushSize"])();
+        Object(_brush__WEBPACK_IMPORTED_MODULE_5__["setBrushSize"])();
 
         _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].resolution.value = new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](
           _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value),
@@ -2961,7 +3242,7 @@ let simulationUniforms = {
       _variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.height.value * (1/_variables__WEBPACK_IMPORTED_MODULE_1__["default"].canvas.scale.value)
     )
   },
-  mousePosition: {
+  brushPosition: {
     type: 'v2',
     value: new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](-1,-1)
   },
@@ -3080,13 +3361,13 @@ __webpack_require__.r(__webpack_exports__);
   canvas: {
     width: {
       min: 1,
-      max: window.innerWidth,
+      max: window.innerWidth * window.devicePixelRatio,
       stepSize: 1,
       value: 900
     },
     height: {
       min: 1,
-      max: window.innerHeight,
+      max: window.innerHeight * window.devicePixelRatio,
       stepSize: 1,
       value: 900
     },
