@@ -18,7 +18,7 @@ let canvasWrapper,
     paintKeyDown,
     shiftKeyDown,
     arrowKeysDown = {},
-    stepSize = 1, 
+    stepSize = 1,
     stepSizeMultiplier = 5;
 
 export function setupBrushIndicator() {
@@ -135,7 +135,7 @@ export function setupBrushIndicator() {
   });
 
   // Keep the indicator circle aligned with the mouse as it moves.
-  window.addEventListener('mousemove', (e) => {
+  canvas.addEventListener('mousemove', (e) => {
     mouseIsMoving = true;
 
     clearTimeout(mouseMovementTimer);
@@ -145,6 +145,16 @@ export function setupBrushIndicator() {
     }, 100);
 
     alignBrushWithMouse(e);
+  });
+
+  // Show the circle indicator when the mouse enters the canvas bounds.
+  canvas.addEventListener('mouseenter', () => {
+    brushIndicator.style.display = 'block';
+  });
+
+  // Hide the circle indicator when the mouse leaves the canvas bounds.
+  canvas.addEventListener('mouseleave', () => {
+    brushIndicator.style.display = 'none';
   });
 
   //=================================================================
@@ -172,7 +182,7 @@ export function setupBrushIndicator() {
       case 'Shift':
         shiftKeyDown = true;
         break;
-      
+
       case 'b':
         paintKeyDown = true;
         brushIndicator.style.backgroundColor = 'rgba(255,255,255,.2)';
@@ -233,7 +243,7 @@ export function updateBrushPositionUsingKeyboard() {
       bottomSide = canvas.height / window.devicePixelRatio;
 
   // Clamp crosshairs to the canvas bounds.
-  if(newX > rightSide) { newX = rightSide; } 
+  if(newX > rightSide) { newX = rightSide; }
   else if(newX < 0) { newX = 0; }
 
   if(newY > bottomSide) { newY = bottomSide; }
@@ -248,7 +258,7 @@ export function updateBrushPositionUsingKeyboard() {
     brushIndicator.style.display = 'block';
     brushIndicator.style.left = ((position.x - simulationUniforms.brushRadius.value) * (1/variables.canvas.scale.value) + 1) + 'px';
   }
-  
+
   // Handle vertical movement.
   if(position.y != newY) {
     showCrosshairs();
@@ -267,37 +277,24 @@ export function updateBrushPositionUsingKeyboard() {
 }
 
 function alignBrushWithMouse(e = null) {
-  const mouseX = e != null ? e.offsetX : 0,
-        mouseY = e != null ? e.offsetY : 0,
-        newX = mouseX,
-        newY = mouseY,
-        leftSide = window.innerWidth/2 - canvas.width/2,
-        rightSide = window.innerWidth/2 + canvas.width/2,
-        topSide = window.innerHeight/2 - canvas.height/2,
-        bottomSide = window.innerHeight/2 + canvas.height/2;
+  position.x = e != null ? e.offsetX : 0;
+  position.y = e != null ? e.offsetY : 0;
 
   // Hide the crosshairs, since they are more useful to keyboard users, and this function will only be called for mouse users.
   hideCrosshairs();
 
-  // Only align the indicator circle with the mouse inside the <canvas> element
-  if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
-    position.x = newX;
-    position.y = newY;
+  // Align the (hidden) crosshairs to the mouse position so that if the user switches to keyboard control the transition is seamless.
+  xAxisCrosshair.style.top = position.y + 'px';
+  yAxisCrosshair.style.left = position.x + 'px';
 
-    xAxisCrosshair.style.top = position.y + 'px';
-    yAxisCrosshair.style.left = position.x + 'px';
+  // Align the circle indicator to the mouse position.
+  brushIndicator.style.top = (position.y - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
+  brushIndicator.style.left = (position.x - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
 
-    brushIndicator.style.display = 'block';
-    brushIndicator.style.top = (position.y - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
-    brushIndicator.style.left = (position.x - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
-
-    // If the left mouse button is down, pass the mouse's X/Y position to the frag shader
-    if(mouseDown) {
-      simulationUniforms.brushPosition.value.x = position.x / variables.canvas.width.value * window.devicePixelRatio;
-      simulationUniforms.brushPosition.value.y = 1 - position.y / variables.canvas.height.value * window.devicePixelRatio;
-    }
-  } else {
-    brushIndicator.style.display = 'none';
+  // If the left mouse button is down, pass the mouse's X/Y position to the frag shader
+  if(mouseDown) {
+    simulationUniforms.brushPosition.value.x = position.x / variables.canvas.width.value * window.devicePixelRatio;
+    simulationUniforms.brushPosition.value.y = 1 - position.y / variables.canvas.height.value * window.devicePixelRatio;
   }
 }
 
@@ -324,7 +321,7 @@ export function setBrushPosition(x, y) {
   if(!xAxisCrosshair && !yAxisCrosshair && !brushIndicator) {
     return;
   }
-  
+
   position.x = x;
   position.y = y;
 
