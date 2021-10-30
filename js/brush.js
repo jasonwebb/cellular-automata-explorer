@@ -155,6 +155,10 @@ export function setupBrushIndicator() {
   // Hide the circle indicator when the mouse leaves the canvas bounds.
   canvas.addEventListener('mouseleave', () => {
     brushIndicator.style.display = 'none';
+
+    // Disable the brush in the simulation shader so it doesn't get stuck in an "active" state on mouseleave
+    simulationUniforms.brushPosition.value.x = -1;
+    simulationUniforms.brushPosition.value.y = -1;
   });
 
   //=================================================================
