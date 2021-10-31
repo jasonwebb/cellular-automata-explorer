@@ -4,7 +4,7 @@ import { createGroup, createSlider, createCheckbox, createSeperator } from './co
 import { resetTextureSizes } from '../entry';
 import { simulationUniforms } from '../uniforms';
 import variables from '../variables';
-import { setBrushSize } from '../brush';
+import { refreshReticle } from '../brush';
 
 export function createCanvasGroup() {
   let group = createGroup('Canvas');
@@ -64,7 +64,7 @@ export function createCanvasGroup() {
           variables.canvas.height.value = variables.canvas.unmaximizedSize.height;
         }
 
-        setBrushSize();
+        refreshReticle();
         resetTextureSizes();
         window.dispatchEvent(new Event('rebuildUI'));
       })
@@ -94,7 +94,7 @@ export function createCanvasGroup() {
     group.appendChild(
       createSlider('Scale', variables.canvas.scale.min, variables.canvas.scale.max, variables.canvas.scale.stepSize, variables.canvas.scale.value, (e) => {
         variables.canvas.scale.value = e.target.value;
-        setBrushSize();
+        refreshReticle();
 
         simulationUniforms.resolution.value = new THREE.Vector2(
           variables.canvas.width.value * (1/variables.canvas.scale.value),
