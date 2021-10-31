@@ -269,6 +269,15 @@ export function setupBrush() {
   canvas.addEventListener('blur',  () => {
     canvasIsFocused = false;
     hideCrosshairs();
+
+    // Unset all pressed keys so they don't get "stuck"
+    paintKeyDown = false;
+    shiftKeyDown = false;
+    ctrlKeyDown = false;
+    arrowKeysDown.left = false;
+    arrowKeysDown.right = false;
+    arrowKeysDown.up = false;
+    arrowKeysDown.down = false;
   });
 }
 
