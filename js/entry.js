@@ -10,7 +10,7 @@ import { simulationMaterial, displayMaterial } from './materials';
 import { setupSeizureWarningDialog, showSeizureWarningDialog } from './seizureWarningDialog';
 import { setupUI } from './ui';
 import { setupKeyboard } from './keyboard';
-import { setupBrushIndicator, showCrosshairs, hideCrosshairs, mouseIsMoving, updateBrushPositionUsingKeyboard, setBrushPosition } from './brush';
+import { setupBrush, updateBrushUsingKeyboard } from './brush';
 import { setupHelpDialog } from './helpDialog';
 
 import { setupRenderTargets, renderTargets } from './renderTargets';
@@ -20,7 +20,7 @@ import { setColors } from './colors';
 import { updateGenerationCount, updateStats } from './ui/analysis';
 
 export let canvas, scene, camera, renderer, mesh;
-let bufferCanvas, canvasIsFocused;
+let bufferCanvas;
 
 //==============================================================
 //  SEIZURE WARNING
@@ -52,7 +52,7 @@ function initialize() {
   setupUI();
   setup();
   setupKeyboard();
-  setupBrushIndicator();
+  setupBrush();
   setupHelpDialog();
   update();
 }
@@ -93,16 +93,6 @@ function setup() {
   canvasWrapper.classList.add('canvas-wrapper');
   canvasWrapper.appendChild(canvas);
   document.getElementById('container').appendChild(canvasWrapper);
-
-  canvas.addEventListener('focus', () => { 
-    canvasIsFocused = true;
-    showCrosshairs();
-  });
-
-  canvas.addEventListener('blur',  () => { 
-    canvasIsFocused = false;
-    hideCrosshairs();
-  });
 
   // Update the renderer dimensions whenever the browser is resized
   window.addEventListener('resize', resetTextureSizes, false);
@@ -148,12 +138,6 @@ function setup() {
     bufferCanvas = document.querySelector('#buffer-canvas');
     bufferCanvas.width = variables.canvas.width.value * (1/variables.canvas.scale.value);
     bufferCanvas.height = variables.canvas.height.value * (1/variables.canvas.scale.value);
-
-    // Move the brush to the center to make sure it's within the new canvas bounds
-    setBrushPosition(
-      variables.canvas.width.value/2 / window.devicePixelRatio, 
-      variables.canvas.height.value/2 / window.devicePixelRatio
-    );
   }
 
 
@@ -166,9 +150,8 @@ function update() {
     iterate(globals.pingPongSteps);
   }
 
-  if(!mouseIsMoving && canvasIsFocused) {
-    updateBrushPositionUsingKeyboard();
-  }
+  // Update the brush based on keyboard inputs (if any)
+  updateBrushUsingKeyboard();
 
   // Update the stats (like the FPS counter)
   updateStats();

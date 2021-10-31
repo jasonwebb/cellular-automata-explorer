@@ -9,26 +9,33 @@ import variables from './variables';
 export let mouseIsMoving;
 
 let canvasWrapper,
-    brushIndicator,
+    canvasIsFocused,
+    reticleCircle,
     xAxisCrosshair,
     yAxisCrosshair,
-    position = {},
     mouseDown,
     mouseMovementTimer,
+    lastMousePosition = {},
     paintKeyDown,
     shiftKeyDown,
+    ctrlKeyDown,
     arrowKeysDown = {},
     stepSize = 1,
+    brushStepSize = 5,
     stepSizeMultiplier = 5;
 
-export function setupBrushIndicator() {
+export function setupBrush() {
   canvasWrapper = document.querySelector('.canvas-wrapper');
-  position.x = window.innerWidth/2;
-  position.y = window.innerHeight/2;
+  canvasIsFocused = false;
+
+  lastMousePosition.x = window.innerWidth/2;
+  lastMousePosition.y = window.innerHeight/2;
   mouseDown = false;
   mouseIsMoving = false;
+
   paintKeyDown = false;
   shiftKeyDown = false;
+  ctrlKeyDown = false;
   arrowKeysDown = {
     left: false,
     right: false,
@@ -36,13 +43,13 @@ export function setupBrushIndicator() {
     down: false
   };
 
-  //=================================================================
-  //  Brush indicator
-  //=================================================================
+  //===================================
+  //  Setup the reticle circle
+  //===================================
   // Create a floating circle that follows the mouse cursor to indicate the current size of the brush
-  brushIndicator = document.createElement('div');
-  brushIndicator.classList.add('brush-indicator');
-  brushIndicator.style = `
+  reticleCircle = document.createElement('div');
+  reticleCircle.classList.add('brush-indicator');
+  reticleCircle.style = `
     display: block;
     content: '';
     width: ${simulationUniforms.brushRadius.value * 2}px;
@@ -53,11 +60,11 @@ export function setupBrushIndicator() {
     box-shadow: 0 0 0 2px rgba(0,0,0,.4);
     pointer-events: none;
   `;
-  canvasWrapper.append(brushIndicator);
+  canvasWrapper.append(reticleCircle);
 
-  //=================================================================
-  //  Crosshairs
-  //=================================================================
+  //===================================
+  //  Setup the crosshairs
+  //===================================
   // Create the X axis crosshair
   xAxisCrosshair = document.createElement('div');
   xAxisCrosshair.classList.add('x-axis-crosshair');
@@ -100,24 +107,26 @@ export function setupBrushIndicator() {
   `;
   canvasWrapper.appendChild(yAxisCrosshair);
 
-  //=================================================================
-  //  Mouse controls
-  //=================================================================
+  //===================================
+  //  Setup the mouse controls
+  //===================================
   // Begin mouse drag, fill indicator circle white
   canvas.addEventListener('mousedown', (e) => {
     if(e.button == 0) {
       e.preventDefault();
       mouseDown = true;
-      brushIndicator.style.backgroundColor = 'rgba(255,255,255,.2)';
-
-      alignBrushWithMouse(e);
+      reticleCircle.style.backgroundColor = 'rgba(255,255,255,.2)';
+      lastMousePosition.x = e.offsetX;
+      lastMousePosition.y = e.offsetY;
+      simulationUniforms.brushPosition.value.x = lastMousePosition.x / variables.canvas.width.value * window.devicePixelRatio;
+      simulationUniforms.brushPosition.value.y = 1 - lastMousePosition.y / variables.canvas.height.value * window.devicePixelRatio;
     }
   });
 
   // End mouse drag, make indicator circle transparent
   canvas.addEventListener('mouseup', (e) => {
     mouseDown = false;
-    brushIndicator.style.backgroundColor = 'rgba(255,255,255,0)';
+    reticleCircle.style.backgroundColor = 'rgba(255,255,255,0)';
 
     simulationUniforms.brushPosition.value.x = -1;
     simulationUniforms.brushPosition.value.y = -1;
@@ -125,12 +134,10 @@ export function setupBrushIndicator() {
 
   // Adjust brush radius using the mouse wheel
   window.addEventListener('wheel', (e) => {
-    const wheelStep = e.deltaY/100;
-
-    // Only change the brush radius if it's within these hardcoded limits
-    if(simulationUniforms.brushRadius.value + wheelStep > 5 && simulationUniforms.brushRadius.value + wheelStep < 100) {
-      simulationUniforms.brushRadius.value += wheelStep;
-      setBrushSize(e);
+    if(e.deltaY > 0) {
+      increaseBrushRadius();
+    } else {
+      decreaseBrushRadius();
     }
   });
 
@@ -144,27 +151,42 @@ export function setupBrushIndicator() {
       mouseIsMoving = false;
     }, 100);
 
-    alignBrushWithMouse(e);
+    // Align the reticle and crosshairs with the mouse position.
+    lastMousePosition.x = e.offsetX;
+    lastMousePosition.y = e.offsetY;
+    alignReticle();
+    alignCrosshairs();
+
+    // Hide the crosshairs, since those are meant for keyboard users.
+    hideCrosshairs();
+
+    // If the left mouse button is down, pass the mouse's X/Y position to the frag shader
+    if(mouseDown) {
+      simulationUniforms.brushPosition.value.x = lastMousePosition.x / variables.canvas.width.value * window.devicePixelRatio;
+      simulationUniforms.brushPosition.value.y = 1 - lastMousePosition.y / variables.canvas.height.value * window.devicePixelRatio;
+    } else {
+      simulationUniforms.brushPosition.value.x = -1;
+      simulationUniforms.brushPosition.value.y = -1;
+    }
   });
 
   // Show the circle indicator when the mouse enters the canvas bounds.
   canvas.addEventListener('mouseenter', () => {
-    brushIndicator.style.display = 'block';
+    showReticle();
   });
 
   // Hide the circle indicator when the mouse leaves the canvas bounds.
   canvas.addEventListener('mouseleave', () => {
-    brushIndicator.style.display = 'none';
+    hideReticle();
 
     // Disable the brush in the simulation shader so it doesn't get stuck in an "active" state on mouseleave
     simulationUniforms.brushPosition.value.x = -1;
     simulationUniforms.brushPosition.value.y = -1;
   });
 
-  //=================================================================
-  //  Keyboard controls
-  //=================================================================
-  // Move the crosshairs and brush circle with arrow keys
+  //===================================
+  //  Setup keyboard controls
+  //===================================
   canvas.addEventListener('keydown', (e) => {
     switch(e.key) {
       case 'ArrowUp':
@@ -187,10 +209,14 @@ export function setupBrushIndicator() {
         shiftKeyDown = true;
         break;
 
+      case 'Control':
+        ctrlKeyDown = true;
+        break;
+
       case 'b':
       case 'B':
         paintKeyDown = true;
-        brushIndicator.style.backgroundColor = 'rgba(255,255,255,.2)';
+        reticleCircle.style.backgroundColor = 'rgba(255,255,255,.2)';
         break;
     }
   });
@@ -217,25 +243,63 @@ export function setupBrushIndicator() {
         shiftKeyDown = false;
         break;
 
+      case 'Control':
+        ctrlKeyDown = false;
+        break;
+
       case 'b':
       case 'B':
         paintKeyDown = false;
-        brushIndicator.style.backgroundColor = 'rgba(255,255,255,0)';
+        reticleCircle.style.backgroundColor = 'rgba(255,255,255,0)';
         simulationUniforms.brushPosition.value.x = -1;
         simulationUniforms.brushPosition.value.y = -1;
         break;
     }
   });
+
+  //===================================
+  //  Show/hide the crosshairs when
+  //  the canvas gets or loses focus
+  //===================================
+  canvas.addEventListener('focus', () => {
+    canvasIsFocused = true;
+    showCrosshairs();
+  });
+
+  canvas.addEventListener('blur',  () => {
+    canvasIsFocused = false;
+    hideCrosshairs();
+  });
 }
 
-export function updateBrushPositionUsingKeyboard() {
+//=====================================
+//  Keyboard controls
+//=====================================
+export function updateBrushUsingKeyboard() {
   let xDelta = 0,
       yDelta = 0;
 
+  // Left and right arrows have no alternative functions, so they can move the brush directly.
   if(arrowKeysDown.left)  { xDelta -= stepSize; }
   if(arrowKeysDown.right) { xDelta += stepSize; }
-  if(arrowKeysDown.up)    { yDelta -= stepSize; }
-  if(arrowKeysDown.down)  { yDelta += stepSize; }
+
+  // Up arrow moves brush up or increases the brush size when Ctrl is pressed.
+  if(arrowKeysDown.up) {
+    if(ctrlKeyDown) {
+      increaseBrushRadius();
+    } else {
+      yDelta -= stepSize;
+    }
+  }
+
+  // Down arrow moves brush down or decreases the brush size when Ctrl is pressed.
+  if(arrowKeysDown.down) {
+    if(ctrlKeyDown) {
+      decreaseBrushRadius();
+    } else {
+      yDelta += stepSize;
+    }
+  }
 
   // Move faster using larger steps when Shift is pressed.
   if(shiftKeyDown) {
@@ -243,8 +307,8 @@ export function updateBrushPositionUsingKeyboard() {
     yDelta *= stepSizeMultiplier;
   }
 
-  let newX = position.x + xDelta,
-      newY = position.y + yDelta,
+  let newX = lastMousePosition.x + xDelta,
+      newY = lastMousePosition.y + yDelta,
       rightSide = canvas.width / window.devicePixelRatio,
       bottomSide = canvas.height / window.devicePixelRatio;
 
@@ -255,62 +319,56 @@ export function updateBrushPositionUsingKeyboard() {
   if(newY > bottomSide) { newY = bottomSide; }
   else if(newY < 0) { newY = 0; }
 
-  // Handle horizontal movement.
-  if(position.x != newX) {
+  if(lastMousePosition.x != newX || lastMousePosition.y != newY) {
+    alignReticle();
+    alignCrosshairs();
+
     showCrosshairs();
-    position.x = newX;
-    yAxisCrosshair.style.left = position.x + 'px';
+    showReticle();
 
-    brushIndicator.style.display = 'block';
-    brushIndicator.style.left = ((position.x - simulationUniforms.brushRadius.value) * (1/variables.canvas.scale.value) + 1) + 'px';
-  }
+    // Handle horizontal movement
+    if(lastMousePosition.x != newX) {
+      lastMousePosition.x = newX;
+    }
 
-  // Handle vertical movement.
-  if(position.y != newY) {
-    showCrosshairs();
-    position.y = newY;
-    xAxisCrosshair.style.top = position.y + 'px';
-
-    brushIndicator.style.display = 'block';
-    brushIndicator.style.top = ((position.y - simulationUniforms.brushRadius.value) * (1/variables.canvas.scale.value) + 1) + 'px';
+    // Handle vertical movement.
+    if(lastMousePosition.y != newY) {
+      lastMousePosition.y = newY;
+    }
   }
 
   // If the "paint" key is down, pass the tracked X/Y position to the frag shader
   if(paintKeyDown) {
-    simulationUniforms.brushPosition.value.x = position.x / variables.canvas.width.value * (1/variables.canvas.scale.value) * window.devicePixelRatio;
-    simulationUniforms.brushPosition.value.y = 1 - position.y / variables.canvas.height.value * window.devicePixelRatio;
+    simulationUniforms.brushPosition.value.x = lastMousePosition.x / variables.canvas.width.value * (1/variables.canvas.scale.value) * window.devicePixelRatio;
+    simulationUniforms.brushPosition.value.y = 1 - lastMousePosition.y / variables.canvas.height.value * window.devicePixelRatio;
   }
 }
 
-function alignBrushWithMouse(e = null) {
-  position.x = e != null ? e.offsetX : 0;
-  position.y = e != null ? e.offsetY : 0;
-
-  // Hide the crosshairs, since they are more useful to keyboard users, and this function will only be called for mouse users.
-  hideCrosshairs();
-
-  // Align the (hidden) crosshairs to the mouse position so that if the user switches to keyboard control the transition is seamless.
-  xAxisCrosshair.style.top = position.y + 'px';
-  yAxisCrosshair.style.left = position.x + 'px';
-
-  // Align the circle indicator to the mouse position.
-  brushIndicator.style.top = (position.y - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
-  brushIndicator.style.left = (position.x - simulationUniforms.brushRadius.value * (1/variables.canvas.scale.value)) + 'px';
-
-  // If the left mouse button is down, pass the mouse's X/Y position to the frag shader
-  if(mouseDown) {
-    simulationUniforms.brushPosition.value.x = position.x / variables.canvas.width.value * window.devicePixelRatio;
-    simulationUniforms.brushPosition.value.y = 1 - position.y / variables.canvas.height.value * window.devicePixelRatio;
+//=====================================
+//  Brush radius functions
+//=====================================
+export function increaseBrushRadius() {
+  if(simulationUniforms.brushRadius.value + brushStepSize < 100) {
+    const adjustedBrushStepSize = ctrlKeyDown ? brushStepSize/10 : brushStepSize;
+    simulationUniforms.brushRadius.value += adjustedBrushStepSize;
+    refreshReticle();
   }
 }
 
-export function setBrushSize(e = null) {
-  // Resize the brush indicator circle
-  brushIndicator.style.width = (simulationUniforms.brushRadius.value * 2 * (1/variables.canvas.scale.value)) + 'px';
-  brushIndicator.style.height = (simulationUniforms.brushRadius.value * 2 * (1/variables.canvas.scale.value)) + 'px';
+export function decreaseBrushRadius() {
+  if(simulationUniforms.brushRadius.value - brushStepSize > brushStepSize) {
+    const adjustedBrushStepSize = ctrlKeyDown ? brushStepSize/10 : brushStepSize;
+    simulationUniforms.brushRadius.value -= adjustedBrushStepSize;
+    refreshReticle();
+  }
+}
 
-  // Realign the brush indicator circle with the mouse cursor
-  alignBrushWithMouse(e);
+//=====================================
+//  Crosshair functions
+//=====================================
+function alignCrosshairs() {
+  xAxisCrosshair.style.top = lastMousePosition.y + 'px';
+  yAxisCrosshair.style.left = lastMousePosition.x + 'px';
 }
 
 export function showCrosshairs() {
@@ -323,17 +381,32 @@ export function hideCrosshairs() {
   yAxisCrosshair.style.display = 'none';
 }
 
-export function setBrushPosition(x, y) {
-  if(!xAxisCrosshair && !yAxisCrosshair && !brushIndicator) {
-    return;
+//=====================================
+//  Reticle functions
+//=====================================
+export function refreshReticle() {
+  // Resize and reticle circle and re-align it with the mouse.
+  if(reticleCircle !== undefined) {
+    reticleCircle.style.width = (simulationUniforms.brushRadius.value * 2 * (1/variables.canvas.scale.value)) + 'px';
+    reticleCircle.style.height = (simulationUniforms.brushRadius.value * 2 * (1/variables.canvas.scale.value)) + 'px';
+    alignReticle();
   }
 
-  position.x = x;
-  position.y = y;
+  // Align the crosshairs with the mouse
+  if(xAxisCrosshair !== undefined && yAxisCrosshair !== undefined) {
+    alignCrosshairs();
+  }
+}
 
-  xAxisCrosshair.style.top = position.y + 'px';
-  yAxisCrosshair.style.left = position.x + 'px';
+function alignReticle() {
+  reticleCircle.style.left = ((lastMousePosition.x - simulationUniforms.brushRadius.value) * (1/variables.canvas.scale.value) + 1) + 'px';
+  reticleCircle.style.top = ((lastMousePosition.y - simulationUniforms.brushRadius.value) * (1/variables.canvas.scale.value) + 1) + 'px';
+}
 
-  brushIndicator.style.left = ((position.x - simulationUniforms.brushRadius.value) * (1/variables.canvas.scale.value) + 1) + 'px';
-  brushIndicator.style.top = ((position.y - simulationUniforms.brushRadius.value) * (1/variables.canvas.scale.value) + 1) + 'px';
+function showReticle() {
+  reticleCircle.style.display = 'block';
+}
+
+function hideReticle() {
+  reticleCircle.style.display = 'none';
 }
