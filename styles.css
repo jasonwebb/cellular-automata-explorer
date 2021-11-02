@@ -3,6 +3,7 @@
   --border-color--alt: rgba(255, 255, 255, .2);
   --border-color--active: rgba(255, 255, 255, .8);
   --ui-animation-time: .2s;
+  --panel-width: 290px;
 }
 
 * {
@@ -53,7 +54,7 @@ canvas {
 .panel {
   position: absolute;
   top: 0;
-  width: 275px;
+  width: var(--panel-width);
   height: 100%;
   z-index: 100;
   overflow-y: auto;
@@ -70,8 +71,8 @@ canvas {
   .panel.is-docked-left  { left: 0;  border-right: 1px solid var(--border-color); }
   .panel.is-docked-right { right: 0; border-left: 1px solid var(--border-color);  }
 
-  .panel.is-docked-left.is-offscreen { left: -275px; }
-  .panel.panel.is-docked-right.is-offscreen { right: -275px; }
+  .panel.is-docked-left.is-offscreen { left: calc(var(--panel-width) * -1); }
+  .panel.panel.is-docked-right.is-offscreen { right: calc(var(--panel-width) * -1); }
 
 
   /** Groups are sets of components with a heading at the top. */
@@ -601,7 +602,7 @@ canvas {
 }
 
   .center-controls.has-left-indent {
-    left: 300px;
+    left: calc( var(--panel-width) + 20px);
   }
 
   .center-controls .toggle-ui-button {
