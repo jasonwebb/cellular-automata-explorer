@@ -11,7 +11,7 @@ import { setupSeizureWarningDialog, showSeizureWarningDialog } from './seizureWa
 import { setupUI } from './ui';
 import { setupKeyboard } from './keyboard';
 import { setupBrush, updateBrushUsingKeyboard } from './brush';
-import { setupHelpDialog } from './helpDialog';
+import { setupAboutDialog } from './aboutDialog';
 
 import { setupRenderTargets, renderTargets } from './renderTargets';
 import { drawPattern } from './patterns';
@@ -53,7 +53,7 @@ function initialize() {
   setup();
   setupKeyboard();
   setupBrush();
-  setupHelpDialog();
+  setupAboutDialog();
   update();
 }
 

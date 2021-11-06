@@ -41,21 +41,50 @@
   <canvas id="buffer-canvas" style="display: none;"></canvas>
   <img id="buffer-image" style="display: none;" alt="">
 
-  <div id="help-dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="help-dialog-heading">
+  <div id="about-dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="about-dialog-heading">
     <div class="content">
       <button class="close-button">
         <span class="fas fa-times" aria-hidden="true"></span>
         <span class="sr-only">Close</span>
       </button>
 
-      <h1 id="help-dialog-heading">About Cellular Automata Explorer</h1>
+      <h1 id="about-dialog-heading">About Cellular Automata Explorer</h1>
 
-      <ul>
-        <li><code>Space</code> - pause/play</li>
-        <li><code>r</code> - restart</li>
-        <li><code>u</code> - show/hide the UI</li>
-        <li><code>h</code> - show this help panel</li>
-      </ul>
+      <p>This interactive app provides a simple UI for exploring cellular automata (CA) by exposing granular controls for most of the important parameters including survival/birth counts, neighborhood type, range, and more.</p>
+
+      <p>Currently this app only supports so-called "Life-like" rules, including Larger than Life and Generations. Square cells in a regular grid with discrete, deterministic states</p>
+
+      <div class="row">
+        <div class="keyboard-section">
+          <h2>Keyboard</h2>
+
+          <ul>
+            <li><code>Space</code> - pause/play</li>
+            <li><code>r</code> - restart</li>
+            <li><code>u</code> - show/hide the UI</li>
+            <li><code>h</code> - show this "about" panel</li>
+          </ul>
+        </div>
+
+        <div class="mouse-section">
+          <h2>Mouse</h2>
+
+          <ul>
+            <li><b>Click and drag</b> to set all cells within the brush radius to 0.</li>
+            <li>Use the <b>mouse wheel</b> to make the brush size bigger or smaller.</li>
+            <li>Golly</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="credits">
+        <h2>Credits</h2>
+
+        <ul>
+          <li>Mirek Wojtowicz's <a href="http://www.mirekw.com/ca/ca_rules.html" target="_blank">CA rules lexicon</a> for his <a href="http://www.mirekw.com/ca/index.html" target="_blank">MCell</a> software.</li>
+          <li>Kevin Chapelier (<a href="https://github.com/kchapelier" target="_blank">@kchapelier</a>) for his <a href="https://github.com/kchapelier/cellular-automata-rule-parser" target="_blank">cellular-automata-rule-parser</a> package.</li>
+        </ul>
+      </div>
     </div>
   </div>
 

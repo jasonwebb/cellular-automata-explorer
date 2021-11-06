@@ -9,7 +9,7 @@ import { createColorsGroup } from './ui/colors';
 import { createSurvivalGroup } from './ui/survival';
 import { createPatternGroup } from './ui/pattern';
 import { createCanvasGroup } from './ui/canvas';
-import { showHelpDialog } from './helpDialog';
+import { showAboutDialog } from './aboutDialog';
 import { createAnalysisGroup } from './ui/analysis';
 
 let mainWrapper,
@@ -73,11 +73,11 @@ export function setupUI() {
 
     // About button
     let aboutButton = document.createElement('button');
-    aboutButton.classList.add('help-button');
+    aboutButton.classList.add('about-button');
     aboutButton.setAttribute('title', 'Learn more about this app');
     aboutButton.innerHTML = '<span class="fas fa-question" aria-hidden="true"></span><span class="sr-only">Learn more about this app</span>';
 
-    aboutButton.addEventListener('click', showHelpDialog);
+    aboutButton.addEventListener('click', showAboutDialog);
 
     // Github link
     let githubLink = document.createElement('a');

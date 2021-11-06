@@ -117,6 +117,10 @@ canvas {
           background: linear-gradient(180deg, rgba(255,255,255,.16) 0%, rgba(0,0,0,0) 80%);
         }
 
+          .panel .group .heading button:focus {
+            outline-offset: -2px;
+          }
+
         /** Caret icon */
         .panel .group .heading button span {
           float: right;
@@ -541,7 +545,7 @@ canvas {
       display: flex;
       justify-content: space-around;
       align-items: center;
-      border: 1px solid var(--border-color--alt);
+      border: 1px solid var(--border-color);
       padding: 0 10px;
       height: 30px;
     }
@@ -573,7 +577,7 @@ canvas {
           width: 55px;
           height: 30px;
           margin-left: 10px;
-          border-color: var(--border-color--alt);
+          border-color: var(--border-color);
         }
 
       /** Run button */
@@ -583,13 +587,18 @@ canvas {
 
         .step-controls-row .custom-steps .button button {
           background-color: rgba(255,255,255,.05);
-          border: 1px solid var(--border-color--alt);
+          border: 1px solid var(--border-color);
           border-left: 0;
           border-radius: 0;
           height: 30px;
           vertical-align: middle;
           padding: 0 10px;
         }
+
+.swap-button {
+  background: none;
+  color: white;
+}
 
 /** Center buttons and links */
 .center-controls {
@@ -632,7 +641,7 @@ canvas {
     .center-controls .toggle-ui-button[aria-pressed="true"] .fas.fa-eye-slash,
     .center-controls .toggle-ui-button[aria-pressed="true"] .hide { display: none;}
 
-  .center-controls .help-button {
+  .center-controls .about-button {
     display: inline-block;
     width: 27px;
     height: 27px;
@@ -646,12 +655,12 @@ canvas {
     padding: 0;
   }
 
-    .center-controls .help-button:hover,
-    .center-controls .help-button:focus {
+    .center-controls .about-button:hover,
+    .center-controls .about-button:focus {
       border-color: var(--border-color--active);
     }
 
-    .center-controls .help-button:focus {
+    .center-controls .about-button:focus {
       outline-offset: 4px;
     }
 
@@ -663,8 +672,8 @@ canvas {
     margin: 0;
   }
 
-    .center-controls .help-button:hover,
-    .center-controls .help-button:focus,
+    .center-controls .about-button:hover,
+    .center-controls .about-button:focus,
     .center-controls .github-link:hover,
     .center-controls .github-link:focus {
       color: white;
@@ -729,8 +738,10 @@ canvas {
       margin: 0;
     }
 
-    .dialog .content h1 .fas {
-      opacity: .5;
+    .dialog .content a {
+      color: white;
+      font-weight: bold;
+      text-decoration: underline;
     }
 
   /** Seizure warning dialog ****************/
@@ -785,3 +796,66 @@ canvas {
       opacity: .7;
       vertical-align: middle;
     }
+
+  /** About dialog *******************/
+  #about-dialog .content {
+    font-size: 14px;
+    color:rgba(255, 255, 255, .7);
+  }
+
+  #about-dialog .content h1 {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: white;
+  }
+
+  #about-dialog .content p {
+    line-height: 20px;
+    margin-bottom: 20px;
+  }
+
+  #about-dialog .content b {
+    color: white;
+  }
+
+  #about-dialog .content .row {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+    #about-dialog .content .row > div {
+      flex: 0 0 48%;
+      padding: 15px 5px;
+    }
+
+      #about-dialog .content .row > div:first-of-type {
+        border-right: 1px solid var(--border-color);
+        padding-right: 20px;
+      }
+
+    #about-dialog .content h2 {
+      margin-bottom: 10px;
+      font-size: 16px;
+      text-decoration: underline;
+      color: white;
+    }
+
+    #about-dialog .content .row ul {
+      margin-left: 20px;
+    }
+
+      #about-dialog .content .row ul li {
+        padding-left: 5px;
+        margin-bottom: 10px;
+      }
+
+        #about-dialog .content .row ul li code {
+          font-weight: bold;
+          font-family: 'Courier New', Courier, monospace;
+          background-color: rgba(255,255,255,.1);
+          color: white;
+          padding: 3px 7px;
+        }

@@ -1,33 +1,33 @@
 
-let helpDialogTriggerButton,
-    helpDialog, closeButton, dialogContent,
+let aboutDialogTriggerButton,
+    aboutDialog, closeButton, dialogContent,
     firstFocusableElement, lastFocusableElement,
     keyboardListener;
 
-export function setupHelpDialog() {
-  helpDialogTriggerButton = document.querySelector('.help-button');
-  helpDialog = document.getElementById('help-dialog');
-  closeButton = helpDialog.querySelector('.close-button');
-  dialogContent = helpDialog.querySelector('.content');
+export function setupAboutDialog() {
+  aboutDialogTriggerButton = document.querySelector('.about-button');
+  aboutDialog = document.getElementById('about-dialog');
+  closeButton = aboutDialog.querySelector('.close-button');
+  dialogContent = aboutDialog.querySelector('.content');
   firstFocusableElement = closeButton;
   lastFocusableElement = closeButton;
 
-  closeButton.addEventListener('click', hideHelpDialog);
+  closeButton.addEventListener('click', hideAboutDialog);
 
-  helpDialog.addEventListener('click', (e) => {
+  aboutDialog.addEventListener('click', (e) => {
     if(!dialogContent.contains(e.target)) {
-      hideHelpDialog();
+      hideAboutDialog();
     }
   });
 }
 
-export function showHelpDialog() {
-  helpDialog.classList.add('is-visible');
+export function showAboutDialog() {
+  aboutDialog.classList.add('is-visible');
   closeButton.focus();
 
   keyboardListener = dialogContent.addEventListener('keydown', (e) => {
     if(e.key == 'Escape') {
-      hideHelpDialog();
+      hideAboutDialog();
     } else if(e.key == 'Tab') {
       if(document.activeElement == lastFocusableElement && !e.shiftKey) {
         e.preventDefault();
@@ -40,8 +40,8 @@ export function showHelpDialog() {
   });
 }
 
-export function hideHelpDialog() {
+export function hideAboutDialog() {
   dialogContent.removeEventListener('keydown', keyboardListener);
-  helpDialog.classList.remove('is-visible');
-  helpDialogTriggerButton.focus();
+  aboutDialog.classList.remove('is-visible');
+  aboutDialogTriggerButton.focus();
 }
