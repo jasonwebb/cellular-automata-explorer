@@ -19,7 +19,6 @@ export const InitialPatternTypes = [
   'Circle',
   'Rectangle',
   'Text',
-  'Image',
   'Random'
 ];
 
@@ -86,18 +85,6 @@ export function drawPattern(type = variables.activePattern) {
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
 
-    case 'Image':
-      if(variables.patterns.image.image != null) {
-        getImagePixels(variables.patterns.image.image, centerX, centerY)
-          .then((initialData) => {
-            renderInitialDataToRenderTargets(initialData);
-          })
-          .catch(error => console.error(error));
-      } else {
-        alert('Upload an image using the button first!');
-      }
-      break;
-
     case 'Random':
       let pixels = bufferCanvasCtx.getImageData(0, 0, variables.canvas.width.value, variables.canvas.height.value);
 
@@ -147,59 +134,6 @@ export function drawPattern(type = variables.activePattern) {
     // Set the render target back to the default display buffer and render the first frame
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
-  }
-
-  function getImagePixels(imageData, centerX, centerY) {
-    // Create an asynchronous Promise that can be used to wait for the image to load
-    return new Promise((resolve) => {
-      bufferImage.src = imageData;
-
-      bufferImage.addEventListener('load', () => {
-        bufferCanvasCtx.translate(variables.canvas.width/2 * variables.patterns.image.scale, variables.canvas.height/2 * variables.patterns.image.scale);
-        bufferCanvasCtx.rotate(variables.patterns.image.rotation * Math.PI / 180);
-        bufferCanvasCtx.translate(-variables.canvas.width/2 * variables.patterns.image.scale, -variables.canvas.height/2 * variables.patterns.image.scale);
-
-        let startX, startY, width, height;
-
-        switch(variables.patterns.image.fit) {
-          // None - use the image's true dimensions
-          case 0:
-            startX = centerX - bufferImage.width/2;
-            startY = centerY - bufferImage.height/2;
-            width = bufferImage.width * variables.patterns.image.scale;
-            height = bufferImage.height * variables.patterns.image.scale;
-            break;
-
-          // Scale - scale the image up or down to fit the canvas without stretching
-          // https://stackoverflow.com/a/50165098
-          case 1:
-            const widthRatio = variables.canvas.width / bufferImage.width,
-                  heightRatio = variables.canvas.height / bufferImage.height,
-                  bestFitRatio = Math.min(widthRatio, heightRatio),
-                  scaledWidth = bufferImage.width * bestFitRatio,
-                  scaledHeight = bufferImage.height * bestFitRatio;
-
-            startX = centerX - scaledWidth/2;
-            startY = centerY - scaledHeight/2;
-            width = scaledWidth;
-            height = scaledHeight;
-            break;
-
-          // Stretch
-          case 2:
-            startX = 0;
-            startY = 0;
-            width = variables.canvas.width;
-            height = variables.canvas.height;
-            break;
-        }
-
-        bufferCanvasCtx.drawImage(bufferImage, startX, startY, width, height);
-
-        bufferCanvasCtx.resetTransform();
-        resolve(convertPixelsToTextureData());
-      });
-    });
   }
 
   // Convert 8-bit color pixel data into normalized float values that the shaders can use

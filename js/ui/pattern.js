@@ -97,13 +97,6 @@ export function createPatternGroup() {
 
         break;
 
-      case 'Image':
-        // File upload
-        // Position - x and y sliders
-        // Rotation - slider
-        // Scale - slider
-        break;
-
       case 'Random':
         // Density
         group.appendChild(
