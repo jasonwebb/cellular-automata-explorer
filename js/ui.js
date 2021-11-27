@@ -12,14 +12,11 @@ import { createCanvasGroup } from './ui/canvas';
 import { showAboutDialog } from './aboutDialog';
 import { createAnalysisGroup } from './ui/analysis';
 
-let mainWrapper,
-    leftPanel, rightPanel, centerControlsWrapper,
+let leftPanel, rightPanel, centerControlsWrapper,
     toggleUIButton;
 export let isUIVisible = true;
 
 export function setupUI() {
-  mainWrapper = document.querySelector('main');
-
   setupLeftPanel();
   setupCenterControls();
   setupRightPanel();
@@ -36,7 +33,7 @@ export function setupUI() {
     leftPanel.appendChild(createHistoryGroup());
     leftPanel.appendChild(createAnalysisGroup());
 
-    mainWrapper.appendChild(leftPanel);
+    document.querySelector('#left-panel-container').appendChild(leftPanel);
   }
 
   function setupRightPanel() {
@@ -48,7 +45,7 @@ export function setupUI() {
     rightPanel.appendChild(createCanvasGroup());
     rightPanel.appendChild(createControlsGroup());
 
-    mainWrapper.appendChild(rightPanel);
+    document.querySelector('#right-panel-container').appendChild(rightPanel);
   }
 
   function setupCenterControls() {
@@ -91,7 +88,7 @@ export function setupUI() {
     centerControlsWrapper.appendChild(aboutButton);
     centerControlsWrapper.appendChild(githubLink);
 
-    mainWrapper.appendChild(centerControlsWrapper);
+    document.querySelector('#center-controls-container').appendChild(centerControlsWrapper);
   }
 
 export function toggleUI() {

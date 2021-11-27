@@ -78,7 +78,10 @@ function setup() {
   scene.add(mesh);
 
   // Set up the renderer (a WebGL context inside a <canvas>)
-  renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
+  renderer = new THREE.WebGLRenderer({
+    canvas: document.querySelector('#canvas'),
+    preserveDrawingBuffer: true
+  });
   renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
 
   // Uncomment this line to see how many shader varyings your GPU supports.
@@ -88,11 +91,6 @@ function setup() {
   canvas = renderer.domElement;
   canvas.setAttribute('tabindex', 0);
   // canvas.setAttribute('aria-label', '[description of keyboard controls]');
-
-  let canvasWrapper = document.createElement('div');
-  canvasWrapper.classList.add('canvas-wrapper');
-  canvasWrapper.appendChild(canvas);
-  document.getElementById('container').appendChild(canvasWrapper);
 
   // Update the renderer dimensions whenever the browser is resized
   window.addEventListener('resize', resetTextureSizes, false);

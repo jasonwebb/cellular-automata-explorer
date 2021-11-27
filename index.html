@@ -36,7 +36,16 @@
     <h1>Cellular Automata Explorer</h1>
   </header>
 
-  <main id="container"></main>
+  <main class="container">
+    <div id="left-panel-container"></div>
+    <div id="center-controls-container"></div>
+
+    <div id="canvas-wrapper">
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <div id="right-panel-container"></div>
+  </main>
 
   <canvas id="buffer-canvas" style="display: none;"></canvas>
   <img id="buffer-image" style="display: none;" alt="">

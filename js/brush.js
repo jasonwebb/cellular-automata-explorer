@@ -25,7 +25,7 @@ let canvasWrapper,
     stepSizeMultiplier = 5;
 
 export function setupBrush() {
-  canvasWrapper = document.querySelector('.canvas-wrapper');
+  canvasWrapper = document.querySelector('#canvas-wrapper');
   canvasIsFocused = false;
 
   lastMousePosition.x = window.innerWidth/2;
