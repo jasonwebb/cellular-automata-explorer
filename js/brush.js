@@ -396,8 +396,8 @@ export function hideCrosshairs() {
 export function refreshReticle() {
   // Resize and reticle circle and re-align it with the mouse.
   if(reticleCircle !== undefined) {
-    reticleCircle.style.width = (simulationUniforms.brushRadius.value * 2 * (1/variables.canvas.scale.value)) + 'px';
-    reticleCircle.style.height = (simulationUniforms.brushRadius.value * 2 * (1/variables.canvas.scale.value)) + 'px';
+    reticleCircle.style.width = (((simulationUniforms.brushRadius.value * 2) / window.devicePixelRatio) * (1/variables.canvas.scale.value)) + 'px';
+    reticleCircle.style.height = (((simulationUniforms.brushRadius.value * 2) / window.devicePixelRatio) * (1/variables.canvas.scale.value)) + 'px';
     alignReticle();
   }
 
@@ -408,8 +408,8 @@ export function refreshReticle() {
 }
 
 function alignReticle() {
-  reticleCircle.style.left = ((lastMousePosition.x - simulationUniforms.brushRadius.value) * (1/variables.canvas.scale.value) + 1) + 'px';
-  reticleCircle.style.top = ((lastMousePosition.y - simulationUniforms.brushRadius.value) * (1/variables.canvas.scale.value) + 1) + 'px';
+  reticleCircle.style.left = ((lastMousePosition.x - simulationUniforms.brushRadius.value / window.devicePixelRatio) * (1/variables.canvas.scale.value)) + 'px';
+  reticleCircle.style.top = ((lastMousePosition.y - simulationUniforms.brushRadius.value / window.devicePixelRatio) * (1/variables.canvas.scale.value) ) + 'px';
 }
 
 function showReticle() {
