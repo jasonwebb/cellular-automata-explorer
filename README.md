@@ -25,7 +25,3 @@ TODO
 * [@kchapelier](https://github.com/kchapelier)'s [cellular-automata-rule-parser](https://github.com/kchapelier/cellular-automata-rule-parser) to convert human-friendly rule definition strings into normalized parametric objects that make driving the simulation simpler.
 * [Webpack](https://webpack.js.org/) build system with live-reloading dev server.
 * [Github Pages](https://pages.github.com/) to serve the files.
-
-## Supported rule formats
-
-For now, see @kchapelier's [cellular-automata-rule-parser](https://github.com/kchapelier/cellular-automata-rule-parser).

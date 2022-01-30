@@ -26,8 +26,11 @@ export function showAboutDialog() {
   closeButton.focus();
 
   keyboardListener = dialogContent.addEventListener('keydown', (e) => {
+    // Escape to close
     if(e.key == 'Escape') {
       hideAboutDialog();
+
+    // Trap keyboard focus when Tab or Shift+Tab is used
     } else if(e.key == 'Tab') {
       if(document.activeElement == lastFocusableElement && !e.shiftKey) {
         e.preventDefault();
