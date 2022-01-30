@@ -59,7 +59,7 @@
 
       <h1 id="about-dialog-heading">About Cellular Automata Explorer</h1>
 
-      <p>This interactive app provides a simple UI for exploring cellular automata (CA) by exposing granular controls for most of the important parameters including survival/birth counts, neighborhood type, range, and more.</p>
+      <p>This interactive app provides a UI for exploring cellular automata (CA) by exposing granular controls for most of the important parameters including survival/birth counts, neighborhood type, range, and more.</p>
 
       <p>Currently this app only supports so-called "Life-like" rules, including Larger than Life and Generations. Square cells in a regular grid with discrete, deterministic states</p>
 
@@ -81,17 +81,26 @@
           <ul>
             <li><b>Click and drag</b> to set all cells within the brush radius to 0.</li>
             <li>Use the <b>mouse wheel</b> to make the brush size bigger or smaller.</li>
-            <li>Golly</li>
           </ul>
         </div>
       </div>
 
+      <h2>Accessibility</h2>
+      <ul>
+        <li>All UI controls can be reached and operated by keyboard.</li>
+        <li>To paint on the canvas, first set focus onto the canvas, then use the following keys to interact with it:
+          <ul>
+            <li>Hold down <code>Space</code> to touch the brush to the canvas. Release to lift it.</li>
+            <li>Use your arrow keys to move the brush around.</li>
+            <li>Hold down <code>Shift</code> while moving to go faster. Release it to return to normal speed.</li>
+          </ul>
+        </li>
+      </ul>
+
       <div class="credits">
         <h2>Credits</h2>
-
         <ul>
-          <li>Mirek Wojtowicz's <a href="http://www.mirekw.com/ca/ca_rules.html" target="_blank">CA rules lexicon</a> for his <a href="http://www.mirekw.com/ca/index.html" target="_blank">MCell</a> software.</li>
-          <li>Kevin Chapelier (<a href="https://github.com/kchapelier" target="_blank">@kchapelier</a>) for his <a href="https://github.com/kchapelier/cellular-automata-rule-parser" target="_blank">cellular-automata-rule-parser</a> package.</li>
+          <li>Mirek Wojtowicz for the <a href="http://www.mirekw.com/ca/ca_rules.html" target="_blank">Cellular Automata rules lexicon</a>, which all of the rule Presets come from.</li>
         </ul>
       </div>
     </div>

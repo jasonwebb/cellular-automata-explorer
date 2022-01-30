@@ -615,7 +615,7 @@ canvas {
   }
 
   .center-controls .toggle-ui-button {
-    background: none;
+    background: rgba(0,0,0,.4);
     border: 1px solid var(--border-color);
     padding: 5px 15px;
     border-radius: 100px;
@@ -626,6 +626,7 @@ canvas {
 
     .center-controls .toggle-ui-button:hover,
     .center-controls .toggle-ui-button:focus {
+      background: black;
       border-color: var(--border-color--active);
       color: white;
     }
@@ -646,7 +647,7 @@ canvas {
     display: inline-block;
     width: 27px;
     height: 27px;
-    background: none;
+    background: rgba(0,0,0,.4);
     border: 1px solid var(--border-color);
     border-radius: 100px;
     color:rgba(255, 255, 255, .7);
@@ -658,6 +659,7 @@ canvas {
 
     .center-controls .about-button:hover,
     .center-controls .about-button:focus {
+      background: black;
       border-color: var(--border-color--active);
     }
 
@@ -706,10 +708,11 @@ canvas {
     position: relative;
     padding: 20px 30px;
     max-width: 600px;
+    max-height: 80vh;
+    overflow-y: scroll;
 
     background-color: black;
     color: rgba(255,255,255,.8);
-    border: 1px solid rgba(255,255,255,.3);
   }
 
     .dialog .content .close-button {
@@ -844,19 +847,33 @@ canvas {
       color: white;
     }
 
-    #about-dialog .content .row ul {
+    #about-dialog .content ul {
       margin-left: 20px;
     }
 
-      #about-dialog .content .row ul li {
+      #about-dialog .content ul li {
         padding-left: 5px;
         margin-bottom: 10px;
       }
 
-        #about-dialog .content .row ul li code {
+        #about-dialog .content ul li code {
           font-weight: bold;
           font-family: 'Courier New', Courier, monospace;
           background-color: rgba(255,255,255,.1);
           color: white;
           padding: 3px 7px;
         }
+
+        #about-dialog .content ul li ul {
+          margin-top: 8px;
+        }
+
+          #about-dialog .content ul li ul li {
+            margin: 4px 0;
+          }
+
+  #about-dialog .content .credits {
+    margin: 20px -10px 0 -10px;
+    padding: 20px;
+    background-color: rgba(255,255,255,.05);
+  }
