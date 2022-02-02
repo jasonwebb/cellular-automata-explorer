@@ -152,22 +152,88 @@ module.exports = "varying vec2 v_uv;\nvoid main() {\n\tv_uv = uv;\n\tgl_Position
 
 /***/ }),
 
+/***/ "./js/aboutDialog.js":
+/*!***************************!*\
+  !*** ./js/aboutDialog.js ***!
+  \***************************/
+/*! exports provided: setupAboutDialog, showAboutDialog, hideAboutDialog */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupAboutDialog", function() { return setupAboutDialog; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showAboutDialog", function() { return showAboutDialog; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideAboutDialog", function() { return hideAboutDialog; });
+
+let aboutDialogTriggerButton,
+    aboutDialog, closeButton, dialogContent,
+    firstFocusableElement, lastFocusableElement,
+    keyboardListener;
+
+function setupAboutDialog() {
+  aboutDialogTriggerButton = document.querySelector('.about-button');
+  aboutDialog = document.getElementById('about-dialog');
+  closeButton = aboutDialog.querySelector('.close-button');
+  dialogContent = aboutDialog.querySelector('.content');
+  firstFocusableElement = closeButton;
+  lastFocusableElement = closeButton;
+
+  closeButton.addEventListener('click', hideAboutDialog);
+
+  aboutDialog.addEventListener('click', (e) => {
+    if(!dialogContent.contains(e.target)) {
+      hideAboutDialog();
+    }
+  });
+}
+
+function showAboutDialog() {
+  aboutDialog.classList.add('is-visible');
+  closeButton.focus();
+
+  keyboardListener = dialogContent.addEventListener('keydown', (e) => {
+    // Escape to close
+    if(e.key == 'Escape') {
+      hideAboutDialog();
+
+    // Trap keyboard focus when Tab or Shift+Tab is used
+    } else if(e.key == 'Tab') {
+      if(document.activeElement == lastFocusableElement && !e.shiftKey) {
+        e.preventDefault();
+        firstFocusableElement.focus();
+      } else if(document.activeElement == firstFocusableElement && e.shiftKey) {
+        e.preventDefault();
+        lastFocusableElement.focus();
+      }
+    }
+  });
+}
+
+function hideAboutDialog() {
+  dialogContent.removeEventListener('keydown', keyboardListener);
+  aboutDialog.classList.remove('is-visible');
+  aboutDialogTriggerButton.focus();
+}
+
+/***/ }),
+
 /***/ "./js/brush.js":
 /*!*********************!*\
   !*** ./js/brush.js ***!
   \*********************/
-/*! exports provided: mouseIsMoving, setupBrushIndicator, updateBrushPositionUsingKeyboard, setBrushSize, showCrosshairs, hideCrosshairs, setBrushPosition */
+/*! exports provided: mouseIsMoving, setupBrush, updateBrushUsingKeyboard, increaseBrushRadius, decreaseBrushRadius, showCrosshairs, hideCrosshairs, refreshReticle */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mouseIsMoving", function() { return mouseIsMoving; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupBrushIndicator", function() { return setupBrushIndicator; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateBrushPositionUsingKeyboard", function() { return updateBrushPositionUsingKeyboard; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setBrushSize", function() { return setBrushSize; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupBrush", function() { return setupBrush; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateBrushUsingKeyboard", function() { return updateBrushUsingKeyboard; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "increaseBrushRadius", function() { return increaseBrushRadius; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decreaseBrushRadius", function() { return decreaseBrushRadius; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showCrosshairs", function() { return showCrosshairs; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideCrosshairs", function() { return hideCrosshairs; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setBrushPosition", function() { return setBrushPosition; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "refreshReticle", function() { return refreshReticle; });
 /* harmony import */ var _uniforms__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./uniforms */ "./js/uniforms.js");
 /* harmony import */ var _entry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entry */ "./js/entry.js");
 /* harmony import */ var _variables__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./variables */ "./js/variables.js");
@@ -182,26 +248,33 @@ __webpack_require__.r(__webpack_exports__);
 let mouseIsMoving;
 
 let canvasWrapper,
-    brushIndicator,
+    canvasIsFocused,
+    reticleCircle,
     xAxisCrosshair,
     yAxisCrosshair,
-    position = {},
     mouseDown,
     mouseMovementTimer,
+    lastMousePosition = {},
     paintKeyDown,
     shiftKeyDown,
+    ctrlKeyDown,
     arrowKeysDown = {},
-    stepSize = 1, 
+    stepSize = 1,
+    brushStepSize = 5,
     stepSizeMultiplier = 5;
 
-function setupBrushIndicator() {
-  canvasWrapper = document.querySelector('.canvas-wrapper');
-  position.x = window.innerWidth/2;
-  position.y = window.innerHeight/2;
+function setupBrush() {
+  canvasWrapper = document.querySelector('#canvas-wrapper');
+  canvasIsFocused = false;
+
+  lastMousePosition.x = window.innerWidth/2;
+  lastMousePosition.y = window.innerHeight/2;
   mouseDown = false;
   mouseIsMoving = false;
+
   paintKeyDown = false;
   shiftKeyDown = false;
+  ctrlKeyDown = false;
   arrowKeysDown = {
     left: false,
     right: false,
@@ -209,13 +282,13 @@ function setupBrushIndicator() {
     down: false
   };
 
-  //=================================================================
-  //  Brush indicator
-  //=================================================================
+  //===================================
+  //  Setup the reticle circle
+  //===================================
   // Create a floating circle that follows the mouse cursor to indicate the current size of the brush
-  brushIndicator = document.createElement('div');
-  brushIndicator.classList.add('brush-indicator');
-  brushIndicator.style = `
+  reticleCircle = document.createElement('div');
+  reticleCircle.classList.add('brush-indicator');
+  reticleCircle.style = `
     display: block;
     content: '';
     width: ${_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2}px;
@@ -226,11 +299,11 @@ function setupBrushIndicator() {
     box-shadow: 0 0 0 2px rgba(0,0,0,.4);
     pointer-events: none;
   `;
-  canvasWrapper.append(brushIndicator);
+  canvasWrapper.append(reticleCircle);
 
-  //=================================================================
-  //  Crosshairs
-  //=================================================================
+  //===================================
+  //  Setup the crosshairs
+  //===================================
   // Create the X axis crosshair
   xAxisCrosshair = document.createElement('div');
   xAxisCrosshair.classList.add('x-axis-crosshair');
@@ -273,24 +346,26 @@ function setupBrushIndicator() {
   `;
   canvasWrapper.appendChild(yAxisCrosshair);
 
-  //=================================================================
-  //  Mouse controls
-  //=================================================================
+  //===================================
+  //  Setup the mouse controls
+  //===================================
   // Begin mouse drag, fill indicator circle white
   _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mousedown', (e) => {
     if(e.button == 0) {
       e.preventDefault();
       mouseDown = true;
-      brushIndicator.style.backgroundColor = 'rgba(255,255,255,.2)';
-
-      alignBrushWithMouse(e);
+      reticleCircle.style.backgroundColor = 'rgba(255,255,255,.2)';
+      lastMousePosition.x = e.offsetX;
+      lastMousePosition.y = e.offsetY;
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = lastMousePosition.x / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * window.devicePixelRatio;
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = 1 - lastMousePosition.y / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * window.devicePixelRatio;
     }
   });
 
   // End mouse drag, make indicator circle transparent
   _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mouseup', (e) => {
     mouseDown = false;
-    brushIndicator.style.backgroundColor = 'rgba(255,255,255,0)';
+    reticleCircle.style.backgroundColor = 'rgba(255,255,255,0)';
 
     _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = -1;
     _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = -1;
@@ -298,17 +373,15 @@ function setupBrushIndicator() {
 
   // Adjust brush radius using the mouse wheel
   window.addEventListener('wheel', (e) => {
-    const wheelStep = e.deltaY/100;
-
-    // Only change the brush radius if it's within these hardcoded limits
-    if(_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value + wheelStep > 5 && _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value + wheelStep < 100) {
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value += wheelStep;
-      setBrushSize(e);
+    if(e.deltaY > 0) {
+      increaseBrushRadius();
+    } else {
+      decreaseBrushRadius();
     }
   });
 
   // Keep the indicator circle aligned with the mouse as it moves.
-  window.addEventListener('mousemove', (e) => {
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mousemove', (e) => {
     mouseIsMoving = true;
 
     clearTimeout(mouseMovementTimer);
@@ -317,13 +390,42 @@ function setupBrushIndicator() {
       mouseIsMoving = false;
     }, 100);
 
-    alignBrushWithMouse(e);
+    // Align the reticle and crosshairs with the mouse position.
+    lastMousePosition.x = e.offsetX;
+    lastMousePosition.y = e.offsetY;
+    alignReticle();
+    alignCrosshairs();
+
+    // Hide the crosshairs, since those are meant for keyboard users.
+    hideCrosshairs();
+
+    // If the left mouse button is down, pass the mouse's X/Y position to the frag shader
+    if(mouseDown) {
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = lastMousePosition.x / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * window.devicePixelRatio;
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = 1 - lastMousePosition.y / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * window.devicePixelRatio;
+    } else {
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = -1;
+      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = -1;
+    }
   });
 
-  //=================================================================
-  //  Keyboard controls
-  //=================================================================
-  // Move the crosshairs and brush circle with arrow keys
+  // Show the circle indicator when the mouse enters the canvas bounds.
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mouseenter', () => {
+    showReticle();
+  });
+
+  // Hide the circle indicator when the mouse leaves the canvas bounds.
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('mouseleave', () => {
+    hideReticle();
+
+    // Disable the brush in the simulation shader so it doesn't get stuck in an "active" state on mouseleave
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = -1;
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = -1;
+  });
+
+  //===================================
+  //  Setup keyboard controls
+  //===================================
   _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('keydown', (e) => {
     switch(e.key) {
       case 'ArrowUp':
@@ -345,10 +447,15 @@ function setupBrushIndicator() {
       case 'Shift':
         shiftKeyDown = true;
         break;
-      
+
+      case 'Control':
+        ctrlKeyDown = true;
+        break;
+
       case 'b':
+      case 'B':
         paintKeyDown = true;
-        brushIndicator.style.backgroundColor = 'rgba(255,255,255,.2)';
+        reticleCircle.style.backgroundColor = 'rgba(255,255,255,.2)';
         break;
     }
   });
@@ -375,24 +482,72 @@ function setupBrushIndicator() {
         shiftKeyDown = false;
         break;
 
+      case 'Control':
+        ctrlKeyDown = false;
+        break;
+
       case 'b':
+      case 'B':
         paintKeyDown = false;
-        brushIndicator.style.backgroundColor = 'rgba(255,255,255,0)';
+        reticleCircle.style.backgroundColor = 'rgba(255,255,255,0)';
         _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = -1;
         _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = -1;
         break;
     }
   });
+
+  //===================================
+  //  Show/hide the crosshairs when
+  //  the canvas gets or loses focus
+  //===================================
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('focus', () => {
+    canvasIsFocused = true;
+    showCrosshairs();
+  });
+
+  _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].addEventListener('blur',  () => {
+    canvasIsFocused = false;
+    hideCrosshairs();
+
+    // Unset all pressed keys so they don't get "stuck"
+    paintKeyDown = false;
+    shiftKeyDown = false;
+    ctrlKeyDown = false;
+    arrowKeysDown.left = false;
+    arrowKeysDown.right = false;
+    arrowKeysDown.up = false;
+    arrowKeysDown.down = false;
+  });
 }
 
-function updateBrushPositionUsingKeyboard() {
+//=====================================
+//  Keyboard controls
+//=====================================
+function updateBrushUsingKeyboard() {
   let xDelta = 0,
       yDelta = 0;
 
+  // Left and right arrows have no alternative functions, so they can move the brush directly.
   if(arrowKeysDown.left)  { xDelta -= stepSize; }
   if(arrowKeysDown.right) { xDelta += stepSize; }
-  if(arrowKeysDown.up)    { yDelta -= stepSize; }
-  if(arrowKeysDown.down)  { yDelta += stepSize; }
+
+  // Up arrow moves brush up or increases the brush size when Ctrl is pressed.
+  if(arrowKeysDown.up) {
+    if(ctrlKeyDown) {
+      increaseBrushRadius();
+    } else {
+      yDelta -= stepSize;
+    }
+  }
+
+  // Down arrow moves brush down or decreases the brush size when Ctrl is pressed.
+  if(arrowKeysDown.down) {
+    if(ctrlKeyDown) {
+      decreaseBrushRadius();
+    } else {
+      yDelta += stepSize;
+    }
+  }
 
   // Move faster using larger steps when Shift is pressed.
   if(shiftKeyDown) {
@@ -400,87 +555,68 @@ function updateBrushPositionUsingKeyboard() {
     yDelta *= stepSizeMultiplier;
   }
 
-  let newX = position.x + xDelta,
-      newY = position.y + yDelta,
+  let newX = lastMousePosition.x + xDelta,
+      newY = lastMousePosition.y + yDelta,
       rightSide = _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width / window.devicePixelRatio,
       bottomSide = _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height / window.devicePixelRatio;
 
   // Clamp crosshairs to the canvas bounds.
-  if(newX > rightSide) { newX = rightSide; } 
+  if(newX > rightSide) { newX = rightSide; }
   else if(newX < 0) { newX = 0; }
 
   if(newY > bottomSide) { newY = bottomSide; }
   else if(newY < 0) { newY = 0; }
 
-  // Handle horizontal movement.
-  if(position.x != newX) {
-    showCrosshairs();
-    position.x = newX;
-    yAxisCrosshair.style.left = position.x + 'px';
+  if(lastMousePosition.x != newX || lastMousePosition.y != newY) {
+    alignReticle();
+    alignCrosshairs();
 
-    brushIndicator.style.display = 'block';
-    brushIndicator.style.left = ((position.x - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) + 1) + 'px';
-  }
-  
-  // Handle vertical movement.
-  if(position.y != newY) {
     showCrosshairs();
-    position.y = newY;
-    xAxisCrosshair.style.top = position.y + 'px';
+    showReticle();
 
-    brushIndicator.style.display = 'block';
-    brushIndicator.style.top = ((position.y - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) + 1) + 'px';
+    // Handle horizontal movement
+    if(lastMousePosition.x != newX) {
+      lastMousePosition.x = newX;
+    }
+
+    // Handle vertical movement.
+    if(lastMousePosition.y != newY) {
+      lastMousePosition.y = newY;
+    }
   }
 
   // If the "paint" key is down, pass the tracked X/Y position to the frag shader
   if(paintKeyDown) {
-    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = position.x / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) * window.devicePixelRatio;
-    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = 1 - position.y / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * window.devicePixelRatio;
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = lastMousePosition.x / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) * window.devicePixelRatio;
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = 1 - lastMousePosition.y / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * window.devicePixelRatio;
   }
 }
 
-function alignBrushWithMouse(e = null) {
-  const mouseX = e != null ? e.offsetX : 0,
-        mouseY = e != null ? e.offsetY : 0,
-        newX = mouseX,
-        newY = mouseY,
-        leftSide = window.innerWidth/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
-        rightSide = window.innerWidth/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].width/2,
-        topSide = window.innerHeight/2 - _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2,
-        bottomSide = window.innerHeight/2 + _entry__WEBPACK_IMPORTED_MODULE_1__["canvas"].height/2;
-
-  // Hide the crosshairs, since they are more useful to keyboard users, and this function will only be called for mouse users.
-  hideCrosshairs();
-
-  // Only align the indicator circle with the mouse inside the <canvas> element
-  if(newX > leftSide && newX < rightSide && newY > topSide && newY < bottomSide) {
-    position.x = newX;
-    position.y = newY;
-
-    xAxisCrosshair.style.top = position.y + 'px';
-    yAxisCrosshair.style.left = position.x + 'px';
-
-    brushIndicator.style.display = 'block';
-    brushIndicator.style.top = (position.y - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
-    brushIndicator.style.left = (position.x - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
-
-    // If the left mouse button is down, pass the mouse's X/Y position to the frag shader
-    if(mouseDown) {
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.x = position.x / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * window.devicePixelRatio;
-      _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushPosition.value.y = 1 - position.y / _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * window.devicePixelRatio;
-    }
-  } else {
-    brushIndicator.style.display = 'none';
+//=====================================
+//  Brush radius functions
+//=====================================
+function increaseBrushRadius() {
+  if(_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value + brushStepSize < 100) {
+    const adjustedBrushStepSize = ctrlKeyDown ? brushStepSize/10 : brushStepSize;
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value += adjustedBrushStepSize;
+    refreshReticle();
   }
 }
 
-function setBrushSize(e = null) {
-  // Resize the brush indicator circle
-  brushIndicator.style.width = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2 * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
-  brushIndicator.style.height = (_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2 * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+function decreaseBrushRadius() {
+  if(_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value - brushStepSize > brushStepSize) {
+    const adjustedBrushStepSize = ctrlKeyDown ? brushStepSize/10 : brushStepSize;
+    _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value -= adjustedBrushStepSize;
+    refreshReticle();
+  }
+}
 
-  // Realign the brush indicator circle with the mouse cursor
-  alignBrushWithMouse(e);
+//=====================================
+//  Crosshair functions
+//=====================================
+function alignCrosshairs() {
+  xAxisCrosshair.style.top = lastMousePosition.y + 'px';
+  yAxisCrosshair.style.left = lastMousePosition.x + 'px';
 }
 
 function showCrosshairs() {
@@ -493,19 +629,34 @@ function hideCrosshairs() {
   yAxisCrosshair.style.display = 'none';
 }
 
-function setBrushPosition(x, y) {
-  if(!xAxisCrosshair && !yAxisCrosshair && !brushIndicator) {
-    return;
+//=====================================
+//  Reticle functions
+//=====================================
+function refreshReticle() {
+  // Resize and reticle circle and re-align it with the mouse.
+  if(reticleCircle !== undefined) {
+    reticleCircle.style.width = (((_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2) / window.devicePixelRatio) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+    reticleCircle.style.height = (((_uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value * 2) / window.devicePixelRatio) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+    alignReticle();
   }
-  
-  position.x = x;
-  position.y = y;
 
-  xAxisCrosshair.style.top = position.y + 'px';
-  yAxisCrosshair.style.left = position.x + 'px';
+  // Align the crosshairs with the mouse
+  if(xAxisCrosshair !== undefined && yAxisCrosshair !== undefined) {
+    alignCrosshairs();
+  }
+}
 
-  brushIndicator.style.left = ((position.x - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) + 1) + 'px';
-  brushIndicator.style.top = ((position.y - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) + 1) + 'px';
+function alignReticle() {
+  reticleCircle.style.left = ((lastMousePosition.x - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value / window.devicePixelRatio) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value)) + 'px';
+  reticleCircle.style.top = ((lastMousePosition.y - _uniforms__WEBPACK_IMPORTED_MODULE_0__["simulationUniforms"].brushRadius.value / window.devicePixelRatio) * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value) ) + 'px';
+}
+
+function showReticle() {
+  reticleCircle.style.display = 'block';
+}
+
+function hideReticle() {
+  reticleCircle.style.display = 'none';
 }
 
 /***/ }),
@@ -614,7 +765,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./ui */ "./js/ui.js");
 /* harmony import */ var _keyboard__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./keyboard */ "./js/keyboard.js");
 /* harmony import */ var _brush__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./brush */ "./js/brush.js");
-/* harmony import */ var _helpDialog__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./helpDialog */ "./js/helpDialog.js");
+/* harmony import */ var _aboutDialog__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./aboutDialog */ "./js/aboutDialog.js");
 /* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
 /* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
 /* harmony import */ var _rules__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./rules */ "./js/rules.js");
@@ -642,10 +793,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 let canvas, scene, camera, renderer, mesh;
-let bufferCanvas, canvasIsFocused;
+let bufferCanvas;
 
 //==============================================================
-//  SEIZURE WARNING
+//  SEIZURE WARNING MODAL DIALOG
 //==============================================================
 // Only show the warning if the "don't ask again" checkbox has not been used previously
 if(!window.localStorage.getItem('skipWarning')) {
@@ -674,8 +825,8 @@ function initialize() {
   Object(_ui__WEBPACK_IMPORTED_MODULE_7__["setupUI"])();
   setup();
   Object(_keyboard__WEBPACK_IMPORTED_MODULE_8__["setupKeyboard"])();
-  Object(_brush__WEBPACK_IMPORTED_MODULE_9__["setupBrushIndicator"])();
-  Object(_helpDialog__WEBPACK_IMPORTED_MODULE_10__["setupHelpDialog"])();
+  Object(_brush__WEBPACK_IMPORTED_MODULE_9__["setupBrush"])();
+  Object(_aboutDialog__WEBPACK_IMPORTED_MODULE_10__["setupAboutDialog"])();
   update();
 }
 
@@ -700,7 +851,10 @@ function setup() {
   scene.add(mesh);
 
   // Set up the renderer (a WebGL context inside a <canvas>)
-  renderer = new three__WEBPACK_IMPORTED_MODULE_0__["WebGLRenderer"]({ preserveDrawingBuffer: true });
+  renderer = new three__WEBPACK_IMPORTED_MODULE_0__["WebGLRenderer"]({
+    canvas: document.querySelector('#canvas'),
+    preserveDrawingBuffer: true
+  });
   renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
 
   // Uncomment this line to see how many shader varyings your GPU supports.
@@ -708,35 +862,18 @@ function setup() {
 
   // Grab the <canvas> element generated by the renderer and inject it into the DOM
   canvas = renderer.domElement;
-  canvas.setAttribute('tabindex', 0);
-  // canvas.setAttribute('aria-label', '[description of keyboard controls]');
-
-  let canvasWrapper = document.createElement('div');
-  canvasWrapper.classList.add('canvas-wrapper');
-  canvasWrapper.appendChild(canvas);
-  document.getElementById('container').appendChild(canvasWrapper);
-
-  canvas.addEventListener('focus', () => { 
-    canvasIsFocused = true;
-    Object(_brush__WEBPACK_IMPORTED_MODULE_9__["showCrosshairs"])();
-  });
-
-  canvas.addEventListener('blur',  () => { 
-    canvasIsFocused = false;
-    Object(_brush__WEBPACK_IMPORTED_MODULE_9__["hideCrosshairs"])();
-  });
 
   // Update the renderer dimensions whenever the browser is resized
   window.addEventListener('resize', resetTextureSizes, false);
   resetTextureSizes();
 
-  // Set the color palette
+  // Set the initial color palette
   Object(_colors__WEBPACK_IMPORTED_MODULE_14__["setColors"])();
 
-  // Set the rule that the shader should run
+  // Set the initial rule
   Object(_rules__WEBPACK_IMPORTED_MODULE_13__["setRuleFromString"])(_presets__WEBPACK_IMPORTED_MODULE_3__["default"]['Life']['Conway\'s Game of Life']);
 
-  // Set up and render the first frame
+  // Before the simulation runs, pre-populate the canvas with some data
   Object(_patterns__WEBPACK_IMPORTED_MODULE_12__["drawPattern"])();
 }
 
@@ -770,12 +907,6 @@ function setup() {
     bufferCanvas = document.querySelector('#buffer-canvas');
     bufferCanvas.width = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value);
     bufferCanvas.height = _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value * (1/_variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.scale.value);
-
-    // Move the brush to the center to make sure it's within the new canvas bounds
-    Object(_brush__WEBPACK_IMPORTED_MODULE_9__["setBrushPosition"])(
-      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.width.value/2 / window.devicePixelRatio, 
-      _variables__WEBPACK_IMPORTED_MODULE_2__["default"].canvas.height.value/2 / window.devicePixelRatio
-    );
   }
 
 
@@ -788,9 +919,8 @@ function update() {
     iterate(_globals__WEBPACK_IMPORTED_MODULE_1__["default"].pingPongSteps);
   }
 
-  if(!_brush__WEBPACK_IMPORTED_MODULE_9__["mouseIsMoving"] && canvasIsFocused) {
-    Object(_brush__WEBPACK_IMPORTED_MODULE_9__["updateBrushPositionUsingKeyboard"])();
-  }
+  // Update the brush based on keyboard inputs (if any)
+  Object(_brush__WEBPACK_IMPORTED_MODULE_9__["updateBrushUsingKeyboard"])();
 
   // Update the stats (like the FPS counter)
   Object(_ui_analysis__WEBPACK_IMPORTED_MODULE_15__["updateStats"])();
@@ -850,68 +980,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./js/helpDialog.js":
-/*!**************************!*\
-  !*** ./js/helpDialog.js ***!
-  \**************************/
-/*! exports provided: setupHelpDialog, showHelpDialog, hideHelpDialog */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupHelpDialog", function() { return setupHelpDialog; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showHelpDialog", function() { return showHelpDialog; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideHelpDialog", function() { return hideHelpDialog; });
-
-let helpDialogTriggerButton,
-    helpDialog, closeButton, dialogContent,
-    firstFocusableElement, lastFocusableElement,
-    keyboardListener;
-
-function setupHelpDialog() {
-  helpDialogTriggerButton = document.querySelector('.help-button');
-  helpDialog = document.getElementById('help-dialog');
-  closeButton = helpDialog.querySelector('.close-button');
-  dialogContent = helpDialog.querySelector('.content');
-  firstFocusableElement = closeButton;
-  lastFocusableElement = closeButton;
-
-  closeButton.addEventListener('click', hideHelpDialog);
-
-  helpDialog.addEventListener('click', (e) => {
-    if(!dialogContent.contains(e.target)) {
-      hideHelpDialog();
-    }
-  });
-}
-
-function showHelpDialog() {
-  helpDialog.classList.add('is-visible');
-  closeButton.focus();
-
-  keyboardListener = dialogContent.addEventListener('keydown', (e) => {
-    if(e.key == 'Escape') {
-      hideHelpDialog();
-    } else if(e.key == 'Tab') {
-      if(document.activeElement == lastFocusableElement && !e.shiftKey) {
-        e.preventDefault();
-        firstFocusableElement.focus();
-      } else if(document.activeElement == firstFocusableElement && e.shiftKey) {
-        e.preventDefault();
-        lastFocusableElement.focus();
-      }
-    }
-  });
-}
-
-function hideHelpDialog() {
-  dialogContent.removeEventListener('keydown', keyboardListener);
-  helpDialog.classList.remove('is-visible');
-  helpDialogTriggerButton.focus();
-}
-
-/***/ }),
-
 /***/ "./js/keyboard.js":
 /*!************************!*\
   !*** ./js/keyboard.js ***!
@@ -922,7 +990,7 @@ function hideHelpDialog() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupKeyboard", function() { return setupKeyboard; });
-/* harmony import */ var _helpDialog__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./helpDialog */ "./js/helpDialog.js");
+/* harmony import */ var _aboutDialog__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./aboutDialog */ "./js/aboutDialog.js");
 /* harmony import */ var _patterns__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./patterns */ "./js/patterns.js");
 /* harmony import */ var _renderTargets__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./renderTargets */ "./js/renderTargets.js");
 /* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ui */ "./js/ui.js");
@@ -956,7 +1024,7 @@ function setupKeyboard() {
         break;
 
       case 'h':
-        Object(_helpDialog__WEBPACK_IMPORTED_MODULE_0__["showHelpDialog"])();
+        Object(_aboutDialog__WEBPACK_IMPORTED_MODULE_0__["showAboutDialog"])();
         break;
     }
   });
@@ -1090,7 +1158,6 @@ const InitialPatternTypes = [
   'Circle',
   'Rectangle',
   'Text',
-  'Image',
   'Random'
 ];
 
@@ -1157,18 +1224,6 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].a
       renderInitialDataToRenderTargets( convertPixelsToTextureData() );
       break;
 
-    case 'Image':
-      if(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.image != null) {
-        getImagePixels(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.image, centerX, centerY)
-          .then((initialData) => {
-            renderInitialDataToRenderTargets(initialData);
-          })
-          .catch(error => console.error(error));
-      } else {
-        alert('Upload an image using the button first!');
-      }
-      break;
-
     case 'Random':
       let pixels = bufferCanvasCtx.getImageData(0, 0, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width.value, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height.value);
 
@@ -1218,59 +1273,6 @@ function drawPattern(type = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].a
     // Set the render target back to the default display buffer and render the first frame
     _entry__WEBPACK_IMPORTED_MODULE_3__["renderer"].setRenderTarget(null);
     _entry__WEBPACK_IMPORTED_MODULE_3__["renderer"].render(_entry__WEBPACK_IMPORTED_MODULE_3__["scene"], _entry__WEBPACK_IMPORTED_MODULE_3__["camera"]);
-  }
-
-  function getImagePixels(imageData, centerX, centerY) {
-    // Create an asynchronous Promise that can be used to wait for the image to load
-    return new Promise((resolve) => {
-      bufferImage.src = imageData;
-
-      bufferImage.addEventListener('load', () => {
-        bufferCanvasCtx.translate(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale, _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale);
-        bufferCanvasCtx.rotate(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.rotation * Math.PI / 180);
-        bufferCanvasCtx.translate(-_variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale, -_variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height/2 * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale);
-
-        let startX, startY, width, height;
-
-        switch(_variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.fit) {
-          // None - use the image's true dimensions
-          case 0:
-            startX = centerX - bufferImage.width/2;
-            startY = centerY - bufferImage.height/2;
-            width = bufferImage.width * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale;
-            height = bufferImage.height * _variables__WEBPACK_IMPORTED_MODULE_5__["default"].patterns.image.scale;
-            break;
-
-          // Scale - scale the image up or down to fit the canvas without stretching
-          // https://stackoverflow.com/a/50165098
-          case 1:
-            const widthRatio = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width / bufferImage.width,
-                  heightRatio = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height / bufferImage.height,
-                  bestFitRatio = Math.min(widthRatio, heightRatio),
-                  scaledWidth = bufferImage.width * bestFitRatio,
-                  scaledHeight = bufferImage.height * bestFitRatio;
-
-            startX = centerX - scaledWidth/2;
-            startY = centerY - scaledHeight/2;
-            width = scaledWidth;
-            height = scaledHeight;
-            break;
-
-          // Stretch
-          case 2:
-            startX = 0;
-            startY = 0;
-            width = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.width;
-            height = _variables__WEBPACK_IMPORTED_MODULE_5__["default"].canvas.height;
-            break;
-        }
-
-        bufferCanvasCtx.drawImage(bufferImage, startX, startY, width, height);
-
-        bufferCanvasCtx.resetTransform();
-        resolve(convertPixelsToTextureData());
-      });
-    });
   }
 
   // Convert 8-bit color pixel data into normalized float values that the shaders can use
@@ -1729,7 +1731,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ui_survival__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./ui/survival */ "./js/ui/survival.js");
 /* harmony import */ var _ui_pattern__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./ui/pattern */ "./js/ui/pattern.js");
 /* harmony import */ var _ui_canvas__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./ui/canvas */ "./js/ui/canvas.js");
-/* harmony import */ var _helpDialog__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./helpDialog */ "./js/helpDialog.js");
+/* harmony import */ var _aboutDialog__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./aboutDialog */ "./js/aboutDialog.js");
 /* harmony import */ var _ui_analysis__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./ui/analysis */ "./js/ui/analysis.js");
 
 
@@ -1745,14 +1747,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-let mainWrapper,
-    leftPanel, rightPanel, centerControlsWrapper,
+let leftPanel, rightPanel, centerControlsWrapper,
     toggleUIButton;
 let isUIVisible = true;
 
 function setupUI() {
-  mainWrapper = document.querySelector('main');
-
   setupLeftPanel();
   setupCenterControls();
   setupRightPanel();
@@ -1769,7 +1768,7 @@ function setupUI() {
     leftPanel.appendChild(Object(_ui_history__WEBPACK_IMPORTED_MODULE_1__["createHistoryGroup"])());
     leftPanel.appendChild(Object(_ui_analysis__WEBPACK_IMPORTED_MODULE_11__["createAnalysisGroup"])());
 
-    mainWrapper.appendChild(leftPanel);
+    document.querySelector('#left-panel-container').appendChild(leftPanel);
   }
 
   function setupRightPanel() {
@@ -1781,7 +1780,7 @@ function setupUI() {
     rightPanel.appendChild(Object(_ui_canvas__WEBPACK_IMPORTED_MODULE_9__["createCanvasGroup"])());
     rightPanel.appendChild(Object(_ui_controls__WEBPACK_IMPORTED_MODULE_3__["createControlsGroup"])());
 
-    mainWrapper.appendChild(rightPanel);
+    document.querySelector('#right-panel-container').appendChild(rightPanel);
   }
 
   function setupCenterControls() {
@@ -1806,11 +1805,11 @@ function setupUI() {
 
     // About button
     let aboutButton = document.createElement('button');
-    aboutButton.classList.add('help-button');
+    aboutButton.classList.add('about-button');
     aboutButton.setAttribute('title', 'Learn more about this app');
     aboutButton.innerHTML = '<span class="fas fa-question" aria-hidden="true"></span><span class="sr-only">Learn more about this app</span>';
 
-    aboutButton.addEventListener('click', _helpDialog__WEBPACK_IMPORTED_MODULE_10__["showHelpDialog"]);
+    aboutButton.addEventListener('click', _aboutDialog__WEBPACK_IMPORTED_MODULE_10__["showAboutDialog"]);
 
     // Github link
     let githubLink = document.createElement('a');
@@ -1824,7 +1823,7 @@ function setupUI() {
     centerControlsWrapper.appendChild(aboutButton);
     centerControlsWrapper.appendChild(githubLink);
 
-    mainWrapper.appendChild(centerControlsWrapper);
+    document.querySelector('#center-controls-container').appendChild(centerControlsWrapper);
   }
 
 function toggleUI() {
@@ -2031,7 +2030,7 @@ function createCanvasGroup() {
           _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.height.value = _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.unmaximizedSize.height;
         }
 
-        Object(_brush__WEBPACK_IMPORTED_MODULE_5__["setBrushSize"])();
+        Object(_brush__WEBPACK_IMPORTED_MODULE_5__["refreshReticle"])();
         Object(_entry__WEBPACK_IMPORTED_MODULE_2__["resetTextureSizes"])();
         window.dispatchEvent(new Event('rebuildUI'));
       })
@@ -2061,7 +2060,7 @@ function createCanvasGroup() {
     group.appendChild(
       Object(_components__WEBPACK_IMPORTED_MODULE_1__["createSlider"])('Scale', _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.min, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.max, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.stepSize, _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value, (e) => {
         _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value = e.target.value;
-        Object(_brush__WEBPACK_IMPORTED_MODULE_5__["setBrushSize"])();
+        Object(_brush__WEBPACK_IMPORTED_MODULE_5__["refreshReticle"])();
 
         _uniforms__WEBPACK_IMPORTED_MODULE_3__["simulationUniforms"].resolution.value = new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](
           _variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.width.value * (1/_variables__WEBPACK_IMPORTED_MODULE_4__["default"].canvas.scale.value),
@@ -3112,13 +3111,6 @@ function createPatternGroup() {
           })
         );
 
-        break;
-
-      case 'Image':
-        // File upload
-        // Position - x and y sliders
-        // Rotation - slider
-        // Scale - slider
         break;
 
       case 'Random':
